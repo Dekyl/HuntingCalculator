@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowIcon(QIcon(".\\assets\matchlock.ico"))
+        self.setWindowIcon(QIcon("./res/matchlock.ico"))
 
         self.setWindowTitle("Hunting Calculator")
         self.resize(QSize(1800, 900))
@@ -126,11 +126,9 @@ class MainWindow(QMainWindow):
         # Stylesheet used in all textfields
         style = "background-color: rgba(255,255,255,0.2); border: 1px solid black; border-radius: 4px"
 
-        with open('./assets/data.json', 'r') as file:
+        with open('./res/data.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
             prices = data['prices']
-
-        file.close()
 
         for i in range(len(self.labels_input)):
             self.inputs_input.append(QLineEdit())
@@ -295,7 +293,7 @@ class MainWindow(QMainWindow):
         if save_excel(self.labels_input_text, self.data_input, labels_res, self.results_tot, self.results_tot_h, self.results_tax, self.results_tax_h) == -1:
             dialog = QMessageBox()
             dialog.setWindowTitle("Error")
-            dialog.setWindowIcon(QIcon(".\\assets\matchlock.ico"))
+            dialog.setWindowIcon(QIcon("./res/matchlock.ico"))
             dialog.setIcon(QMessageBox.Icon.Critical)
             dialog.setText("Error saving data, wrong data")
 

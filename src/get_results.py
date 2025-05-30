@@ -17,7 +17,7 @@ n_breath_bought = 0
 
 def update_data():
     global market_tax, value_pack, prices, price_master_special_stuffed, elixirs_cost, price_master_stuffed, breath_of_narcion_price
-    with open('./assets/data.json', 'r') as file:
+    with open('./res/data.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
 
         market_tax = data['market_tax']
@@ -27,7 +27,6 @@ def update_data():
         price_master_stuffed = data['price_master_stuffed']
         elixirs_cost = data['elixirs_cost']
 
-    file.close()
     breath_of_narcion_price = prices[9]
 
 def check_data_received(data_input):

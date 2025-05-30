@@ -3,3 +3,5 @@ Hunting Sessions
 .vscode
 data.json
 *.exe
+*.zip
+*.tar.gz

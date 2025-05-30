@@ -114,7 +114,7 @@ def update_prices(items_ids, elixirs_ids, prices, data):
     connection.close()
 
 def search_prices():
-    with open('./assets/data.json', 'r') as file:
+    with open('./res/data.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     items_ids = data['items_ids']
@@ -122,8 +122,6 @@ def search_prices():
     elixirs_ids = data['elixirs_ids']
 
     update_prices(items_ids, elixirs_ids, prices, data)
-    
-    file.close()
 
-    with open('./assets/data.json', 'w') as file:
-        json.dump(data, file)
+    with open('./res/data.json', 'w', encoding='utf-8') as file:
+        json.dump(data, file, indent=4)
