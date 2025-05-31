@@ -17,6 +17,12 @@ class MainWindow(QMainWindow):
         self.resize(QSize(1800, 900))
         self.setMinimumSize(QSize(400, 300))
         self.move(60, 60)
+        self.setStyleSheet("""
+            QWidget {
+                color: black;
+                background-color: #5A9200;
+            }
+        """)
         
         main_widget = QWidget()
         main_layout = QVBoxLayout()
