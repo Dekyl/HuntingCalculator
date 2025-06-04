@@ -1,4 +1,6 @@
-import logging, os, shutil
+import logging, os
+
+threshold_delete_logs = 1024 * 1024  # 1 MB
 
 logger = logging.getLogger('logs_app')
 logger.setLevel(logging.INFO)
@@ -12,11 +14,12 @@ def setup_logs():
     Setup the logging configuration for the application.
     This function initializes the logger with a specific format and level.
     """
-    if os.path.exists('logs'):
-        add_log("Removing old logs directory...", "info")
-        shutil.rmtree('logs')
+    os.makedirs('logs', exist_ok=True) # Ensure the logs directory exists
 
-    os.makedirs('logs', exist_ok=True)
+    if os.path.exists('logs/logs.log'):
+        file_size = os.path.getsize('logs/logs.log')
+        if file_size > threshold_delete_logs:
+            os.remove('logs/logs.log')
 
     if not logger.hasHandlers():
         handler = logging.FileHandler('./logs/logs.log', mode='a')

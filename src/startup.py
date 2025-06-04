@@ -12,7 +12,7 @@ def setup_all() -> bool:
     """
     setup_logs()
 
-    add_log("Setting up all components for the application\n", "info")
+    add_log("Starting APP - Setting up all components\n", "info")
     add_log("Preparing resources...", "info")
     prepare_resources()
     add_log("Getting actual item prices...", "info")
