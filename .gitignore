@@ -6,3 +6,4 @@ data.json
 *.zip
 *.tar.gz
 dist/
+logs/

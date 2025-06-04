@@ -38,3 +38,12 @@ Clone repository:
 ```bash
 git clone https://github.com/Dekyl/HuntingCalculator.git
 cd HuntingCalculator
+```
+
+## 🔨 Build
+
+Build .exe file:
+
+```bash
+./autobuild.bat
+```

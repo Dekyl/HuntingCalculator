@@ -1,35 +1,45 @@
 import json
+from logs import add_log
 
-market_tax = 0
-value_pack = 0
-prices = 0
-price_master_special_stuffed = 0
-price_master_stuffed = 0
-elixirs_cost = 0
-hours = 1
-results_tot = 0
-results_tax = 0
-gains_per_item = []
-results_tot_percentage = 0
-breath_of_narcion_price = 0
-n_breath_bought = 0
+market_tax:int = 0
+value_pack:int = 0
+prices:list[int] = []
+price_master_special_stuffed:int = 0
+price_master_stuffed:int = 0
+elixirs_cost:int = 0
+hours:int = 1
+results_tot:int = 0
+results_tax:int = 0
+gains_per_item:list[int] = []
+results_tot_percentage:int = 0
+breath_of_narcion_price:int = 0
+n_breath_bought:int = 0
 #diff_profit_processed = 43000000
 
-def update_data():
+def load_data() -> bool:
+    """
+    Load the data from the JSON file and initialize global variables.
+    """
     global market_tax, value_pack, prices, price_master_special_stuffed, elixirs_cost, price_master_stuffed, breath_of_narcion_price
-    with open('./res/data.json', 'r', encoding='utf-8') as file:
-        data = json.load(file)
+    try:
+        with open('./res/data.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
 
-        market_tax = data['market_tax']
-        value_pack = data['value_pack']
-        prices = data['prices']
-        price_master_special_stuffed = data['price_master_special_stuffed']
-        price_master_stuffed = data['price_master_stuffed']
-        elixirs_cost = data['elixirs_cost']
+            market_tax = data['market_tax']
+            value_pack = data['value_pack']
+            prices = data['prices']
+            price_master_special_stuffed = data['price_master_special_stuffed']
+            price_master_stuffed = data['price_master_stuffed']
+            elixirs_cost = data['elixirs_cost']
 
-    breath_of_narcion_price = prices[9]
+        breath_of_narcion_price = prices[9]
+    except FileNotFoundError:
+        add_log("Data JSON file not found. Please ensure that 'data.json' exists in the 'res' directory.", "error")
+        return False
+    
+    return True
 
-def check_data_received(data_input):
+def check_data_received(data_input: list[str]) -> bool:
     for i in range(len(data_input)):
         val = data_input[i]
         for j in range(len(val)):
@@ -37,7 +47,7 @@ def check_data_received(data_input):
                 return False
     return True
 
-def results_total(data_input):
+def results_total(data_input: list[str]) -> int:
     global hours, results_tot, gains_per_item, results_tot_percentage, n_breath_bought
     
     results_tot = 0
@@ -110,21 +120,21 @@ def results_total(data_input):
 
     return results_tot - elixirs_cost*hours - breath_of_narcion_price*n_breath_bought
 
-def results_h():
+def results_h() -> int:
     return int((results_tot - elixirs_cost*hours - breath_of_narcion_price*n_breath_bought)/hours)
 
-def results_taxed():
+def results_taxed() -> int:
     global results_tax
     results_tax = 0
     results_tax = results_tot*(1-market_tax)
     results_tax += results_tax*value_pack
     return int(results_tax - elixirs_cost*hours - breath_of_narcion_price*n_breath_bought)
 
-def results_taxed_h():
+def results_taxed_h() -> int:
     return int((results_tax - elixirs_cost*hours - breath_of_narcion_price*n_breath_bought)/hours)
 
-def get_gains_per_item():
+def get_gains_per_item() -> list[int]:
     return gains_per_item
 
-def get_results_tot_percentage():
+def get_results_tot_percentage() -> int:
     return results_tot_percentage

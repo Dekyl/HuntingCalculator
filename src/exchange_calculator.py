@@ -1,4 +1,10 @@
-def exchange_results(green, blue):
+def exchange_results(green: int, blue: int) -> tuple[int, int, int]:
+    """
+    Calculate the number of exchanges possible with given green and blue resources to obtain maximum profit.
+        :param green: The initial amount of green resources.
+        :param blue: The initial amount of blue resources.
+        :return: A tuple containing the number of exchanges, the final amount of green resources, and the final amount of blue resources.
+    """
     try:
         count = 0
         while True:
@@ -11,4 +17,4 @@ def exchange_results(green, blue):
 
         return (count*30, green, blue)
     except:
-        return 0
+        return (0, green, blue)

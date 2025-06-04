@@ -1,7 +1,19 @@
 from datetime import datetime
 import openpyxl, os
+from logs import add_log
 
-def save_excel(labels_input, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h):
+def save_results(labels_input: list[str], data_input: list[str], labels_res:list[str], results_tot:int, results_tot_h:int, results_tax:int, results_tax_h:int):
+    """
+    Save the results of a hunting session to an Excel file.
+    :param labels_input: List of labels for the input data.
+    :param data_input: List of input data values.
+    :param labels_res: List of labels for the results.
+    :param results_tot: Total results.
+    :param results_tot_h: Total results per hour.
+    :param results_tax: Total results after tax.
+    :param results_tax_h: Total results after tax per hour.
+    :return: -1 if an error occurs, otherwise None.
+    """
     try:
         int(data_input[-1])
     except:
@@ -45,12 +57,35 @@ def save_excel(labels_input, data_input, labels_res, results_tot, results_tot_h,
         worksheet[cell_data_res] = dic_results[i]
 
     workbook.save(filename=path)
+
+    log_message = (
+        f"\tResults saved in {path}\n"
+        f"\tInput Labels: {labels_input}\n"
+        f"\tInput Data: {data_input}\n"
+        f"\tResult Labels: {labels_res}\n"
+        f"\tTotal Results: {results_tot:,}\n"
+        f"\tResults per Hour: {results_tot_h:,}\n"
+        f"\tResults after Tax: {results_tax:,}\n"
+        f"\tResults after Tax per Hour: {results_tax_h:,}"
+    )
+    add_log(log_message, "info")
+
     return save_average(results_tax_h, int(data_input[-1]), labels_input, data_input)
 
-def save_average(results_tax_h, hours_session, labels_input, data_input):
+def save_average(results_tax_h:int, hours_session:int, labels_input:list[str], data_input:list[str]):
+    """
+    Updates the average results of hunting sessions saved into the excel file.
+    :param results_tax_h: Average results after tax per hour.
+    :param hours_session: Total hours of the session.
+    :param labels_input: List of labels for the input data.
+    :param data_input: List of input data values.
+    :return: None if successful, -1 if an error occurs.
+    """
     path = "./Hunting Sessions/average_results.xlsx"
 
-    if not os.path.exists(path):
+    if not os.path.exists(path): # If the file does not exist, create it
+        if hours_session <= 0 or len(labels_input) != len(data_input):
+            return -1
         workbook = openpyxl.Workbook()
         worksheet = workbook["Sheet"]
 

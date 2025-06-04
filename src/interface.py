@@ -2,13 +2,17 @@ from PyQt6.QtWidgets import QGridLayout, QMessageBox, QWidget, QLineEdit, QLabel
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QIcon
 
+from logs import add_log
 from get_results import *
-from save_results import *
+from save_results_excel import save_results
 from exchange_calculator import exchange_results
 from get_percentage import get_percentage_item
 
 class MainWindow(QMainWindow):
     def __init__(self):
+        """
+        Initializes the main window of the Hunting Calculator application.
+        """
         super().__init__()
 
         self.setWindowIcon(QIcon("./res/matchlock.ico"))
@@ -81,7 +85,7 @@ class MainWindow(QMainWindow):
             }""")
         self.save_button.setDisabled(True)
         self.save_button.setFixedSize(250, 50)
-        self.save_button.clicked.connect(self.save_excel)
+        self.save_button.clicked.connect(self.save_excel) # type: ignore
         save_but_widget = QWidget()
         save_but_widget.setFixedHeight(100)
         save_but_lay = QHBoxLayout()
@@ -125,7 +129,7 @@ class MainWindow(QMainWindow):
         ]
 
         # Data input fields
-        self.inputs_input = []
+        self.inputs_input: list[QLineEdit] = []
         
         # Column where to place next element
         col = 0
@@ -144,7 +148,7 @@ class MainWindow(QMainWindow):
             self.inputs_input[i].setMinimumHeight(30)
             self.inputs_input[i].setStyleSheet(style)
             # Connects each input with result outputs fields
-            self.inputs_input[i].textChanged.connect(self.check_data)
+            self.inputs_input[i].textChanged.connect(self.check_data) # type: ignore
 
             if i < 7:
                 inputs_layout.addWidget(self.labels_input[i], 0, col, Qt.AlignmentFlag.AlignBottom)
@@ -207,8 +211,8 @@ class MainWindow(QMainWindow):
         self.blue_exchange_input.setContentsMargins(25, 0, 0, 0)
 
         # Connects each input field with the function that resolves the request
-        self.green_exchange_input.textChanged.connect(self.exchange_hides)
-        self.blue_exchange_input.textChanged.connect(self.exchange_hides)
+        self.green_exchange_input.textChanged.connect(self.exchange_hides) # type: ignore
+        self.blue_exchange_input.textChanged.connect(self.exchange_hides) # type: ignore
 
         exchange_layout.addWidget(self.green_exchange_input, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
         exchange_layout.addWidget(self.blue_exchange_input, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -233,7 +237,7 @@ class MainWindow(QMainWindow):
             QLabel("Total Profit/h")
         ]
         
-        self.inputs_result = []
+        self.inputs_result: list[QLineEdit] = []
 
         for i in range(len(self.labels_result)):
             self.inputs_result.append(QLineEdit())
@@ -247,7 +251,10 @@ class MainWindow(QMainWindow):
             results_layout.addWidget(self.labels_result[i], 2, i, Qt.AlignmentFlag.AlignBottom)
             results_layout.addWidget(self.inputs_result[i], 3, i, Qt.AlignmentFlag.AlignTop)
 
-    def exchange_hides(self):
+    def exchange_hides(self) -> None:
+        """
+        Calculates the exchange results based on the input values for green and blue hides.
+        """
         greens = self.green_exchange_input.text()
         blues = self.blue_exchange_input.text()
 
@@ -260,8 +267,11 @@ class MainWindow(QMainWindow):
             return
     
     def check_data(self):
-        self.labels_input_text = []
-        self.data_input = []
+        """
+        Checks if the input data is valid and calculates the results.
+        """
+        self.labels_input_text: list[str] = []
+        self.data_input: list[str] = []
 
         for i in range(len(self.inputs_input)):
             self.labels_input_text.append(self.labels_input[i].text())
@@ -285,25 +295,33 @@ class MainWindow(QMainWindow):
         self.show_results()
 
     def show_results(self):
+        """
+        Updates the results fields with the calculated values.
+        """
         self.inputs_result[0].setText(str(f"{self.results_tot:,}"))
         self.inputs_result[1].setText(str(f"{self.results_tot_h:,}"))
         self.inputs_result[2].setText(str(f"{self.results_tax:,}"))
         self.inputs_result[3].setText(str(f"{self.results_tax_h:,}"))
+    
+    def save_excel(self) -> None:
+        """
+        Saves the current session results to an Excel file.
+        If the save operation fails, it shows an error dialog.
+        """
+        labels_res: list[str] = []
 
-    def save_excel(self):
-        labels_res = []
+        add_log("Saving session results to Excel file", "info")
 
         for i in range(len(self.labels_result)):
             labels_res.append(self.labels_result[i].text())
 
-        if save_excel(self.labels_input_text, self.data_input, labels_res, self.results_tot, self.results_tot_h, self.results_tax, self.results_tax_h) == -1:
+        if save_results(self.labels_input_text, self.data_input, labels_res, self.results_tot, self.results_tot_h, self.results_tax, self.results_tax_h) == -1:
             dialog = QMessageBox()
             dialog.setWindowTitle("Error")
             dialog.setWindowIcon(QIcon("./res/matchlock.ico"))
             dialog.setIcon(QMessageBox.Icon.Critical)
             dialog.setText("Error saving data, wrong data")
 
-            ok_button = dialog.addButton(QMessageBox.StandardButton.Ok)
-            ok_button.clicked.connect(dialog.close)
+            dialog.addButton(QMessageBox.StandardButton.Ok)
 
             dialog.exec()

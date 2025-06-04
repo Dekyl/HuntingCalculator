@@ -1,29 +1,22 @@
 from PyQt6.QtWidgets import QApplication
 
 from interface import MainWindow
-from get_prices import search_prices
-from get_results import update_data
-from access_resources import prepare_resources
+from startup import setup_all
+from logs import add_log
 
-import sys, os
+import sys
 
 def main():
-    print("Preparing resources...\n")
-    prepare_resources()
-    print("Searching prices...\n")
-    search_prices()
-    print("Updating data...\n")
-    update_data()
-    
-    if os.path.exists('./Hunting Sessions') == False:
-        os.mkdir('Hunting Sessions')
-    
-    print("Loading app...\n")
-    app = QApplication(sys.argv)
+    """
+    Main function to start the application.
+    """
+    if not setup_all():
+        add_log("Failed to set up the application. Exiting...", "error")
+        sys.exit(1)
 
+    app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-
     app.exec()
 
 if __name__ == "__main__":
