@@ -1,4 +1,4 @@
-import pycurl, time
+import pycurl, time, os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock, Event
 from io import BytesIO
@@ -94,6 +94,10 @@ def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_
         :type cancel_event: Event
         :return: 0 on success, -1 on failure.
     """
+    if os.path.exists(save_path):
+        add_log(f"Icon for ID {id_item} already exists at {save_path}. Skipping download.", "info")
+        return 0
+
     url_icon =  f"https://api.blackdesertmarket.com/item/{id_item}/icon"
     buffer = BytesIO()
     response_code = None

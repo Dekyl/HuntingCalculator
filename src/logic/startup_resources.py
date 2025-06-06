@@ -57,36 +57,36 @@ def prepare_resources() -> bool:
             continue  # File already exists, no need to copy
 
         src_file = get_resource_MEIPASS(res_path)
-
-        if not src_file: # If the resource is not found in the MEIPASS, we check if needs to be created (.json) or generates a fatal error
-            if res_path.endswith('.json'):
-                try:
-                    if res_path == 'res/data.json':
-                        add_log(f"Resource {res_path} not found in system or MEIPASS, exiting", "error")
-                        return False
-                    elif res_path == 'res/settings.json':
-                        with open(res_path, 'w') as f:
-                            json.dump({"show_confirm_exit_message": True, 
-                                    "show_confirm_clean_message": True,
-                                    "region": "eu",
-                                    "market_tax": 0.35,
-                                    "value_pack": 0.315,
-                                    "elixir_ids": [],
-                                    "language": "en-US"
-                                    }, f, indent=4)
-                    else:
-                        add_log(f"Resource {res_path} invalid for creating or copying from MEIPASS", "error")
-                        return False
-                    add_log(f"Created JSON file: {res_path}", "info")
-                except Exception as e:
-                    add_log(f"Failed to create JSON file {res_path}: {e}", "error")
-                    return False
-                continue
-            else:
-                add_log(f"Resource {res_path} not found anywhere. Exiting.", "error")
+        if src_file: # If the resource exists in the MEIPASS, copy it to the destination path
+            try:
+                # Copy the resource from the MEIPASS to the destination path
+                shutil.copyfile(src_file, res_path)
+                add_log(f"Copied resource {res_path} from MEIPASS", "info")
+            except Exception as e:
+                add_log(f"Failed to copy resource {res_path} from MEIPASS: {e}", "error")
                 return False
+            continue
 
-        shutil.copyfile(src_file, res_path)
+        if res_path == 'res/settings.json':
+            try:
+                with open(res_path, 'w') as f:
+                    json.dump({
+                        "show_confirm_exit_message": True,
+                        "show_confirm_clean_message": True,
+                        "region": "eu",
+                        "market_tax": 0.35,
+                        "value_pack": 0.315,
+                        "elixir_ids": [],
+                        "language": "en-US"
+                    }, f, indent=4)
+                add_log(f"Created default settings.json", "info")
+            except Exception as e:
+                add_log(f"Failed to create {res_path}: {e}", "error")
+                return False
+            continue
+
+        add_log(f"Resource {res_path} not found in MEIPASS and not copied", "error")
+        return False
 
     if not os.path.exists('./Hunting Sessions'):
         os.mkdir('Hunting Sessions')
