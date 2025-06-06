@@ -1,8 +1,7 @@
 from PyQt6.QtWidgets import QApplication
 
-from interface import MainWindow
-from startup import setup_all
-from logs import add_log
+from gui.main_window import MainWindow
+from logic.startup import setup_all
 
 import sys
 
@@ -11,9 +10,7 @@ def main():
     Main function to start the application.
     """
     if not setup_all():
-        add_log("Failed to set up the application. Exiting...", "error")
-        sys.exit(1)
-
+        sys.exit(1)  # Exit if setup fails
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
