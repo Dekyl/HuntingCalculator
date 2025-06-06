@@ -1,7 +1,7 @@
 @echo off
 echo Compiling Hunting Calculator...
 
-pyinstaller --noconfirm --onefile --windowed --icon ".\res\matchlock.ico" --name "Hunting Calculator" --add-data ".\res;res/" ".\src\main.py"
+pyinstaller --noconfirm --onefile --windowed --icon ".\res\icons\matchlock.ico" --name "Hunting Calculator" --add-data ".\res;res/" ".\src\main.py"
 
 echo Cleaning temp files...
 
