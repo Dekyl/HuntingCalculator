@@ -26,7 +26,7 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     checkbox = QCheckBox("Don't show this message again")
     checkbox.setText("Don't show this message again")
     msg_box.setStyleSheet("""
-        QLabel{min-width: 300px; min-height: 50px; font-size: 15px;}
+        QLabel{min-width: 300px; min-height: 50px; font-size: 14px;}
         QCheckBox{min-width: 300px; min-height: 30px; font-size: 14px;}
         QPushButton{min-width: 70px; min-height: 20px; font-size: 14px;}
     """)
@@ -51,7 +51,7 @@ def show_dialog_results(message: str, confirm_action: str = "clean_results"):
     msg_box.setText(message)
     msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
     msg_box.setStyleSheet("""
-        QLabel{min-width: 300px; min-height: 50px; font-size: 15px;}
+        QLabel{min-width: 300px; min-height: 50px; font-size: 14px;}
         QPushButton{min-width: 70px; min-height: 20px; font-size: 14px;}
     """)
     
@@ -60,32 +60,20 @@ def show_dialog_results(message: str, confirm_action: str = "clean_results"):
 
     msg_box.exec()
 
-def show_dialog_error_saving():
-    """
-    Show a dialog box indicating an error occurred while saving data.
-        This function displays a message box with an error icon and a message indicating that there was an error saving data.
-    """
-    dialog = QMessageBox()
-    dialog.setWindowTitle("Error")
-    dialog.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
-    dialog.setIcon(QMessageBox.Icon.Critical)
-    dialog.setText("Error saving data, wrong data")
-
-    dialog.addButton(QMessageBox.StandardButton.Ok)
-
-    dialog.exec()
-
-def show_dialog_error_api():
+def show_dialog_error(msg: str):
     """
     Show a dialog box indicating an error occurred while fetching data from the API.
         This function displays a message box with an error icon and a message indicating that there was an error fetching data from the API.
+        :param msg: The error message to display.
     """
     dialog = QMessageBox()
     dialog.setWindowTitle("Error")
     dialog.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
     dialog.setIcon(QMessageBox.Icon.Critical)
-    dialog.setText("Error fetching data from API, please wait a little before trying again.")
-
+    dialog.setText(msg)
+    dialog.setStyleSheet("""
+        QLabel{font-size: 14px;}
+        QPushButton{font-size: 14px;}
+    """)
     dialog.addButton(QMessageBox.StandardButton.Ok)
-
     dialog.exec()

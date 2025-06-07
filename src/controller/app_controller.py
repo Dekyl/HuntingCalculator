@@ -3,7 +3,7 @@ from PyQt6.QtCore import QThread
 from logic.manage_excels import clean_results, save_results
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
-from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting
+from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_icon, get_no_market_items
 from logic.get_results import results_total, results_h, results_taxed, results_taxed_h, get_percentage_item, get_results_tot_percentage, get_gains_per_item
 from logic.data_fetcher import DataFetcher
 from interfaces.view_interface import ViewInterface
@@ -115,11 +115,27 @@ class AppController:
         if data_retrieved is None:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
             self.view.set_ui_enabled(True) # Re-enable the UI
-            self.view.show_dialog_error_api()
+            self.view.show_dialog_error("Error fetching data from API, too many requests, please wait before retrying.")
+            return
+        
+        id_icon = get_spot_icon(spot_name)
+        if not id_icon:
+            add_log(f"No icon found for spot '{spot_name}'", "error")
+            self.view.set_ui_enabled(True) # Re-enable the UI
+            self.view.show_dialog_error(f"Error fetching spot {spot_name} icon from JSON file.")
+            return
+        
+        no_market_items = get_no_market_items(spot_name)
+        if not no_market_items:
+            add_log(f"No market items found for spot '{spot_name}'", "error")
+            self.view.set_ui_enabled(True) # Re-enable the UI
+            self.view.show_dialog_error(f"Error fetching no market items from JSON file.")
             return
         
         self.view.create_new_session_widget(
-            spot_name, # type: ignore
+            spot_name,
+            id_icon,
+            no_market_items,
             data_retrieved['prices'],
             data_retrieved['elixir_costs']
         )

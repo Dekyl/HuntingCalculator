@@ -6,7 +6,7 @@ from typing import Any
 
 from gui.create_widgets import CreateWidgets
 from gui.manage_widgets import ManagerWidgets
-from gui.dialogs_user import show_dialog_confirmation, show_dialog_results, show_dialog_error_api
+from gui.dialogs_user import show_dialog_confirmation, show_dialog_results, show_dialog_error
 from controller.app_controller import AppController
 
 class MainWindow(QMainWindow):
@@ -79,14 +79,16 @@ class MainWindow(QMainWindow):
         """
         show_dialog_results(message, confirm_action)
 
-    def create_new_session_widget(self, name_spot: str, prices: list[tuple[str, int]], elixir_costs: list[tuple[str, int]]):
+    def create_new_session_widget(self, name_spot: str, id_icon: str, no_market_items:list[str], prices: list[tuple[str, int]], elixir_costs: list[tuple[str, int]]):
         """
         Create a new session widget for the specified hunting spot.
             :param name_spot: The name of the hunting spot.
+            :param id_icon: The ID of the icon associated with the hunting spot.
+            :param no_market_items: A list of items that are not available on the market.
             :param prices: A list of tuples containing item names and their prices.
             :param elixir_costs: A list of tuples containing elixir names and their costs.
         """
-        self.create_widgets.create_new_session_widget(name_spot, prices, elixir_costs)
+        self.create_widgets.create_new_session_widget(name_spot, id_icon, no_market_items, prices, elixir_costs)
 
     def update_exchange_results(self, exchange_results: tuple[int, int, int]):
         """
@@ -103,11 +105,12 @@ class MainWindow(QMainWindow):
         self.left_widget.setEnabled(enabled)
         self.stack.setEnabled(enabled)
 
-    def show_dialog_error_api(self):
+    def show_dialog_error(self, msg: str):
         """
-        Show a dialog box indicating an error occurred while retrieving data from the API.
+        Show an error dialog with the specified message.
+            :param msg: The error message to display.
         """
-        show_dialog_error_api()
+        show_dialog_error(msg)
 
     def close_window(self):
         """

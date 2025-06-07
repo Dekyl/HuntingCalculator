@@ -54,22 +54,45 @@ def get_spots_list() -> list[str]:
         data = json.load(file)
         return data.get('spots', [])
     
+def get_spot_icon(spot_name: str) -> str:
+    """
+    Get the icon ID for a specific hunting spot.
+        :param spot_name: The name of the hunting spot.
+        :return: The ID of the icon associated with the hunting spot, or an empty string if not found.
+    """
+    with open('./res/data.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+        return data.get('spots', {}).get(spot_name, {}).get('icon_id', '')
+    
 def get_spot_loot(spot_name: str) -> list[str]:
     """
     Get the loot data for a specific hunting spot.
         :param spot_name: The name of the hunting spot.
-        :return: A list of loot items for the specified hunting spot.
+        :return: A tuple containing two lists:
+            - The first list contains the IDs of the loot items.
+            - The second list contains the IDs of items that are not available on the market.
     """
     common_items = get_common_items()
 
     with open('./res/data.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
-        spot_items = data.get('spots', {}).get(spot_name, {}).get('loot', [])
+        spot = data.get('spots', {}).get(spot_name, {})
+        spot_items = spot.get('loot', [])
     
     if not spot_items:
         add_log(f"No loot found for spot: {spot_name}", "warning")
         return []
     return spot_items + common_items
+
+def get_no_market_items(spot_name: str) -> list[str]:
+    """
+    Get the list of items that are not available on the market for a specific hunting spot.
+        :param spot_name: The name of the hunting spot.
+        :return: A list of item IDs that are not available on the market.
+    """
+    with open('./res/data.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+        return data.get('spots', {}).get(spot_name, {}).get('no_market_items', [])
     
 def get_common_items() -> list[str]:
     """

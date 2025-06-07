@@ -5,7 +5,7 @@ from io import BytesIO
 
 from logic.logs import add_log
 
-timeout_connection = 5  # Timeout in seconds for the connection to the API
+timeout_connection = 1  # Timeout in seconds for the connection to the API
 max_threads = 12 # Maximum number of threads to use for concurrent requests
 
 def get_sell_price(item_data:str, cancel_event: Event) -> str:

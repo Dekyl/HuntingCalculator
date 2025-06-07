@@ -7,7 +7,7 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QDialog
 
 from gui.manage_widgets import ManagerWidgets
-from gui.dialogs_user import show_dialog_error_saving
+from gui.dialogs_user import show_dialog_error
 from gui.aux_components import QHLine
 from controller.app_controller import AppController
 
@@ -67,10 +67,12 @@ class CreateWidgets:
 
         return settings_widget
 
-    def create_new_session_widget(self, name_spot: str, prices: list[tuple[str, int]], elixir_costs: list[tuple[str, int]]):
+    def create_new_session_widget(self, name_spot: str, id_icon: str, no_market_items: list[str], prices: list[tuple[str, int]], elixir_costs: list[tuple[str, int]]):
         """
         Create the new session widget.
             :param name_spot: The name of the hunting spot for the new session.
+            :param id_icon: The ID of the icon associated with the hunting spot.
+            :param no_market_items: A list of items that are not available in the market for the new session.
             :param prices: A dictionary containing the prices of items for the new session.
             :param elixir_costs: A dictionary containing the costs of elixirs for the new session.
         """
@@ -87,77 +89,54 @@ class CreateWidgets:
         title_widget.setLayout(title_layout)
         title_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_widget.setMaximumHeight(80)
-        title_widget.setContentsMargins(0, 30, 0, 0)
 
-        hunting_zone = QLabel(name_spot)
-        hunting_zone.setFont(QFont("Arial", 24))
-        title_layout.addWidget(hunting_zone)
+        # Hunting zone title and icon
+        hunting_zone_icon = QIcon(f"res/icons/items/{id_icon}.png") if os.path.exists(f"res/icons/items/{id_icon}.png") else QIcon("res/icons/not_found.ico")
+        hunting_zone_name = QLabel(name_spot)
+        hunting_zone_name.setFont(QFont("Arial", 24))
+        hunting_zone_name.setContentsMargins(0, 0, 50, 0) # Add right margin to title label so it stays in center of screen after adding icon and spacing it
+        hunting_zone_icon_label = QLabel()
+        hunting_zone_icon_label.setContentsMargins(0, 0, 10, 0)  # Add some space between the icon and the label (right margin)
+        hunting_zone_icon_label.setPixmap(hunting_zone_icon.pixmap(50, 50))
+        title_layout.addWidget(hunting_zone_icon_label)
+        title_layout.addWidget(hunting_zone_name)
 
         # Inputs, exchange and results fields
         inputs_widget = QWidget()
         inputs_layout = QGridLayout()
         inputs_widget.setLayout(inputs_layout)
 
-        exchange_widget = QWidget()
-        exchange_widget.setMaximumHeight(70)
-        exchange_layout = QGridLayout()
-        exchange_widget.setLayout(exchange_layout)
-
-        exchange_results_widget = QWidget()
-        exchange_results_widget.setMaximumHeight(70)
-        exchange_results_layout = QGridLayout()
-        exchange_results_widget.setLayout(exchange_results_layout)
-
-        results_widget = QWidget()
-        results_widget.setMaximumHeight(150)
-        results_layout = QGridLayout()
-        results_widget.setLayout(results_layout)
-
         font = QFont('Arial', 14)
-
-        # Button to save data in an excel file
-        self.save_button = QPushButton("Save")
-        self.save_button.setFont(font)
-        self.save_button.setStyleSheet("""
-            QPushButton{
-                background-color: rgba(255,255,255,0.2); 
-                border: 1px solid black; 
-                border-radius: 6px
-            }
-            QPushButton:hover{
-                background-color: rgba(255,255,255,0.5);
-            }"""
-        )
-        
-        self.save_button.setDisabled(True)
-        self.save_button.setFixedSize(250, 50)
-        self.save_button.clicked.connect(self.save_excel) # type: ignore
-        save_but_widget = QWidget()
-        save_but_widget.setFixedHeight(100)
-        save_but_lay = QHBoxLayout()
-
-        save_but_widget.setLayout(save_but_lay)
-        save_but_widget.setContentsMargins(0, 0, 0, 100)
-        save_but_lay.addWidget(self.save_button, alignment= Qt.AlignmentFlag.AlignCenter)
-
-        # Adds the previous widgets to the main layout
-        new_session_layout.addWidget(title_widget)
-        new_session_layout.addWidget(inputs_widget)
-        new_session_layout.addWidget(exchange_widget)
-        new_session_layout.addWidget(exchange_results_widget)
-        new_session_layout.addWidget(results_widget)
-        new_session_layout.addWidget(save_but_widget)
 
         self.labels_input: list[QLabel] = []
         price_values: list[QLabel] = []
 
         for item_name, price_value in prices:
-            self.labels_input.append(QLabel(f"{item_name} (0.00%)"))
+            label = QLabel(f"{item_name} (0.00%)")
+            label.setWordWrap(False)
+            label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            label.setToolTip(f"{item_name} (0.00%)")
+            label.setStyleSheet("QToolTip { background-color: rgb(30, 30, 30); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.7); }")
+            self.labels_input.append(label)
             price_value = QLabel(str(f"{price_value:,}"))
             price_value.setFont(font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
             price_value.setMaximumHeight(20)
             price_values.append(price_value)
+
+        for no_market_item in no_market_items:
+            label = QLabel(f"{no_market_item} (0.00%)")
+            label.setWordWrap(False)
+            label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            label.setToolTip(f"{no_market_item} (0.00%)")
+            label.setStyleSheet("QToolTip { background-color: rgb(30, 30, 30); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.7); }")
+            self.labels_input.append(label)
+            price_value = QLabel("0")
+            price_value.setFont(font)
+            price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            price_value.setMaximumHeight(20)
+            price_values.append(price_value)
+
         self.labels_input.append(QLabel("Hours"))
 
         # Data input fields
@@ -188,17 +167,64 @@ class CreateWidgets:
                 inputs_layout.addWidget(self.inputs_input[i], 5, col, Qt.AlignmentFlag.AlignTop)
             elif i < 21:
                 inputs_layout.addWidget(self.labels_input[i], 6, col, Qt.AlignmentFlag.AlignBottom)
-                if i < 19:
-                    if i < len(price_values):
-                        inputs_layout.addWidget(price_values[i], 7, col)
+                if i < len(price_values):
+                    inputs_layout.addWidget(price_values[i], 7, col)
                 inputs_layout.addWidget(self.inputs_input[i], 8, col, Qt.AlignmentFlag.AlignTop)
-            else:
+            elif i < 28:
                 inputs_layout.addWidget(self.labels_input[i], 9, col, Qt.AlignmentFlag.AlignBottom)
+                if i < len(price_values):
+                    inputs_layout.addWidget(price_values[i], 10, col)
                 inputs_layout.addWidget(self.inputs_input[i], 11, col, Qt.AlignmentFlag.AlignTop)
+            else:
+                if self.labels_input[i].text() != "Hours":
+                    inputs_layout.addWidget(self.labels_input[i], 12, col, Qt.AlignmentFlag.AlignBottom)
+                    inputs_layout.addWidget(price_values[i], 13, col, Qt.AlignmentFlag.AlignBottom)
+                else:
+                    inputs_layout.addWidget(self.labels_input[i], 13, col, Qt.AlignmentFlag.AlignBottom)
+                inputs_layout.addWidget(self.inputs_input[i], 14, col, Qt.AlignmentFlag.AlignTop)
             
             col +=1
             if col == 7:
                 col = 0
+
+        exchange_widget = QWidget()
+        exchange_widget.setMaximumHeight(70)
+        exchange_layout = QGridLayout()
+        exchange_widget.setLayout(exchange_layout)
+
+        exchange_results_widget = QWidget()
+        exchange_results_widget.setMaximumHeight(70)
+        exchange_results_layout = QGridLayout()
+        exchange_results_widget.setLayout(exchange_results_layout)
+
+        results_widget = QWidget()
+        results_widget.setMaximumHeight(150)
+        results_layout = QGridLayout()
+        results_widget.setLayout(results_layout)
+
+        # Button to save data in an excel file
+        self.save_button = QPushButton("Save")
+        self.save_button.setFont(font)
+        self.save_button.setStyleSheet("""
+            QPushButton{
+                background-color: rgba(255,255,255,0.2); 
+                border: 1px solid black; 
+                border-radius: 6px
+            }
+            QPushButton:hover{
+                background-color: rgba(255,255,255,0.5);
+            }"""
+        )
+        
+        self.save_button.setDisabled(True)
+        self.save_button.setFixedSize(250, 50)
+        self.save_button.clicked.connect(self.save_excel) # type: ignore
+        save_but_widget = QWidget()
+        save_but_widget.setFixedHeight(100)
+        save_but_lay = QHBoxLayout()
+
+        save_but_widget.setLayout(save_but_lay)
+        save_but_lay.addWidget(self.save_button, alignment= Qt.AlignmentFlag.AlignCenter)
 
         # Exchange hides section
         green_exchange = QLabel("Green Hides Exchange")
@@ -265,8 +291,16 @@ class CreateWidgets:
             self.inputs_result[i].setStyleSheet(style)
             self.inputs_result[i].setReadOnly(True)
 
-            results_layout.addWidget(self.labels_result[i], 2, i, Qt.AlignmentFlag.AlignBottom)
-            results_layout.addWidget(self.inputs_result[i], 3, i, Qt.AlignmentFlag.AlignTop)
+            results_layout.addWidget(self.labels_result[i], 0, i, Qt.AlignmentFlag.AlignBottom)
+            results_layout.addWidget(self.inputs_result[i], 1, i, Qt.AlignmentFlag.AlignTop)
+
+        # Adds the previous widgets to the main layout
+        new_session_layout.addWidget(title_widget)
+        new_session_layout.addWidget(inputs_widget)
+        new_session_layout.addWidget(exchange_widget)
+        new_session_layout.addWidget(exchange_results_widget)
+        new_session_layout.addWidget(results_widget)
+        new_session_layout.addWidget(save_but_widget)
 
         ManagerWidgets.get_instance().add_page("new_session", new_session_widget)
         ManagerWidgets.get_instance().set_page("new_session")
@@ -301,7 +335,7 @@ class CreateWidgets:
             labels_res.append(self.labels_result[i].text())
 
         if self.controller.save_results(self.labels_input_text, self.data_input, labels_res, self.results_tot, self.results_tot_h, self.results_tax, self.results_tax_h) == -1:
-            show_dialog_error_saving()
+            show_dialog_error("Error saving data, wrong data")
         
     def update_data(self):
         self.labels_input_text: list[str] = []
@@ -370,7 +404,7 @@ class CreateWidgets:
             button = button_geometry.topLeft()
             parent_geometry = self.parent.geometry()
             dialog_width = 200
-            dialog_height = 350
+            dialog_height = 280
             x = button.x() + parent_geometry.x() + button_geometry.width() + 25  # Position to the right of the button
             y = button.y() + parent_geometry.y() + 5
             spots_dialog.setGeometry(x, y, dialog_width, dialog_height)
