@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QFrame
+from PyQt6.QtWidgets import QFrame, QLabel
 
 class QHLine(QFrame):
     """
@@ -9,7 +9,9 @@ class QHLine(QFrame):
         super(QHLine, self).__init__()
         self.setFrameShape(QFrame.Shape.HLine)
         self.setFrameShadow(QFrame.Shadow.Sunken)
-        self.setStyleSheet("background-color: 1px rgb(120, 120, 120);")
+        self.setStyleSheet("""
+            background-color: 1px rgb(120, 120, 120);
+        """)
 
 class QVLine(QFrame):
     """
@@ -20,4 +22,28 @@ class QVLine(QFrame):
         super(QVLine, self).__init__()
         self.setFrameShape(QFrame.Shape.VLine)
         self.setFrameShadow(QFrame.Shadow.Sunken)
-        self.setStyleSheet("background-color: 1px rgb(120, 120, 120);")
+        self.setStyleSheet("""
+            background-color: 1px rgb(120, 120, 120);
+        """)
+
+class SmartLabel(QLabel):
+    """
+    A QLabel that automatically updates its tooltip to match its text.
+    Inherits from QLabel and overrides the setText method to update the tooltip.
+    """
+    def __init__(self, text: str = ""):
+        """
+        Initialize the SmartLabel with optional text.
+            :param text: The initial text to display in the label.
+        """
+        super().__init__(text)
+        self.setToolTip(text)
+    
+    def setText(self, a0: str | None):
+        """
+        Set the text of the label and update the tooltip.
+            :param text: The text to display in the label.
+        """
+        super(SmartLabel, self).setText(a0)
+        self.setToolTip(a0)
+    

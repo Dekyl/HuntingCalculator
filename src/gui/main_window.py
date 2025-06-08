@@ -4,9 +4,13 @@ from PyQt6.QtCore import QSize
 
 from typing import Any
 
-from gui.create_widgets import CreateWidgets
 from gui.manage_widgets import ManagerWidgets
 from gui.dialogs_user import show_dialog_confirmation, show_dialog_results, show_dialog_error
+from gui.side_bar_widget import SideBarWidget
+from gui.home_widget import HomeWidget
+from gui.view_sessions_widget import ViewSessionsWidget
+from gui.settings_widget import SettingsWidget
+from gui.new_session_widget import NewSessionWidget
 from controller.app_controller import AppController
 
 class MainWindow(QMainWindow):
@@ -28,39 +32,34 @@ class MainWindow(QMainWindow):
             x = (screen_geometry.width() - self.width()) // 2
             y = (screen_geometry.height() - self.height()) // 2
             self.move(x, y)
-        self.setStyleSheet("""
-            QWidget {
-            background-color: rgb(30, 30, 30);
-            }
-        """)
 
-        manager = ManagerWidgets()
-        self.stack = manager.get_stack()
+        # Create a main layout and widget for the window
+        main_widget = QWidget()
+        main_layout = QHBoxLayout(main_widget)
 
-        # Create a main layout for the window
-        container = QWidget()
-        main_layout = QHBoxLayout()
-        container.setLayout(main_layout)
+        self.setCentralWidget(main_widget)
 
         # Create the AppController instance to manage the application logic
         # This controller will handle interactions between the view and the model
         AppController(self)
 
-        # Create the CreateWidgets instance to manage the creation of widgets
-        # This class will handle the creation of all static widgets in the application
-        self.create_widgets = CreateWidgets(self)
-
         # Create the left-side menu and add it to the main layout
-        self.left_widget = self.create_widgets.create_side_bar()
-        main_layout.addWidget(self.left_widget)
+        self.side_bar_widget = SideBarWidget(self)
 
-        # Add stack to the main layout to swap between different widgets
+        # Create the ManagerWidgets instance to manage different widgets in the application
+        manager = ManagerWidgets()
+        self.stack = manager.get_stack()
+
+        # Add the left-side menu and the main stack to the main layout
+        main_layout.addWidget(self.side_bar_widget)
         main_layout.addWidget(self.stack, stretch=1)
 
-        # Set the central widget of the main window
-        self.setCentralWidget(container)
-        # Create and add all static widgets to the manager
-        self.create_widgets.create_all_widgets()
+        page_widgets: dict[str, QWidget] = { "home": HomeWidget(),
+                                             "view_sessions": ViewSessionsWidget(),
+                                             "settings": SettingsWidget() }
+
+        for name, widget in page_widgets.items():
+            ManagerWidgets.get_instance().add_page(name, widget)
 
     def show_dialog_confirmation(self, message: str, action: Any, confirm_action: str = "exit") -> bool:
         """
@@ -71,38 +70,40 @@ class MainWindow(QMainWindow):
         """
         return show_dialog_confirmation(message, action, confirm_action)
     
-    def show_dialog_results(self, message: str, confirm_action: str = "clean_results"):
+    def show_dialog_results(self, message: str, confirm_action: str, res: int):
         """
         Show a message box with the results of an action.
             :param message: The message to display in the results dialog.
             :param confirm_action: The action that was confirmed, used to set the icon.
+            :param res: The result of the action, used to determine the icon and message.
         """
-        show_dialog_results(message, confirm_action)
+        show_dialog_results(message, confirm_action, res)
 
-    def create_new_session_widget(self, name_spot: str, id_icon: str, no_market_items:list[str], prices: list[tuple[str, int]], elixir_costs: list[tuple[str, int]]):
+    def create_new_session_widget(self, name_spot: str, id_icon: str, no_market_items:list[str], prices: list[tuple[str, int]], elixirs_cost: str):
         """
         Create a new session widget for the specified hunting spot.
             :param name_spot: The name of the hunting spot.
             :param id_icon: The ID of the icon associated with the hunting spot.
             :param no_market_items: A list of items that are not available on the market.
             :param prices: A list of tuples containing item names and their prices.
-            :param elixir_costs: A list of tuples containing elixir names and their costs.
+            :param elixirs_cost: The cost of elixirs for the hunting spot.
         """
-        self.create_widgets.create_new_session_widget(name_spot, id_icon, no_market_items, prices, elixir_costs)
+        self.actual_session = NewSessionWidget(name_spot, id_icon, prices, no_market_items, elixirs_cost)
 
-    def update_exchange_results(self, exchange_results: tuple[int, int, int]):
+    def update_exchange_hides_results(self, exchange_results: tuple[int, int, int]):
         """
-        Update the exchange results displayed in the application.
-            :param exchange_results: A tuple containing the exchange results (total, profit, loss).
+        Update the results of the exchange hides operation.
+            :param exchange_results: A tuple containing the results of the exchange operation.
         """
-        self.create_widgets.update_exchange_results(exchange_results)
+        self.actual_session.update_session_exchange_results(exchange_results)
 
     def set_ui_enabled(self, enabled: bool):
         """
         Enable or disable the main UI components of the application.
             :param enabled: A boolean indicating whether to enable or disable the UI.
         """
-        self.left_widget.setEnabled(enabled)
+        self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
+        self.side_bar_widget.setEnabled(enabled)
         self.stack.setEnabled(enabled)
 
     def show_dialog_error(self, msg: str):
@@ -111,6 +112,13 @@ class MainWindow(QMainWindow):
             :param msg: The error message to display.
         """
         show_dialog_error(msg)
+
+    def set_session_button_enabled(self, enabled: bool):
+        """
+        Enable or disable the session button in the left-side menu.
+            :param enabled: A boolean indicating whether to enable or disable the new session button.
+        """
+        self.side_bar_widget.set_left_widget_button_enabled("new_session", enabled)
 
     def close_window(self):
         """

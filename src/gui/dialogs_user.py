@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMessageBox, QCheckBox
 from PyQt6.QtGui import QIcon
 
-from typing import Any
+from typing import Any, Callable
 
 def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "exit") -> bool:
     """
@@ -19,16 +19,27 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
         msg_box.setWindowIcon(QIcon("res/icons/not_found.ico"))
 
     msg_box.setWindowTitle("Confirm Action")
-    msg_box.setStyleSheet("QLabel{min-width: 200px; min-height: 100px;}")
     msg_box.setText(message)
     msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
 
     checkbox = QCheckBox("Don't show this message again")
     checkbox.setText("Don't show this message again")
     msg_box.setStyleSheet("""
-        QLabel{min-width: 300px; min-height: 50px; font-size: 14px;}
-        QCheckBox{min-width: 300px; min-height: 30px; font-size: 14px;}
-        QPushButton{min-width: 70px; min-height: 20px; font-size: 14px;}
+        QLabel {
+            min-width: 300px;
+            min-height: 100px;
+            font-size: 14px;
+        }
+        QCheckBox {
+            min-width: 300px;
+            min-height: 30px;
+            font-size: 14px;
+        }
+        QPushButton {
+            min-width: 70px;
+            min-height: 20px;
+            font-size: 14px;
+        }
     """)
     msg_box.setCheckBox(checkbox)
 
@@ -40,23 +51,40 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
         action()
     return True
 
-def show_dialog_results(message: str, confirm_action: str = "clean_results"):
+def show_dialog_results(message: str, confirm_action: str, res: int):
     """
     Show a message box with the results of an action.
         :param message: The message to display in the results dialog.
         :param confirm_action: The action that was confirmed, used to set the icon.
+        :param res: The result of the action, used to determine the icon type.
+            -1 for error, 0 for success, 1 for no actions taken.
     """
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Results Action")
     msg_box.setText(message)
     msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
     msg_box.setStyleSheet("""
-        QLabel{min-width: 300px; min-height: 50px; font-size: 14px;}
-        QPushButton{min-width: 70px; min-height: 20px; font-size: 14px;}
+        QLabel {
+            font-size: 14px;
+        }
+        QPushButton {
+            min-width: 70px; 
+            min-height: 20px; 
+            font-size: 14px;
+        }
     """)
-    
-    if confirm_action == "clean_results":
-        msg_box.setWindowIcon(QIcon("res/icons/clean_results.ico"))
+
+    if res == -1:
+        msg_box.setIcon(QMessageBox.Icon.Critical)
+    elif res == 0:
+        msg_box.setIcon(QMessageBox.Icon.Information)
+    elif res == 1:
+        msg_box.setIcon(QMessageBox.Icon.Question)
+
+    confirm_actions: dict[str, Callable [[], None]] = {
+        "clean_sessions": lambda: msg_box.setWindowIcon(QIcon("res/icons/clean_sessions.ico"))
+    }
+    confirm_actions[confirm_action]() if confirm_action in confirm_actions else msg_box.setWindowIcon(QIcon("res/icons/not_found.ico"))
 
     msg_box.exec()
 
@@ -72,8 +100,12 @@ def show_dialog_error(msg: str):
     dialog.setIcon(QMessageBox.Icon.Critical)
     dialog.setText(msg)
     dialog.setStyleSheet("""
-        QLabel{font-size: 14px;}
-        QPushButton{font-size: 14px;}
+        QLabel {
+            font-size: 14px;
+        }
+        QPushButton {
+            font-size: 14px;
+        }
     """)
     dialog.addButton(QMessageBox.StandardButton.Ok)
     dialog.exec()

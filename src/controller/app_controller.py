@@ -1,12 +1,12 @@
 from PyQt6.QtCore import QThread
 
-from logic.manage_excels import clean_results, save_results
+from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
 from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_icon, get_no_market_items
-from logic.get_results import results_total, results_h, results_taxed, results_taxed_h, get_percentage_item, get_results_tot_percentage, get_gains_per_item
+from logic.get_results import results_total, results_h, results_taxed, results_taxed_h, get_percentage_item, get_results_tot_percentage, get_gains_per_item, calculate_elixirs_cost_hour
 from logic.data_fetcher import DataFetcher
-from interfaces.view_interface import ViewInterface
+from interface.view_interface import ViewInterface
 
 class AppController:
     """
@@ -26,37 +26,37 @@ class AppController:
         add_log("AppController initialized.", "info")
         self.view = view
 
-    def on_clean_results_clicked(self):
+    def on_clean_sessions_clicked(self):
         """
-        Handle the clean results action.
-            This method is called when the clean results button is clicked.
-            It cleans the results and shows a message box with the result of the action.
+        Handle the clean sessions action.
+            This method is called when the clean sessions button is clicked.
+            It cleans the sessions and shows a message box with the result of the action.
         """
-        result = clean_results()
+        result = clean_sessions()
         if result == 1:
-            add_log(f"Clean results dialog selection -> {result} (Success)", "info")
-            self.view.show_dialog_results("Results have been successfully cleaned.", "clean_results")
+            add_log(f"Clean sessions dialog selection -> {result} (Success)", "info")
+            self.view.show_dialog_results("Sessions have been successfully cleaned.", "clean_sessions", result)
         elif result == 0:
-            add_log(f"Clean results dialog selection -> {result}  (No elements found to delete)", "info")
-            self.view.show_dialog_results("No saved sessions found. Nothing to clean.", "clean_results")
+            add_log(f"Clean sessions dialog selection -> {result}  (No elements found to delete)", "info")
+            self.view.show_dialog_results("No saved sessions found. Nothing to clean.", "clean_sessions", result)
         elif result == -1:
-            add_log(f"Clean results dialog selection -> {result}  (Error)", "info")
-            self.view.show_dialog_results("An error occurred while cleaning results.", "clean_results")
+            add_log(f"Clean sessions dialog selection -> {result}  (Error)", "error")
+            self.view.show_dialog_results("An error occurred while cleaning sessions.", "clean_sessions", result)
 
-    def on_clean_results_button(self):
+    def on_clean_sessions_button(self):
         """
-        Handle the clean results button click event.
-            This method is called when the clean results button is clicked.
+        Handle the clean sessions button click event.
+            This method is called when the clean sessions button is clicked.
         """
-        add_log("Clean results button clicked.", "info")
+        add_log("Clean sessions button clicked.", "info")
         show_confirm_clean = get_show_confirm_clean()
 
         if show_confirm_clean:
-            add_log("Showing confirmation dialog for cleaning results.", "info")
-            enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the results?", self.on_clean_results_clicked, "clean_results")
-            update_confirm_dialog(enable_confirm_message, "clean_results")
+            add_log("Showing confirmation dialog for cleaning sessions.", "info")
+            enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the sessions?", self.on_clean_sessions_clicked, "clean_sessios")
+            update_confirm_dialog(enable_confirm_message, "clean_sessions")
         else:
-            self.on_clean_results_clicked()
+            self.on_clean_sessions_clicked()
         
     def on_exit_button(self):
         """
@@ -115,7 +115,8 @@ class AppController:
         if data_retrieved is None:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
             self.view.set_ui_enabled(True) # Re-enable the UI
-            self.view.show_dialog_error("Error fetching data from API, too many requests, please wait before retrying.")
+            self.view.set_session_button_enabled(False) # Disable the new session button
+            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 1 minute.")
             return
         
         id_icon = get_spot_icon(spot_name)
@@ -137,7 +138,7 @@ class AppController:
             id_icon,
             no_market_items,
             data_retrieved['prices'],
-            data_retrieved['elixir_costs']
+            calculate_elixirs_cost_hour(data_retrieved['elixir_costs'])
         )
         self.view.set_ui_enabled(True)
 
@@ -151,11 +152,11 @@ class AppController:
             return
         try:
             res_exchange = exchange_results(int(green_hides), int(blue_hides))
-            self.view.update_exchange_results(res_exchange)
+            self.view.update_exchange_hides_results(res_exchange)
         except:
             return
         
-    def save_results(self, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
+    def save_session(self, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
         """
         Save the results of a hunting session to an Excel file.
             :param labels_input_text: List of labels for the input data.
@@ -167,7 +168,7 @@ class AppController:
             :param results_tax_h: Results after tax per hour.
             :return: 0 if successful, -1 if an error occurs.
         """
-        return save_results(labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
+        return save_session(labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
     
     def get_results(self, data_input: list[str]) -> dict[str, int]:
         """
@@ -208,5 +209,5 @@ class AppController:
             :return: The singleton instance of AppController.
         """
         if AppController._instance is None:
-            raise Exception("AppController instance not created. Call AppController(window) first.")
+            raise Exception("AppController instance not created. Call AppController first.")
         return AppController._instance
