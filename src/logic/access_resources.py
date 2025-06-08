@@ -12,7 +12,7 @@ def update_confirm_dialog(enable: bool, confirm_action: str):
     """
     with open('./res/settings.json', 'r', encoding='utf-8') as file:
         settings = json.load(file)
-        if confirm_action == "clean_results":
+        if confirm_action == "clean_sessions":
             settings['show_confirm_clean_message'] = enable
         elif confirm_action == "exit":
             settings['show_confirm_exit_message'] = enable
@@ -24,9 +24,9 @@ def update_confirm_dialog(enable: bool, confirm_action: str):
 
 def get_show_confirm_clean() -> bool:
     """
-    Get the setting for showing the confirmation dialog before cleaning results.
+    Get the setting for showing the confirmation dialog before cleaning sessions.
     This function reads the configuration file to determine whether to show
-    the confirmation dialog when cleaning results.
+    the confirmation dialog when cleaning sessions.
         :return: True if the confirmation dialog should be shown, False otherwise.
     """
     with open('./res/settings.json', 'r', encoding='utf-8') as file:

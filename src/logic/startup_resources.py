@@ -10,8 +10,8 @@ res_list = [
     'res/icons/settings.ico',
     'res/icons/new_session.ico',
     'res/icons/home.ico',
-    'res/icons/clean_results.ico',
-    'res/icons/view_results.ico',
+    'res/icons/clean_sessions.ico',
+    'res/icons/view_sessions.ico',
     'res/icons/exit_app.ico'
 ]
 

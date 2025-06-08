@@ -2,9 +2,9 @@ from datetime import datetime
 import openpyxl, os, shutil
 from logic.logs import add_log
 
-def clean_results() -> int:
+def clean_sessions() -> int:
     """
-    Clean the results of the hunting session by all saved files.
+    Clean the sessions of the hunting session by all saved files.
     This function deletes the "Hunting Sessions" directory and all its contents,
     then recreates the directory to start fresh.
         :return: 1 if successful, 0 if folder not found or empty, -1 if an error occurs.
@@ -26,12 +26,12 @@ def clean_results() -> int:
             return -1
 
     except Exception as e:
-        add_log(f"Error while cleaning results: {e}", "error")
+        add_log(f"Error while cleaning sessions: {e}", "error")
         return -1
 
     return 0
 
-def save_results(labels_input: list[str], data_input: list[str], labels_res:list[str], results_tot:int, results_tot_h:int, results_tax:int, results_tax_h:int) -> int:
+def save_session(labels_input: list[str], data_input: list[str], labels_res:list[str], results_tot:int, results_tot_h:int, results_tax:int, results_tax_h:int) -> int:
     """
     Save the results of a hunting session to an Excel file.
     :param labels_input: List of labels for the input data.
