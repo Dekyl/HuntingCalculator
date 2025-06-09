@@ -29,23 +29,28 @@ class NewSessionWidget(QWidget):
         new_session_layout = QVBoxLayout(self)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # As NewSessionWidget is a customized QWidget, we need to set this attribute to apply styles
         self.setStyleSheet("""
-            background-color: rgb(80, 130, 0); color: black;
+            background-color: rgb(80, 130, 0); 
+            color: black;
         """)
 
-        # Font and style applied to a variety of components
-        font = QFont('Arial', 14)
-        style = "background-color: rgba(255,255,255,0.2); border: 1px solid black; border-radius: 4px"
+        # Default font and style for the widgets
+        self.default_font = QFont('Arial', 14)
+        self.default_style = """
+            background-color: rgba(255,255,255,0.2); 
+            border: 1px solid black; 
+            border-radius: 4px
+        """
 
         # Set the hunting spot title and icon
         title_widget = self.create_session_title_widget(name_spot, spot_id_icon)
         # Create the input widget that contains the input fields for the new session
-        inputs_widget = self.create_session_inputs_widget(items, elixirs, font, no_market_items, style)
+        inputs_widget = self.create_session_inputs_widget(items, elixirs, no_market_items)
         # Create the widget that contains exchange hides widget and elixirs cost widget
-        exchange_elixirs_widget = self.create_session_exchange_elixirs_widget(font, style, elixirs_cost)
+        exchange_elixirs_widget = self.create_session_exchange_elixirs_widget(elixirs_cost)
         # Create the widget that allows saving the results
-        save_button_widget = self.create_session_save_button_widget(font)
+        save_button_widget = self.create_session_save_button_widget()
         # Create the results widget to display the results of the new session
-        results_widget = self.create_session_results_widget(font, style)
+        results_widget = self.create_session_results_widget()
 
         # Adds the previous widgets to the main layout
         new_session_layout.addWidget(title_widget)
@@ -83,14 +88,13 @@ class NewSessionWidget(QWidget):
 
         return title_widget
 
-    def create_session_inputs_widget(self, items: dict[str, tuple[str, int]], elixirs: dict[str, tuple[str, int]], font: QFont, no_market_items: list[str], style: str) -> QWidget:
+    def create_session_inputs_widget(self, items: dict[str, tuple[str, int]], elixirs: dict[str, tuple[str, int]], no_market_items: list[str]) -> QWidget:
         """
         Create the input widget for the new session.
-            :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
+            :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item IDs and values are tuples of (item name, price).
             :param elixirs: A dictionary containing the elixirs available for the hunting spot, where keys are elixir IDs and values are tuples of (elixir name, cost).
             :param font: The font to be used for the labels and input fields.
             :param no_market_items: A list of items that are not available in the market.
-            :param style: The stylesheet to be applied to the input fields.
             :return: A QWidget containing the input fields for the new session.
         """
         inputs_widget = QWidget()
@@ -102,17 +106,19 @@ class NewSessionWidget(QWidget):
             icon = QIcon(f"res/icons/items/{id}.png") if os.path.exists(f"res/icons/items/{id}.png") else QIcon("res/icons/not_found.ico")
 
             label = SmartLabel(f"{item_name} (0.00%)")
+            label.setFont(self.default_font)
             label.setStyleSheet("""
-                QToolTip { 
-                    background-color: rgb(30, 30, 30);
+                QToolTip {
+                    background-color: rgb(30, 30, 30);;
+                    border: 1px solid rgb(120, 120, 120);
                     color: rgb(220, 220, 220);
-                    border: 1px solid rgb(220, 220, 220);
+                    border-radius: 3px;
                 }
             """)
 
             price_value = QLabel(str(f"{price:,}"))
             price_value.setContentsMargins(15, 0, 0, 0)
-            price_value.setFont(font)
+            price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
             self.labels_icons_input.append((label, icon, price_value))
@@ -120,26 +126,42 @@ class NewSessionWidget(QWidget):
         for no_market_item in no_market_items:
             label = SmartLabel(f"{no_market_item} (0.00%)")
             label.setMinimumHeight(50)
+            label.setFont(self.default_font)
             label.setStyleSheet("""
                 QToolTip {
-                    background-color: rgb(30, 30, 30); 
-                    color: rgb(220, 220, 220); 
-                    border: 1px solid rgb(220, 220, 220); 
+                    background-color: rgb(30, 30, 30);;
+                    border: 1px solid rgb(120, 120, 120);
+                    color: rgb(220, 220, 220);
+                    border-radius: 3px;
                 }
             """)
 
             if "breath of narcion" in no_market_item.lower():
-                icon = QIcon(f"res/icons/breath of narcion.png") if os.path.exists(f"res/icons/breath of narcion.png") else QIcon("res/icons/not_found.ico")
+                icon = QIcon(f"res/icons/breath_of_narcion.png") if os.path.exists(f"res/icons/breath_of_narcion.png") else QIcon("res/icons/not_found.ico")
             else:
-                icon = QIcon(f"res/icons/{no_market_item.lower()}.png") if os.path.exists(f"res/icons/{no_market_item.lower()}.png") else QIcon("res/icons/not_found.ico")
+                no_market_item_lower_replace = no_market_item.lower().replace(" ", "_")
+                icon = QIcon(f"res/icons/{no_market_item_lower_replace}.png") if os.path.exists(f"res/icons/{no_market_item_lower_replace}.png") else QIcon("res/icons/not_found.ico")
 
             price_value = QLabel("0")
             price_value.setContentsMargins(15, 0, 0, 0)
-            price_value.setFont(font)
+            price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
             self.labels_icons_input.append((label, icon, price_value))
 
-        self.labels_icons_input.append((QLabel("Hours"), None, QLabel()))
+        label = SmartLabel("Hours")
+        label.setMinimumHeight(50)
+        label.setFont(self.default_font)
+        label.setStyleSheet("""
+            QToolTip {
+                background-color: rgb(30, 30, 30);;
+                border: 1px solid rgb(120, 120, 120);
+                color: rgb(220, 220, 220);
+                border-radius: 3px;
+            }
+        """)
+
+        self.labels_icons_input.append((label, None, None))
+
         # Data input fields
         self.line_edit_inputs: list[QLineEdit] = []
         # Column where to place next element
@@ -149,9 +171,10 @@ class NewSessionWidget(QWidget):
             self.line_edit_inputs.append(QLineEdit())
             self.line_edit_inputs[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.line_edit_inputs[i].setMinimumHeight(25)
-            self.line_edit_inputs[i].setStyleSheet(style)
-            # Connects each input with result outputs fields
-            self.line_edit_inputs[i].textChanged.connect(self.update_data) # type: ignore
+            self.line_edit_inputs[i].setFont(self.default_font)
+            self.line_edit_inputs[i].setStyleSheet(self.default_style)
+            # Connects each input with callback function that updates the results of the new session
+            self.line_edit_inputs[i].textChanged.connect(self.update_session_results) # type: ignore
 
             row_offset = (i // 7) * 3  # Calculate the row offset based on the group of 7 (3 rows per group)
 
@@ -164,15 +187,12 @@ class NewSessionWidget(QWidget):
                 icon_label.setPixmap(icon.pixmap(30, 30))
                 icon_label_layout.addWidget(icon_label)
 
-            label.setFont(font)
+            label.setFont(self.default_font)
             icon_label_layout.addWidget(label)
 
-            if price:
-                inputs_layout.addWidget(icon_label_widget, row_offset, col, Qt.AlignmentFlag.AlignBottom)
-                inputs_layout.addWidget(price, row_offset + 1, col)
-            else:
-                inputs_layout.addWidget(icon_label_widget, row_offset + 1, col, Qt.AlignmentFlag.AlignBottom)
-
+            inputs_layout.addWidget(icon_label_widget, row_offset, col, Qt.AlignmentFlag.AlignTop)
+            if price is not None:
+                inputs_layout.addWidget(price, row_offset + 1, col, Qt.AlignmentFlag.AlignTop)
             inputs_layout.addWidget(self.line_edit_inputs[i], row_offset + 2, col, Qt.AlignmentFlag.AlignTop)
             
             col +=1
@@ -181,15 +201,15 @@ class NewSessionWidget(QWidget):
 
         return inputs_widget
 
-    def create_session_exchange_hides_widget(self, font: QFont, style: str) -> QWidget:
+    def create_session_exchange_hides_widget(self) -> QWidget:
         """
         Create a widget that contains the exchange hides input fields and results of the exchange.
             :param font: The font to be used for the labels and input fields.
-            :param style: The stylesheet to be applied to the input fields.
             :return: A QWidget containing the exchange hides input fields and results of the exchange.
         """
         # Create widget that contains exchange hides input fields widget and results of the exchange
         exchange_widget = QWidget()
+        exchange_widget.setContentsMargins(0, 0, 200, 0)
         exchange_layout = QVBoxLayout(exchange_widget)
 
         # Create a widget that contains the exchange hides input fields
@@ -197,88 +217,103 @@ class NewSessionWidget(QWidget):
         exchange_input_layout = QGridLayout(exchange_input_widget)
 
         green_exchange_label = QLabel("Green Hides Exchange")
-        green_exchange_label.setFont(font)
+        green_exchange_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        green_exchange_label.setFont(self.default_font)
         green_exchange_label.setContentsMargins(0, 0, 25, 0)
 
         blue_exchange_label = QLabel("Blue Hides Exchange")
-        blue_exchange_label.setFont(font)
+        blue_exchange_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        blue_exchange_label.setFont(self.default_font)
         blue_exchange_label.setContentsMargins(25, 0, 0, 0)
 
-        green_exchange_input = QLineEdit()
-        green_exchange_input.setFont(font)
-        green_exchange_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        green_exchange_input.setMinimumHeight(25)
-        green_exchange_input.setStyleSheet(style)
-        green_exchange_input.setMinimumWidth(220)
-        green_exchange_input.setContentsMargins(0, 0, 25, 0)
+        green_exchange_line_edit = QLineEdit()
+        green_exchange_line_edit.setFont(self.default_font)
+        green_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        green_exchange_line_edit.setMinimumHeight(25)
+        green_exchange_line_edit.setStyleSheet(self.default_style)
+        green_exchange_line_edit.setMinimumWidth(220)
+        green_exchange_line_edit.setContentsMargins(0, 0, 25, 0)
         
-        blue_exchange_input = QLineEdit()
-        blue_exchange_input.setFont(font)
-        blue_exchange_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        blue_exchange_input.setMinimumHeight(25)
-        blue_exchange_input.setStyleSheet(style)
-        blue_exchange_input.setMinimumWidth(220)
-        blue_exchange_input.setContentsMargins(25, 0, 0, 0)
+        blue_exchange_line_edit = QLineEdit()
+        blue_exchange_line_edit.setFont(self.default_font)
+        blue_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        blue_exchange_line_edit.setMinimumHeight(25)
+        blue_exchange_line_edit.setStyleSheet(self.default_style)
+        blue_exchange_line_edit.setMinimumWidth(220)
+        blue_exchange_line_edit.setContentsMargins(25, 0, 0, 0)
 
         # Connects each input field with the function that resolves the request
-        green_exchange_input.textChanged.connect(lambda: self.controller.on_exchange_hides(green_exchange_input.text(), blue_exchange_input.text())) # type: ignore
-        blue_exchange_input.textChanged.connect(lambda: self.controller.on_exchange_hides(green_exchange_input.text(), blue_exchange_input.text())) # type: ignore
+        green_exchange_line_edit.textChanged.connect(lambda: self.controller.on_exchange_hides(green_exchange_line_edit.text(), blue_exchange_line_edit.text())) # type: ignore
+        blue_exchange_line_edit.textChanged.connect(lambda: self.controller.on_exchange_hides(green_exchange_line_edit.text(), blue_exchange_line_edit.text())) # type: ignore
 
         exchange_input_layout.addWidget(green_exchange_label, 0, 0, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight)
         exchange_input_layout.addWidget(blue_exchange_label, 0, 1, Qt.AlignmentFlag.AlignBottom)
-        exchange_input_layout.addWidget(green_exchange_input, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
-        exchange_input_layout.addWidget(blue_exchange_input, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        exchange_input_layout.addWidget(green_exchange_line_edit, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        exchange_input_layout.addWidget(blue_exchange_line_edit, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         # Adds the results of the exchange hides
         results_exchange_label = QLabel("Results Exchange")
-        results_exchange_label.setFont(font)
+        results_exchange_label.setFont(self.default_font)
         
-        self.exchange_results_input = QLineEdit()
-        self.exchange_results_input.setReadOnly(True)
-        self.exchange_results_input.setFont(font)
-        self.exchange_results_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.exchange_results_input.setMinimumHeight(25)
-        self.exchange_results_input.setStyleSheet("""
-            background-color: rgba(255,255,255,0.2); border: 1px solid black; border-radius: 4px
-        """)
-        self.exchange_results_input.setMaximumWidth(220)
+        self.exchange_results_line_edit = QLineEdit()
+        self.exchange_results_line_edit.setReadOnly(True)
+        self.exchange_results_line_edit.setFont(self.default_font)
+        self.exchange_results_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.exchange_results_line_edit.setMinimumHeight(25)
+        self.exchange_results_line_edit.setStyleSheet(self.default_style)
+        self.exchange_results_line_edit.setMaximumWidth(220)
 
         exchange_layout.addWidget(exchange_input_widget, 0, Qt.AlignmentFlag.AlignCenter)
         exchange_layout.addWidget(results_exchange_label, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
-        exchange_layout.addWidget(self.exchange_results_input, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        exchange_layout.addWidget(self.exchange_results_line_edit, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
 
         return exchange_widget
 
-    def create_session_elixirs_cost_widget(self, font: QFont, style: str, elixirs_cost: str) -> QWidget:
-        return QWidget()
+    def create_session_elixirs_cost_widget(self, elixirs_cost: str) -> QWidget:
+        elixirs_cost_widget = QWidget()
+        elixirs_cost_widget.setContentsMargins(200, 9, 0, 0) # Add some space at the top of the widget to align it with the exchange hides widget
+        elixirs_cost_layout = QVBoxLayout(elixirs_cost_widget)
+        elixirs_cost_layout.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        
+        elixirs_cost_label = QLabel("Elixirs Cost")
+        elixirs_cost_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        elixirs_cost_label.setFont(self.default_font)
 
-    def create_session_exchange_elixirs_widget(self, font: QFont, style: str, elixirs_cost: str) -> QWidget:
+        elixirs_cost_line_edit = QLineEdit(elixirs_cost)
+        elixirs_cost_line_edit.setStyleSheet(self.default_style)
+        elixirs_cost_line_edit.setFont(self.default_font)
+        elixirs_cost_line_edit.setReadOnly(True)
+        elixirs_cost_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        elixirs_cost_layout.addWidget(elixirs_cost_label)
+        elixirs_cost_layout.addWidget(elixirs_cost_line_edit)
+        
+        return elixirs_cost_widget
+
+    def create_session_exchange_elixirs_widget(self, elixirs_cost: str) -> QWidget:
         """
         Create a widget that contains the exchange hides and elixirs cost widgets.
-            :param font: The font to be used for the labels and input fields.
-            :param style: The stylesheet to be applied to the input fields.
             :param elixirs_cost: The cost of elixirs per hour for the new session.
             :return: A QWidget containing the exchange hides and elixirs cost widgets.
         """
         # Create widget that contains exchange hides and elixirs cost widgets
         exchange_elixirs_widget = QWidget()
         exchange_elixirs_layout = QHBoxLayout(exchange_elixirs_widget)
+        exchange_elixirs_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Create exchange hides widget
-        exchange_hides_widget = self.create_session_exchange_hides_widget(font, style)
+        exchange_hides_widget = self.create_session_exchange_hides_widget()
         # Create elixirs cost widget
-        elixirs_cost_widget = self.create_session_elixirs_cost_widget(font, style, elixirs_cost)
+        elixirs_cost_widget = self.create_session_elixirs_cost_widget(elixirs_cost)
 
         exchange_elixirs_layout.addWidget(exchange_hides_widget, alignment=Qt.AlignmentFlag.AlignLeft)
         exchange_elixirs_layout.addWidget(elixirs_cost_widget, alignment=Qt.AlignmentFlag.AlignRight)
 
         return exchange_elixirs_widget
 
-    def create_session_results_widget(self, font: QFont, style: str) -> QWidget:
+    def create_session_results_widget(self) -> QWidget:
         """
         Create the results widget to display the results of the new session.
-            :param font: The font to be used for the labels and input fields.
-            :param style: The stylesheet to be applied to the input fields.
             :return: A QWidget containing the results of the new session.
         """
         results_widget = QWidget()
@@ -296,11 +331,10 @@ class NewSessionWidget(QWidget):
 
         for i in range(len(self.labels_result)):
             self.inputs_result.append(QLineEdit())
-            self.labels_result[i].setFont(font)
-            self.inputs_result[i].setFont(font)
+            self.labels_result[i].setFont(self.default_font)
             self.inputs_result[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.inputs_result[i].setMinimumHeight(25)
-            self.inputs_result[i].setStyleSheet(style)
+            self.inputs_result[i].setStyleSheet(self.default_style)
             self.inputs_result[i].setReadOnly(True)
 
             results_layout.addWidget(self.labels_result[i], 0, i, Qt.AlignmentFlag.AlignBottom)
@@ -308,10 +342,9 @@ class NewSessionWidget(QWidget):
 
         return results_widget
 
-    def create_session_save_button_widget(self, font: QFont) -> QWidget:
+    def create_session_save_button_widget(self) -> QWidget:
         """
         Create the save button widget.
-            :param font: The font to be used for the button.
             :return: A QWidget containing the save button.
         """
         save_button_widget = QWidget()
@@ -319,19 +352,20 @@ class NewSessionWidget(QWidget):
 
         # Button to save data in an excel file
         self.save_button = QPushButton("Save")
-        self.save_button.setFont(font)
+        self.save_button.setFont(self.default_font)
         self.save_button.setStyleSheet("""
             QPushButton{
-                background-color: rgba(255,255,255,0.2); 
+                background-color: rgba(255,255,255,0.05); 
                 border: 1px solid black; 
-                border-radius: 6px
+                border-radius: 6px;
+                color: rgba(0, 0, 0, 0.5);
             }
             QPushButton:hover{
                 background-color: rgba(255,255,255,0.5);
             }"""
         )
         
-        self.save_button.setDisabled(True)
+        self.save_button.setDisabled(True) # Inits the save button as disabled, it will be enabled when the user inputs data
         self.save_button.setFixedSize(250, 50)
         self.save_button.clicked.connect(self.save_session_excel) # type: ignore
 
@@ -344,18 +378,7 @@ class NewSessionWidget(QWidget):
         Update the exchange results input field with the provided results.
             :param res_exchange: A tuple containing the exchange results (total, green hides, blue hides).
         """
-        self.exchange_results_input.setText(f"{res_exchange[0]} ({res_exchange[1]}, {res_exchange[2]})")
-
-    def update_session_results(self):
-        """
-        Update the results input fields with the calculated results.
-        This method retrieves the total money, total money per hour, total taxed, and total profit per hour,
-        and updates the corresponding input fields with these values.
-        """
-        self.inputs_result[0].setText(str(f"{self.results_tot:,}"))
-        self.inputs_result[1].setText(str(f"{self.results_tot_h:,}"))
-        self.inputs_result[2].setText(str(f"{self.results_tax:,}"))
-        self.inputs_result[3].setText(str(f"{self.results_tax_h:,}"))
+        self.exchange_results_line_edit.setText(f"{res_exchange[0]} ({res_exchange[1]}, {res_exchange[2]})")
 
     def save_session_excel(self):
         """
@@ -376,32 +399,71 @@ class NewSessionWidget(QWidget):
         except ValueError:
             show_dialog_error("Error: Invalid data in results fields")
             return
-
-        if self.controller.save_session(self.labels_input_text, self.data_input, labels_res, total_res, total_res_h, taxed_res, taxed_res_h) == -1:
-            show_dialog_error("Error saving data, wrong data")
         
-    def update_data(self):
-        self.labels_input_text: list[str] = []
-        self.data_input: list[str] = []
+        res_lab: list[str] = []
+        res_data: list[str] = []
+        for i in range(len(self.labels_icons_input)):
+            label = self.labels_icons_input[i][0].text()
+            inp = self.line_edit_inputs[i].text()
+            if inp == "" or label == "":
+                return
+            res_lab.append(label)
+            res_data.append(inp)
+
+        if self.controller.save_session(res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h) == -1:
+            show_dialog_error("Error saving data, wrong data")
+                
+    def update_session_results(self):
+        """
+        Update the results of the new session based on the input data.
+        This method collects the input data, calculates the results, and updates the labels and input fields accordingly.
+        """
+        data_input: dict[str, str] = {}
+        all_inputs_filled: bool = True
+        for i, (label, _, _) in enumerate(self.labels_icons_input):
+            text = self.line_edit_inputs[i].text()
+            data_input[label.text()] = text
+
+            if text == "":
+                all_inputs_filled = False
+                if self.save_button.isEnabled():
+                    self.save_button.setDisabled(True)
+                    self.save_button.setStyleSheet("""
+                        QPushButton{
+                            background-color: rgba(255,255,255,0.05); 
+                            border: 1px solid black; 
+                            border-radius: 6px;
+                            color: rgba(0, 0, 0, 0.5);
+                        }
+                        QPushButton:hover{
+                            background-color: rgba(255,255,255,0.5);
+                        }"""
+                    )
+
+        res_data = self.controller.get_session_results(data_input)
+        results_tot = res_data["results_tot"]
+        results_tot_h = res_data["results_h"]
+        results_tax = res_data["results_taxed"]
+        results_tax_h = res_data["results_taxed_h"]
+        new_labels_input_text = res_data["new_labels_input_text"]
 
         for i, (label, _, _) in enumerate(self.labels_icons_input):
-            self.labels_input_text.append(label.text())
-            self.data_input.append(self.line_edit_inputs[i].text())
-
-        res_data = self.controller.get_results(self.data_input)
-        self.results_tot = res_data["results_tot"]
-        self.results_tot_h = res_data["results_h"]
-        self.results_tax = res_data["results_taxed"]
-        self.results_tax_h = res_data["results_taxed_h"]
-
-        gains_per_item = self.controller.get_gains_per_item()
-        results_tot_percentage = self.controller.get_results_tot_percentage()
-
-        for i in range(len(self.labels_icons_input)-1):
-            label, _, _ = self.labels_icons_input[i]
-            new_label_text = self.controller.get_percentage_item(label.text(), gains_per_item[i], results_tot_percentage)
-            self.labels_input_text[i] = new_label_text
-            self.line_edit_inputs[i].setText(new_label_text)
+            label.setText(new_labels_input_text[i])
         
-        self.update_session_results()
-        self.save_button.setDisabled(False)
+        self.inputs_result[0].setText(str(f"{results_tot:,}"))
+        self.inputs_result[1].setText(str(f"{results_tot_h:,}"))
+        self.inputs_result[2].setText(str(f"{results_tax:,}"))
+        self.inputs_result[3].setText(str(f"{results_tax_h:,}"))
+
+        if all_inputs_filled:
+            self.save_button.setDisabled(False) # Enable the save button after updating the results
+            self.save_button.setStyleSheet("""
+                QPushButton{
+                    background-color: rgba(255,255,255,0.2); 
+                    border: 1px solid black; 
+                    border-radius: 6px;
+                }
+                QPushButton:hover{
+                    background-color: rgba(255,255,255,0.5);
+                }"""
+            )

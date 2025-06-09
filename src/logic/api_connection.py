@@ -70,7 +70,7 @@ def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, l
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
         if not cancel_event.is_set():
             with lock_items:
-                item_prices_ids[id] = (item_name, int(sell_price))
+                item_prices_ids[id] = (item_name, int(sell_price)) # id, item_name, sell_price
 
         return 0  # Return 0 on success, -1 on failure
 

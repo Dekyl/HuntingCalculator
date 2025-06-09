@@ -1,4 +1,42 @@
-import json
+def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
+    """
+    Calculate the cost of elixirs per hour based on the provided elixirs data.
+        :param elixirs: A dictionary containing elixir id: (name and cost).
+        :return: The total cost of elixirs per hour.
+    """
+    cost_elixirs = 0
+    for _, (name, cost) in elixirs.items():
+        if name.startswith("Perfume"):
+            cost *= 3 # Perfumes cost 3 times more (3 perfumes per hour)
+        else:
+            cost *= 4 # Other elixirs cost 4 times more (4 elixirs per hour)
+        cost_elixirs += cost
+
+    return str(f"{cost_elixirs:,}")
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+""" import json
 from logic.logs import add_log
 
 market_tax:int = 0
@@ -16,9 +54,6 @@ breath_of_narcion_price:int = 0
 n_breath_bought:int = 0
 
 def load_data() -> bool:
-    """
-    Load the data from the JSON file and initialize global variables.
-    """
     global market_tax, value_pack, prices, price_master_special_stuffed, elixirs_cost, price_master_stuffed, breath_of_narcion_price
     try:
         with open('./res/data.json', 'r', encoding='utf-8') as file:
@@ -139,13 +174,6 @@ def get_results_tot_percentage() -> int:
     return results_tot_percentage
 
 def get_percentage_item(actual_label: str, gains_item: int, total_gains: int) -> str:
-    """
-    Returns the percentage of gains for a specific item formatted as a string.
-        :param actual_label: The label of the item, which may include a name and a percentage.
-        :param gains_item: The gains for the specific item.
-        :param total_gains: The total gains from all items.
-        :return: A string containing the item name and its percentage of total gains.
-    """
     new_text = actual_label[0:actual_label.rfind(" ")]
 
     if total_gains == 0:
@@ -164,11 +192,6 @@ def get_percentage_item(actual_label: str, gains_item: int, total_gains: int) ->
     return new_text
 
 def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
-    """
-    Calculate the total cost of elixirs for one hour of hunting.
-        :param elixirs: A dictionary where keys are elixir IDs and values are tuples containing the elixir name and its cost.
-        :return: The total cost of elixirs as a string.
-    """
     cost_elixirs = 0
     if not elixirs:
         return "0"
@@ -179,4 +202,4 @@ def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
         else:
             cost_elixirs += elixir_cost * 4 # Other elixirs cost 4 times more (4 elixirs per hour)
 
-    return str(cost_elixirs)
+    return str(cost_elixirs) """

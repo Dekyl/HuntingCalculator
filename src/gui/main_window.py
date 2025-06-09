@@ -21,14 +21,13 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
-
         self.setWindowTitle("Hunting Calculator")
         self.resize(QSize(1800, 1000))
         self.setMinimumSize(QSize(400, 300))
         
         primary_screen = QGuiApplication.primaryScreen()
         if primary_screen is not None:
-            screen_geometry = primary_screen.geometry()
+            screen_geometry = primary_screen.availableGeometry()  # Use availableGeometry so the taskbar is not included
             x = (screen_geometry.width() - self.width()) // 2
             y = (screen_geometry.height() - self.height()) // 2
             self.move(x, y)
@@ -104,8 +103,8 @@ class MainWindow(QMainWindow):
         Enable or disable the main UI components of the application.
             :param enabled: A boolean indicating whether to enable or disable the UI.
         """
-        self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
         self.side_bar_widget.setEnabled(enabled)
+        self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
         self.stack.setEnabled(enabled)
 
     def show_dialog_error(self, msg: str):

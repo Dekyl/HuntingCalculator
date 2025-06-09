@@ -12,7 +12,20 @@ res_list = [
     'res/icons/home.ico',
     'res/icons/clean_sessions.ico',
     'res/icons/view_sessions.ico',
-    'res/icons/exit_app.ico'
+    'res/icons/exit_app.ico',
+    'res/icons/not_found.ico',
+    'res/icons/artifacts.png',
+    'res/icons/breath_of_narcion.png',
+    'res/icons/cracked_horn.png',
+    'res/icons/cracked_tooth.png',
+    'res/icons/damaged_hide.png',
+    'res/icons/intact_horn.png',
+    'res/icons/intact_tooth.png',
+    'res/icons/sharp_horn.png',
+    'res/icons/sharp_tooth.png',
+    'res/icons/supreme_hide.png',
+    'res/icons/usable_hide.png',
+    'res/icons/wildspark.png'
 ]
 
 def get_resource_MEIPASS(relative_path:str) -> str:

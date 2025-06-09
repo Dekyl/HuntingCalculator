@@ -1,10 +1,12 @@
 from PyQt6.QtCore import QThread
 
+from typing import Any
+
 from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
 from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_id_icon, get_no_market_items
-from logic.get_results import results_total, results_h, results_taxed, results_taxed_h, get_percentage_item, get_results_tot_percentage, get_gains_per_item, calculate_elixirs_cost_hour
+from logic.calculate_results_session import calculate_elixirs_cost_hour#, calculate_results
 from logic.data_fetcher import DataFetcher
 from interface.view_interface import ViewInterface
 
@@ -13,7 +15,7 @@ class AppController:
     A controller class to manage the application logic and user interactions.
     This class is a singleton and should be accessed via the get_instance method.
     """
-    _instance = None
+    _instance = None # Singleton instance
 
     def __init__(self, view: ViewInterface):
         """
@@ -127,12 +129,6 @@ class AppController:
             return
         
         no_market_items = get_no_market_items(spot_name)
-        if not no_market_items:
-            add_log(f"No market items found for spot '{spot_name}'", "error")
-            self.view.set_ui_enabled(True) # Re-enable the UI
-            self.view.show_dialog_error(f"Error fetching no market items from JSON file.")
-            return
-        
         self.view.create_new_session_widget(
             spot_name,
             spot_id_icon,
@@ -171,37 +167,13 @@ class AppController:
         """
         return save_session(labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
     
-    def get_results(self, data_input: list[str]) -> dict[str, int]:
+    def get_session_results(self, data_input: dict[str, str]) -> dict[str, Any]:
         """
-        Calculate the total results from the input data.
-            :param data_input: List of input data values.
-            :return: A dictionary containing the total results, results per hour, results after tax, and results after tax per hour.
+        Get the results of a hunting session.
+            :param data_input: A dictionary containing the input data for the session.
+            :return: A dictionary containing the results of the session.
         """
-        return {"results_tot": results_total(data_input), "results_h": results_h(), "results_taxed": results_taxed(), "results_taxed_h": results_taxed_h()}
-    
-    def get_results_tot_percentage(self) -> int:
-        """
-        Get the total results percentage from the results.
-            :return: The total results percentage.
-        """
-        return get_results_tot_percentage()
-    
-    def get_gains_per_item(self) -> list[int]:
-        """
-        Get the gains per item from the results.
-            :return: A list of gains per item.
-        """
-        return get_gains_per_item()
-    
-    def get_percentage_item(self, item: str, gains_item: int, results_tot_percentage: int) -> str:
-        """
-        Get the gains per item from the results.
-            :param item: The name of the item.
-            :param gains_item: The gains for the specific item.
-            :param results_tot_percentage: The total results percentage.
-            :return: A string containing the item name and its percentage of total gains.
-        """
-        return get_percentage_item(item, gains_item, results_tot_percentage)
+        return data_input
 
     @staticmethod
     def get_instance() -> "AppController":
