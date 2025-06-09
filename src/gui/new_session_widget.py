@@ -10,12 +10,13 @@ from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
 
 class NewSessionWidget(QWidget):
-    def __init__(self, name_spot: str, id_icon: str, prices: list[tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
+    def __init__(self, name_spot: str, spot_id_icon: str, items: dict[str, tuple[str, int]], elixirs: dict[str, tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
         """
         Initialize the NewSessionWidget with the provided parameters.
             :param name_spot: The name of the hunting spot for the new session.
-            :param id_icon: The ID of the icon associated with the hunting spot.
-            :param prices: A list of tuples containing item names and their prices.
+            :param spot_id_icon: The ID of the icon associated with the hunting spot.
+            :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
+            :param elixirs: A dictionary containing the elixirs available for the hunting spot, where keys are elixir IDs and values are tuples of (elixir name, cost).
             :param no_market_items: A list of items that are not available in the market.
             :param elixirs_cost: The cost of elixirs per hour for the new session.
         """
@@ -36,9 +37,9 @@ class NewSessionWidget(QWidget):
         style = "background-color: rgba(255,255,255,0.2); border: 1px solid black; border-radius: 4px"
 
         # Set the hunting spot title and icon
-        title_widget = self.create_session_title_widget(name_spot, id_icon)
+        title_widget = self.create_session_title_widget(name_spot, spot_id_icon)
         # Create the input widget that contains the input fields for the new session
-        inputs_widget = self.create_session_inputs_widget(prices, font, no_market_items, style)
+        inputs_widget = self.create_session_inputs_widget(items, elixirs, font, no_market_items, style)
         # Create the widget that contains exchange hides widget and elixirs cost widget
         exchange_elixirs_widget = self.create_session_exchange_elixirs_widget(font, style, elixirs_cost)
         # Create the widget that allows saving the results
@@ -82,10 +83,11 @@ class NewSessionWidget(QWidget):
 
         return title_widget
 
-    def create_session_inputs_widget(self, prices: list[tuple[str, int]], font: QFont, no_market_items: list[str], style: str) -> QWidget:
+    def create_session_inputs_widget(self, items: dict[str, tuple[str, int]], elixirs: dict[str, tuple[str, int]], font: QFont, no_market_items: list[str], style: str) -> QWidget:
         """
         Create the input widget for the new session.
-            :param prices: A list of tuples containing item names and their prices.
+            :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
+            :param elixirs: A dictionary containing the elixirs available for the hunting spot, where keys are elixir IDs and values are tuples of (elixir name, cost).
             :param font: The font to be used for the labels and input fields.
             :param no_market_items: A list of items that are not available in the market.
             :param style: The stylesheet to be applied to the input fields.
@@ -93,15 +95,13 @@ class NewSessionWidget(QWidget):
         """
         inputs_widget = QWidget()
         inputs_layout = QGridLayout(inputs_widget)
-        inputs_layout.setSpacing(10)
 
-        self.labels_input: list[QLabel] = []
-        price_values: list[QLabel] = []
+        self.labels_icons_input: list[tuple[QLabel, QIcon | None, QLabel | None]] = []
 
-        for item_name, price_value in prices:
+        for i, (id, (item_name, price)) in enumerate(items.items()):
+            icon = QIcon(f"res/icons/items/{id}.png") if os.path.exists(f"res/icons/items/{id}.png") else QIcon("res/icons/not_found.ico")
+
             label = SmartLabel(f"{item_name} (0.00%)")
-            label.setWordWrap(False)
-            label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             label.setStyleSheet("""
                 QToolTip { 
                     background-color: rgb(30, 30, 30);
@@ -109,17 +109,17 @@ class NewSessionWidget(QWidget):
                     border: 1px solid rgb(220, 220, 220);
                 }
             """)
-            self.labels_input.append(label)
-            price_value = QLabel(str(f"{price_value:,}"))
+
+            price_value = QLabel(str(f"{price:,}"))
+            price_value.setContentsMargins(15, 0, 0, 0)
             price_value.setFont(font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            price_value.setMaximumHeight(20)
-            price_values.append(price_value)
+
+            self.labels_icons_input.append((label, icon, price_value))
 
         for no_market_item in no_market_items:
             label = SmartLabel(f"{no_market_item} (0.00%)")
-            label.setWordWrap(False)
-            label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            label.setMinimumHeight(50)
             label.setStyleSheet("""
                 QToolTip {
                     background-color: rgb(30, 30, 30); 
@@ -127,31 +127,53 @@ class NewSessionWidget(QWidget):
                     border: 1px solid rgb(220, 220, 220); 
                 }
             """)
-            self.labels_input.append(label)
 
-        self.labels_input.append(QLabel("Hours"))
+            if "breath of narcion" in no_market_item.lower():
+                icon = QIcon(f"res/icons/breath of narcion.png") if os.path.exists(f"res/icons/breath of narcion.png") else QIcon("res/icons/not_found.ico")
+            else:
+                icon = QIcon(f"res/icons/{no_market_item.lower()}.png") if os.path.exists(f"res/icons/{no_market_item.lower()}.png") else QIcon("res/icons/not_found.ico")
 
+            price_value = QLabel("0")
+            price_value.setContentsMargins(15, 0, 0, 0)
+            price_value.setFont(font)
+            price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            self.labels_icons_input.append((label, icon, price_value))
+
+        self.labels_icons_input.append((QLabel("Hours"), None, QLabel()))
         # Data input fields
-        self.inputs_input: list[QLineEdit] = []
+        self.line_edit_inputs: list[QLineEdit] = []
         # Column where to place next element
         col = 0
 
-        for i in range(len(self.labels_input)):
-            self.inputs_input.append(QLineEdit())
-            self.labels_input[i].setFont(font)
-            self.inputs_input[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.inputs_input[i].setMinimumHeight(30)
-            self.inputs_input[i].setStyleSheet(style)
+        for i, (label, icon, price) in enumerate(self.labels_icons_input):
+            self.line_edit_inputs.append(QLineEdit())
+            self.line_edit_inputs[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.line_edit_inputs[i].setMinimumHeight(25)
+            self.line_edit_inputs[i].setStyleSheet(style)
             # Connects each input with result outputs fields
-            self.inputs_input[i].textChanged.connect(self.update_data) # type: ignore
+            self.line_edit_inputs[i].textChanged.connect(self.update_data) # type: ignore
 
             row_offset = (i // 7) * 3  # Calculate the row offset based on the group of 7 (3 rows per group)
-            if i < len(price_values):
-                inputs_layout.addWidget(self.labels_input[i], row_offset, col, Qt.AlignmentFlag.AlignBottom)
-                inputs_layout.addWidget(price_values[i], row_offset + 1, col)
+
+            icon_label_widget = QWidget()
+            icon_label_layout = QHBoxLayout(icon_label_widget)
+            icon_label_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)  # Align content to the left
+
+            if icon:
+                icon_label = QLabel()
+                icon_label.setPixmap(icon.pixmap(30, 30))
+                icon_label_layout.addWidget(icon_label)
+
+            label.setFont(font)
+            icon_label_layout.addWidget(label)
+
+            if price:
+                inputs_layout.addWidget(icon_label_widget, row_offset, col, Qt.AlignmentFlag.AlignBottom)
+                inputs_layout.addWidget(price, row_offset + 1, col)
             else:
-                inputs_layout.addWidget(self.labels_input[i], row_offset + 1, col, Qt.AlignmentFlag.AlignBottom)
-            inputs_layout.addWidget(self.inputs_input[i], row_offset + 2, col, Qt.AlignmentFlag.AlignTop)
+                inputs_layout.addWidget(icon_label_widget, row_offset + 1, col, Qt.AlignmentFlag.AlignBottom)
+
+            inputs_layout.addWidget(self.line_edit_inputs[i], row_offset + 2, col, Qt.AlignmentFlag.AlignTop)
             
             col +=1
             if col == 7:
@@ -185,7 +207,7 @@ class NewSessionWidget(QWidget):
         green_exchange_input = QLineEdit()
         green_exchange_input.setFont(font)
         green_exchange_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        green_exchange_input.setMinimumHeight(30)
+        green_exchange_input.setMinimumHeight(25)
         green_exchange_input.setStyleSheet(style)
         green_exchange_input.setMinimumWidth(220)
         green_exchange_input.setContentsMargins(0, 0, 25, 0)
@@ -193,7 +215,7 @@ class NewSessionWidget(QWidget):
         blue_exchange_input = QLineEdit()
         blue_exchange_input.setFont(font)
         blue_exchange_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        blue_exchange_input.setMinimumHeight(30)
+        blue_exchange_input.setMinimumHeight(25)
         blue_exchange_input.setStyleSheet(style)
         blue_exchange_input.setMinimumWidth(220)
         blue_exchange_input.setContentsMargins(25, 0, 0, 0)
@@ -215,7 +237,7 @@ class NewSessionWidget(QWidget):
         self.exchange_results_input.setReadOnly(True)
         self.exchange_results_input.setFont(font)
         self.exchange_results_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.exchange_results_input.setMinimumHeight(30)
+        self.exchange_results_input.setMinimumHeight(25)
         self.exchange_results_input.setStyleSheet("""
             background-color: rgba(255,255,255,0.2); border: 1px solid black; border-radius: 4px
         """)
@@ -277,7 +299,7 @@ class NewSessionWidget(QWidget):
             self.labels_result[i].setFont(font)
             self.inputs_result[i].setFont(font)
             self.inputs_result[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.inputs_result[i].setMinimumHeight(30)
+            self.inputs_result[i].setMinimumHeight(25)
             self.inputs_result[i].setStyleSheet(style)
             self.inputs_result[i].setReadOnly(True)
 
@@ -362,9 +384,9 @@ class NewSessionWidget(QWidget):
         self.labels_input_text: list[str] = []
         self.data_input: list[str] = []
 
-        for i in range(len(self.inputs_input)):
-            self.labels_input_text.append(self.labels_input[i].text())
-            self.data_input.append(self.inputs_input[i].text())
+        for i, (label, _, _) in enumerate(self.labels_icons_input):
+            self.labels_input_text.append(label.text())
+            self.data_input.append(self.line_edit_inputs[i].text())
 
         res_data = self.controller.get_results(self.data_input)
         self.results_tot = res_data["results_tot"]
@@ -375,10 +397,11 @@ class NewSessionWidget(QWidget):
         gains_per_item = self.controller.get_gains_per_item()
         results_tot_percentage = self.controller.get_results_tot_percentage()
 
-        for i in range(len(self.labels_input)-1):
-            new_label_text = self.controller.get_percentage_item(self.labels_input[i].text(), gains_per_item[i], results_tot_percentage)
+        for i in range(len(self.labels_icons_input)-1):
+            label, _, _ = self.labels_icons_input[i]
+            new_label_text = self.controller.get_percentage_item(label.text(), gains_per_item[i], results_tot_percentage)
             self.labels_input_text[i] = new_label_text
-            self.labels_input[i].setText(new_label_text)
+            self.line_edit_inputs[i].setText(new_label_text)
         
         self.update_session_results()
         self.save_button.setDisabled(False)

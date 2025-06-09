@@ -129,6 +129,11 @@ class SideBarWidget(QWidget):
                 QPushButton:pressed {
                     background-color: rgba(255, 255, 255, 0.7);
                 }
+                QToolTip {
+                    background-color: rgb(30, 30, 30);;
+                    border: 1px solid rgb(120, 120, 120);
+                    border-radius: 3px;
+                }
             """)
         else:
             self.left_widget_buttons[button_name].setStyleSheet("""
@@ -142,6 +147,11 @@ class SideBarWidget(QWidget):
                 }
                 QPushButton:pressed {
                     background-color: rgba(255, 255, 255, 0.7);
+                }
+                QToolTip {
+                    background-color: rgb(30, 30, 30);;
+                    border: 1px solid rgb(120, 120, 120);
+                    border-radius: 3px;
                 }
             """)
         if not enabled:

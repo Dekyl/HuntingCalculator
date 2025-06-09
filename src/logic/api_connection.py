@@ -8,7 +8,7 @@ from logic.get_data_api_requests import get_item_name, get_item_data, get_item_i
 timeout_connection = 1  # Timeout in seconds for the connection to the API
 max_threads = 12 # Maximum number of threads to use for concurrent requests
 
-def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, language: str = "en-US") -> dict[str, list[tuple[str, int]]] | None:
+def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, language: str = "en-US") -> dict[str, dict[str, tuple[str, int]]] | None:
     """
     Make API requests to fetch prices of items and elixirs from the Black Desert Market API.
         :param item_ids: List of item IDs to fetch prices for.
@@ -19,11 +19,11 @@ def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, l
         :type region: str
         :param language: The language for which to fetch the data (default is "en-US").
         :type language: str
-        :return: A dictionary containing two lists: prices of items and costs of elixirs, or None if the API request fails.
+        :return: A dictionary containing two dictionaries: prices of items and costs of elixirs, or None if the API request fails.
     """
-    prices_ids: dict[str, tuple[str, int] | None] = {}
+    item_prices_ids: dict[str, tuple[str, int] | None] = {}
     for id in item_ids:
-        prices_ids[id] = None # Initialize with None to handle cases where the item is not found
+        item_prices_ids[id] = None # Initialize with None to handle cases where the item is not found
     elixir_costs_ids: dict[str, tuple[str, int] | None] = {}
     for id in elixir_ids:
         elixir_costs_ids[id] = None # Initialize with None to handle cases where the elixir is not found
@@ -70,7 +70,7 @@ def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, l
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
         if not cancel_event.is_set():
             with lock_items:
-                prices_ids[id] = (item_name, int(sell_price))
+                item_prices_ids[id] = (item_name, int(sell_price))
 
         return 0  # Return 0 on success, -1 on failure
 
@@ -83,13 +83,15 @@ def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, l
                 cancel_event.set() # Cancel remaining futures
                 break
 
-    if any(v is None for v in prices_ids.values()):
+    if any(v is None for v in item_prices_ids.values()):
         return None
-    prices = [v for v in prices_ids.values() if v is not None]
 
     items_log = "Items: {\n"
-    for item_name, price in prices:
-        items_log += f"\tItem Name {item_name}: Price {price:,}\n"
+    for id, value in item_prices_ids.items():
+        if value is None:
+            return None
+        item_name, price = value
+        items_log += f"\tItem {id} ({item_name}): Price {price:,}\n"
     items_log += "}"
     add_log(items_log, "debug")
 
@@ -143,19 +145,24 @@ def make_api_requests(item_ids: list[str], elixir_ids: list[str], region: str, l
                 cancel_event.set() # Cancel remaining futures
                 break
 
-    if any(v is None for v in prices_ids.values()):
+    if any(v is None for v in elixir_costs_ids.values()):
         return None
-    elixir_costs = [v for v in elixir_costs_ids.values() if v is not None]
 
     elixirs_log = "Elixirs: {\n"
-    for elixir_name, cost in elixir_costs:
-        elixirs_log += f"\tElixir Name {elixir_name}: Cost {cost:,}\n"
+    for id, value in elixir_costs_ids.items():
+        if value is None:
+            return None
+        elixir_name, cost = value
+        elixirs_log += f"\tElixir {id} ({elixir_name}): Cost {cost:,}\n"
     elixirs_log += "}"
     add_log(elixirs_log, "debug")
 
-    return {"prices": prices, "elixir_costs": elixir_costs}
+    return {
+        "items": {k: v for k, v in item_prices_ids.items() if v is not None},
+        "elixirs": {k: v for k, v in elixir_costs_ids.items() if v is not None},
+    }
 
-def connect_api(item_ids: list[str], elixir_ids: list[str], region: str = "eu", language: str = "en-US") -> dict[str, list[tuple[str, int]]] | None:
+def connect_api(item_ids: list[str], elixir_ids: list[str], region: str = "eu", language: str = "en-US") -> dict[str, dict[str, tuple[str, int]]] | None:
     """
     Search for the current prices of items and elixirs from the Black Desert Market API and save them in a JSON file.
         :param item_ids: List of item IDs to fetch prices for.
@@ -169,7 +176,9 @@ def connect_api(item_ids: list[str], elixir_ids: list[str], region: str = "eu", 
         :return: A dictionary containing two dictionaries: prices of items and costs of elixirs, or None if the API request fails.
     """
     data_retrieved = make_api_requests(item_ids, elixir_ids, region, language)
+
     if not data_retrieved:
         add_log("Failed to update prices from the Black Desert Market API.", "error")
         return None
+    
     return data_retrieved

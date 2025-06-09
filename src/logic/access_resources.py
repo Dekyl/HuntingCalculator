@@ -54,7 +54,7 @@ def get_spots_list() -> list[str]:
         data = json.load(file)
         return data.get('spots', [])
     
-def get_spot_icon(spot_name: str) -> str:
+def get_spot_id_icon(spot_name: str) -> str:
     """
     Get the icon ID for a specific hunting spot.
         :param spot_name: The name of the hunting spot.
@@ -62,7 +62,7 @@ def get_spot_icon(spot_name: str) -> str:
     """
     with open('./res/data.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
-        return data.get('spots', {}).get(spot_name, {}).get('icon_id', '')
+        return data.get('spots', {}).get(spot_name, {}).get('spot_id_icon', '')
     
 def get_spot_loot(spot_name: str) -> list[str]:
     """

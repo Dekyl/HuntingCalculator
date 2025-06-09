@@ -3,7 +3,7 @@ from PyQt6.QtCore import QThread
 from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
-from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_icon, get_no_market_items
+from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_id_icon, get_no_market_items
 from logic.get_results import results_total, results_h, results_taxed, results_taxed_h, get_percentage_item, get_results_tot_percentage, get_gains_per_item, calculate_elixirs_cost_hour
 from logic.data_fetcher import DataFetcher
 from interface.view_interface import ViewInterface
@@ -106,7 +106,7 @@ class AppController:
 
         self.thread.start()
 
-    def on_data_retrieved(self, spot_name: str, data_retrieved: dict[str, list[tuple[str, int]]] | None):
+    def on_data_retrieved(self, spot_name: str, data_retrieved: dict[str, dict[str, tuple[str, int]]] | None):
         """
         Handle the data retrieval from the API.
             :param spot_name: The name of the hunting spot.
@@ -119,11 +119,11 @@ class AppController:
             self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 1 minute.")
             return
         
-        id_icon = get_spot_icon(spot_name)
-        if not id_icon:
+        spot_id_icon = get_spot_id_icon(spot_name)
+        if not spot_id_icon:
             add_log(f"No icon found for spot '{spot_name}'", "error")
             self.view.set_ui_enabled(True) # Re-enable the UI
-            self.view.show_dialog_error(f"Error fetching spot {spot_name} icon from JSON file.")
+            self.view.show_dialog_error(f"Error fetching spot '{spot_name}' icon from JSON file.")
             return
         
         no_market_items = get_no_market_items(spot_name)
@@ -135,10 +135,11 @@ class AppController:
         
         self.view.create_new_session_widget(
             spot_name,
-            id_icon,
+            spot_id_icon,
             no_market_items,
-            data_retrieved['prices'],
-            calculate_elixirs_cost_hour(data_retrieved['elixir_costs'])
+            data_retrieved['items'],
+            data_retrieved['elixirs'],
+            calculate_elixirs_cost_hour(data_retrieved['elixirs'])
         )
         self.view.set_ui_enabled(True)
 

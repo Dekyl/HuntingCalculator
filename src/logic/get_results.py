@@ -163,17 +163,17 @@ def get_percentage_item(actual_label: str, gains_item: int, total_gains: int) ->
 
     return new_text
 
-def calculate_elixirs_cost_hour(elixirs: list[tuple[str, int]]) -> str:
+def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
     """
     Calculate the total cost of elixirs for one hour of hunting.
-        :param elixirs: A list of tuples where each tuple contains the elixir name and its cost.
+        :param elixirs: A dictionary where keys are elixir IDs and values are tuples containing the elixir name and its cost.
         :return: The total cost of elixirs as a string.
     """
     cost_elixirs = 0
     if not elixirs:
         return "0"
     
-    for (elixir_name, elixir_cost) in elixirs:
+    for elixir_name, elixir_cost in elixirs.values():
         if elixir_name.startswith("Perfume"):
             cost_elixirs += elixir_cost * 3 # Perfumes cost 3 times more (3 perfumes per hour)
         else:
