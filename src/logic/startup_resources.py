@@ -88,7 +88,7 @@ def prepare_resources() -> bool:
                         "show_confirm_clean_message": True,
                         "region": "eu",
                         "market_tax": 0.35,
-                        "value_pack": 0.315,
+                        "value_pack": True,
                         "elixir_ids": [],
                         "language": "en-US"
                     }, f, indent=4)

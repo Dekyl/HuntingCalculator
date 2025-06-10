@@ -24,6 +24,7 @@ class NewSessionWidget(QWidget):
 
         # Controller instance to handle the logic of the new session
         self.controller = AppController.get_instance()
+        self.elixirs_cost = elixirs_cost
 
         # Main widget and layout for new session
         new_session_layout = QVBoxLayout(self)
@@ -40,13 +41,21 @@ class NewSessionWidget(QWidget):
             border: 1px solid black; 
             border-radius: 4px
         """
+        self.qtooltip_style = """
+                QToolTip {
+                background-color: rgb(30, 30, 30);;
+                border: 1px solid rgb(120, 120, 120);
+                color: rgb(220, 220, 220);
+                border-radius: 3px;
+                }
+        """
 
         # Set the hunting spot title and icon
         title_widget = self.create_session_title_widget(name_spot, spot_id_icon)
         # Create the input widget that contains the input fields for the new session
         inputs_widget = self.create_session_inputs_widget(items, elixirs, no_market_items)
         # Create the widget that contains exchange hides widget and elixirs cost widget
-        exchange_elixirs_widget = self.create_session_exchange_elixirs_widget(elixirs_cost)
+        exchange_elixirs_widget = self.create_session_exchange_elixirs_widget()
         # Create the widget that allows saving the results
         save_button_widget = self.create_session_save_button_widget()
         # Create the results widget to display the results of the new session
@@ -100,20 +109,15 @@ class NewSessionWidget(QWidget):
         inputs_widget = QWidget()
         inputs_layout = QGridLayout(inputs_widget)
 
-        self.labels_icons_input: list[tuple[QLabel, QIcon | None, QLabel | None]] = []
+        self.labels_icons_input: list[tuple[QIcon | None, QLabel, QLabel | None]] = []
 
         for i, (id, (item_name, price)) in enumerate(items.items()):
             icon = QIcon(f"res/icons/items/{id}.png") if os.path.exists(f"res/icons/items/{id}.png") else QIcon("res/icons/not_found.ico")
 
             label = SmartLabel(f"{item_name} (0.00%)")
             label.setFont(self.default_font)
-            label.setStyleSheet("""
-                QToolTip {
-                    background-color: rgb(30, 30, 30);;
-                    border: 1px solid rgb(120, 120, 120);
-                    color: rgb(220, 220, 220);
-                    border-radius: 3px;
-                }
+            label.setStyleSheet(f"""
+                {self.qtooltip_style}
             """)
 
             price_value = QLabel(str(f"{price:,}"))
@@ -121,19 +125,14 @@ class NewSessionWidget(QWidget):
             price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-            self.labels_icons_input.append((label, icon, price_value))
+            self.labels_icons_input.append((icon, label, price_value))
 
         for no_market_item in no_market_items:
             label = SmartLabel(f"{no_market_item} (0.00%)")
             label.setMinimumHeight(50)
             label.setFont(self.default_font)
-            label.setStyleSheet("""
-                QToolTip {
-                    background-color: rgb(30, 30, 30);;
-                    border: 1px solid rgb(120, 120, 120);
-                    color: rgb(220, 220, 220);
-                    border-radius: 3px;
-                }
+            label.setStyleSheet(f"""
+                {self.qtooltip_style}
             """)
 
             if "breath of narcion" in no_market_item.lower():
@@ -146,28 +145,23 @@ class NewSessionWidget(QWidget):
             price_value.setContentsMargins(15, 0, 0, 0)
             price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            self.labels_icons_input.append((label, icon, price_value))
+            self.labels_icons_input.append((icon, label, price_value))
 
         label = SmartLabel("Hours")
         label.setMinimumHeight(50)
         label.setFont(self.default_font)
-        label.setStyleSheet("""
-            QToolTip {
-                background-color: rgb(30, 30, 30);;
-                border: 1px solid rgb(120, 120, 120);
-                color: rgb(220, 220, 220);
-                border-radius: 3px;
-            }
+        label.setStyleSheet(f"""
+            {self.qtooltip_style}
         """)
 
-        self.labels_icons_input.append((label, None, None))
+        self.labels_icons_input.append((None, label, None))
 
         # Data input fields
         self.line_edit_inputs: list[QLineEdit] = []
         # Column where to place next element
         col = 0
 
-        for i, (label, icon, price) in enumerate(self.labels_icons_input):
+        for i, (icon, label, price) in enumerate(self.labels_icons_input):
             self.line_edit_inputs.append(QLineEdit())
             self.line_edit_inputs[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.line_edit_inputs[i].setMinimumHeight(25)
@@ -280,7 +274,12 @@ class NewSessionWidget(QWidget):
         elixirs_cost_label.setFont(self.default_font)
 
         elixirs_cost_line_edit = QLineEdit(elixirs_cost)
-        elixirs_cost_line_edit.setStyleSheet(self.default_style)
+        elixirs_cost_line_edit.setStyleSheet("""
+                background-color: rgba(255,255,255,0.05);
+                border: 1px solid black;
+                border-radius: 4px;
+                color: rgba(0, 0, 0, 0.6);
+            """)
         elixirs_cost_line_edit.setFont(self.default_font)
         elixirs_cost_line_edit.setReadOnly(True)
         elixirs_cost_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -290,10 +289,9 @@ class NewSessionWidget(QWidget):
         
         return elixirs_cost_widget
 
-    def create_session_exchange_elixirs_widget(self, elixirs_cost: str) -> QWidget:
+    def create_session_exchange_elixirs_widget(self) -> QWidget:
         """
         Create a widget that contains the exchange hides and elixirs cost widgets.
-            :param elixirs_cost: The cost of elixirs per hour for the new session.
             :return: A QWidget containing the exchange hides and elixirs cost widgets.
         """
         # Create widget that contains exchange hides and elixirs cost widgets
@@ -304,7 +302,7 @@ class NewSessionWidget(QWidget):
         # Create exchange hides widget
         exchange_hides_widget = self.create_session_exchange_hides_widget()
         # Create elixirs cost widget
-        elixirs_cost_widget = self.create_session_elixirs_cost_widget(elixirs_cost)
+        elixirs_cost_widget = self.create_session_elixirs_cost_widget(self.elixirs_cost)
 
         exchange_elixirs_layout.addWidget(exchange_hides_widget, alignment=Qt.AlignmentFlag.AlignLeft)
         exchange_elixirs_layout.addWidget(elixirs_cost_widget, alignment=Qt.AlignmentFlag.AlignRight)
@@ -334,7 +332,13 @@ class NewSessionWidget(QWidget):
             self.labels_result[i].setFont(self.default_font)
             self.inputs_result[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.inputs_result[i].setMinimumHeight(25)
-            self.inputs_result[i].setStyleSheet(self.default_style)
+            self.inputs_result[i].setFont(self.default_font)
+            self.inputs_result[i].setStyleSheet("""
+                background-color: rgba(255,255,255,0.05); 
+                border: 1px solid black; 
+                border-radius: 4px;
+                color: rgba(0, 0, 0, 0.6);
+            """)
             self.inputs_result[i].setReadOnly(True)
 
             results_layout.addWidget(self.labels_result[i], 0, i, Qt.AlignmentFlag.AlignBottom)
@@ -352,18 +356,20 @@ class NewSessionWidget(QWidget):
 
         # Button to save data in an excel file
         self.save_button = QPushButton("Save")
+        self.save_button.setToolTip("Save") # Add tooltip to display text on hover
         self.save_button.setFont(self.default_font)
-        self.save_button.setStyleSheet("""
-            QPushButton{
+        self.save_button.setStyleSheet(f"""
+            QPushButton {{
                 background-color: rgba(255,255,255,0.05); 
                 border: 1px solid black; 
                 border-radius: 6px;
-                color: rgba(0, 0, 0, 0.5);
-            }
-            QPushButton:hover{
+                color: rgba(0, 0, 0, 0.6);
+            }}
+            QPushButton:hover{{
                 background-color: rgba(255,255,255,0.5);
-            }"""
-        )
+            }}
+            {self.qtooltip_style}
+        """)
         
         self.save_button.setDisabled(True) # Inits the save button as disabled, it will be enabled when the user inputs data
         self.save_button.setFixedSize(250, 50)
@@ -403,7 +409,7 @@ class NewSessionWidget(QWidget):
         res_lab: list[str] = []
         res_data: list[str] = []
         for i in range(len(self.labels_icons_input)):
-            label = self.labels_icons_input[i][0].text()
+            label = self.labels_icons_input[i][1].text()
             inp = self.line_edit_inputs[i].text()
             if inp == "" or label == "":
                 return
@@ -418,13 +424,13 @@ class NewSessionWidget(QWidget):
         Update the results of the new session based on the input data.
         This method collects the input data, calculates the results, and updates the labels and input fields accordingly.
         """
-        data_input: dict[str, str] = {}
+        data_input: dict[str, tuple[str, str]] = {}
         all_inputs_filled: bool = True
-        for i, (label, _, _) in enumerate(self.labels_icons_input):
-            text = self.line_edit_inputs[i].text()
-            data_input[label.text()] = text
+        for i, (_, label, price) in enumerate(self.labels_icons_input):
+            amount = self.line_edit_inputs[i].text()
+            data_input[label.text()] = (price.text() if price else "", amount)
 
-            if text == "":
+            if amount == "":
                 all_inputs_filled = False
                 if self.save_button.isEnabled():
                     self.save_button.setDisabled(True)
@@ -440,14 +446,22 @@ class NewSessionWidget(QWidget):
                         }"""
                     )
 
-        res_data = self.controller.get_session_results(data_input)
-        results_tot = res_data["results_tot"]
-        results_tot_h = res_data["results_h"]
-        results_tax = res_data["results_taxed"]
-        results_tax_h = res_data["results_taxed_h"]
+        res_data = self.controller.get_session_results(data_input, self.elixirs_cost)
+        if res_data == -1:
+            show_dialog_error("Error calculating results, please ensure that 'settings.json' exists in the 'res' directory.")
+            return
+        
+        if isinstance(res_data, int):
+            show_dialog_error("Error calculating results, please ensure that all input data is valid.")
+            return
+        
+        results_tot = res_data["total"]
+        results_tot_h = res_data["total_h"]
+        results_tax = res_data["taxed"]
+        results_tax_h = res_data["taxed_h"]
         new_labels_input_text = res_data["new_labels_input_text"]
 
-        for i, (label, _, _) in enumerate(self.labels_icons_input):
+        for i, (_, label, _) in enumerate(self.labels_icons_input):
             label.setText(new_labels_input_text[i])
         
         self.inputs_result[0].setText(str(f"{results_tot:,}"))
@@ -457,13 +471,14 @@ class NewSessionWidget(QWidget):
 
         if all_inputs_filled:
             self.save_button.setDisabled(False) # Enable the save button after updating the results
-            self.save_button.setStyleSheet("""
-                QPushButton{
+            self.save_button.setStyleSheet(f"""
+                QPushButton {{
                     background-color: rgba(255,255,255,0.2); 
                     border: 1px solid black; 
                     border-radius: 6px;
-                }
-                QPushButton:hover{
+                }}
+                QPushButton:hover {{
                     background-color: rgba(255,255,255,0.5);
-                }"""
-            )
+                }}
+                {self.qtooltip_style}
+            """)

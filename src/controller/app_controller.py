@@ -6,7 +6,7 @@ from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
 from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_id_icon, get_no_market_items
-from logic.calculate_results_session import calculate_elixirs_cost_hour#, calculate_results
+from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
 from interface.view_interface import ViewInterface
 
@@ -118,7 +118,7 @@ class AppController:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
             self.view.set_ui_enabled(True) # Re-enable the UI
             self.view.set_session_button_enabled(False) # Disable the new session button
-            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 1 minute.")
+            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 70 seconds.")
             return
         
         spot_id_icon = get_spot_id_icon(spot_name)
@@ -167,13 +167,14 @@ class AppController:
         """
         return save_session(labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
     
-    def get_session_results(self, data_input: dict[str, str]) -> dict[str, Any]:
+    def get_session_results(self, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any] | int:
         """
         Get the results of a hunting session.
-            :param data_input: A dictionary containing the input data for the session.
-            :return: A dictionary containing the results of the session.
+            :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
+            :param elixirs_cost: The cost of elixirs for the session.
+            :return: A dictionary containing the results of the session or -1 if settings.json is not found, -2 if input data is invalid.
         """
-        return data_input
+        return calculate_results_session(data_input, elixirs_cost)
 
     @staticmethod
     def get_instance() -> "AppController":

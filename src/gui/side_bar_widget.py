@@ -60,16 +60,16 @@ class SideBarWidget(QWidget):
             ("Exit", lambda: self.controller.on_exit_button() if self.controller else None)
         ]
 
-        self.left_widget_buttons: dict[str, QPushButton] = {}  # Store buttons for later use
+        self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
         for i, (text, action) in enumerate(buttons_side_bar):
             button_side_bar = QPushButton()
             self.left_widget_buttons[text.lower().replace(' ', '_')] = button_side_bar
             if not os.path.exists(self.res_icons[text.lower()]):
                 button_side_bar.setIcon(QIcon("res/icons/not_found.ico"))
             else:
-                button_side_bar.setIcon(QIcon(self.res_icons[text.lower()]))  # Set an icon based on the side bar button text
+                button_side_bar.setIcon(QIcon(self.res_icons[text.lower()])) # Set an icon based on the side bar button text
 
-            button_side_bar.setIconSize(self.button_icon_size)  # Set a default icon size
+            button_side_bar.setIconSize(self.button_icon_size) # Set a default icon size
             button_side_bar.setStyleSheet("""
                 QPushButton {
                     background-color: rgba(255, 255, 255, 0.2);
@@ -88,7 +88,7 @@ class SideBarWidget(QWidget):
                     border-radius: 3px;
                 }
             """)
-            button_side_bar.setToolTip(f"{text}")  # Add tooltip to display text on hover
+            button_side_bar.setToolTip(f"{text}") # Add tooltip to display text on hover
             button_side_bar.setFont(QFont("Arial", 12))
             button_side_bar.setMinimumHeight(50)
             button_side_bar.setMinimumWidth(50)
@@ -155,7 +155,7 @@ class SideBarWidget(QWidget):
                 }
             """)
         if not enabled:
-            QTimer.singleShot(60000, lambda: self.set_left_widget_button_enabled(button_name, True))  # type: ignore
+            QTimer.singleShot(70000, lambda: self.set_left_widget_button_enabled(button_name, True))  # type: ignore
     
     def show_spots_list_widget(self):
         """
