@@ -6,6 +6,7 @@ from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import QTimer, QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
+from gui.settings_widget import SettingsWidget
 from gui.aux_components import QHLine
 from controller.app_controller import AppController
 
@@ -44,19 +45,20 @@ class SideBarWidget(QWidget):
         }
 
         left_layout = QVBoxLayout(self)
-        self.setMaximumWidth(200)
+        self.setContentsMargins(0, 0, 5, 0) # Sidebar margin with the main window
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # As SideBarWidget is a customized QWidget, we need to set this attribute to apply styles
         self.setStyleSheet("""
             background-color: rgb(30, 30, 30);
             border-right: 2px solid rgb(120, 120, 120);
         """)
 
+        self.manager_widgets = ManagerWidgets.get_instance()
         buttons_side_bar: list[tuple[str, Callable[..., None]]] = [
-            ("Home", lambda: ManagerWidgets.get_instance().set_page("home")),
+            ("Home", lambda: self.manager_widgets.set_page("home")),
             ("New session", lambda: self.show_spots_list_widget()),
-            ("View sessions", lambda: ManagerWidgets.get_instance().set_page("view_sessions")),
+            ("View sessions", lambda: self.manager_widgets.set_page("view_sessions")),
             ("Clean sessions", lambda: self.controller.on_clean_sessions_button() if self.controller else None),
-            ("Settings", lambda: ManagerWidgets.get_instance().set_page("settings")),
+            ("Settings", lambda: self.create_settings_widget()),
             ("Exit", lambda: self.controller.on_exit_button() if self.controller else None)
         ]
 
@@ -100,6 +102,14 @@ class SideBarWidget(QWidget):
                 
         # Add stretch to the bottom of the layout to push buttons to the top
         left_layout.addStretch()
+
+    def create_settings_widget(self):
+        """
+        Create and display the settings widget in the manager widgets.
+        This method initializes the SettingsWidget and adds it to the manager widgets.
+        """
+        self.manager_widgets.add_page("settings", SettingsWidget())  # Add the settings widget to the manager
+        self.manager_widgets.set_page("settings")  # Switch to the settings page
 
     def set_left_widget_buttons_enabled(self, enabled: bool):
         """
@@ -155,7 +165,7 @@ class SideBarWidget(QWidget):
                 }
             """)
         if not enabled:
-            QTimer.singleShot(70000, lambda: self.set_left_widget_button_enabled(button_name, True))  # type: ignore
+            QTimer.singleShot(75000, lambda: self.set_left_widget_button_enabled(button_name, True))  # type: ignore
     
     def show_spots_list_widget(self):
         """

@@ -13,8 +13,8 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     msg_box = QMessageBox()
     if confirm_action == "exit":
         msg_box.setWindowIcon(QIcon("res/icons/exit_app.ico"))
-    elif confirm_action == "clean_results":
-        msg_box.setWindowIcon(QIcon("res/icons/clean_results.ico"))
+    elif confirm_action == "clean_sessions":
+        msg_box.setWindowIcon(QIcon("res/icons/clean_sessions.ico"))
     else:
         msg_box.setWindowIcon(QIcon("res/icons/not_found.ico"))
 
@@ -27,7 +27,7 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     msg_box.setStyleSheet("""
         QLabel {
             min-width: 300px;
-            min-height: 100px;
+            min-height: 50px;
             font-size: 14px;
         }
         QCheckBox {

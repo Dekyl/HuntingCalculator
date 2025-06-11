@@ -20,15 +20,19 @@ def clean_sessions() -> int:
             add_log(f"Deleting all saved sessions in '{saved_sessions}'", "info")
             shutil.rmtree(saved_sessions)
             os.mkdir(saved_sessions)
+            add_log(f"Clean sessions dialog selection -> 1 (Success)", "info")
             return 1
         else:
             add_log(f"'{saved_sessions}' is not a directory or does not exist", "error")
+            add_log(f"Clean sessions dialog selection -> -1 (Error)", "error")
             return -1
 
     except Exception as e:
         add_log(f"Error while cleaning sessions: {e}", "error")
+        add_log(f"Clean sessions dialog selection -> -1 (Error)", "error")
         return -1
 
+    add_log(f"Clean sessions dialog selection -> 0 (No elements found to delete)", "info")
     return 0
 
 def save_session(labels_input: list[str], data_input: list[str], labels_res:list[str], results_tot:int, results_tot_h:int, results_tax:int, results_tax_h:int) -> int:

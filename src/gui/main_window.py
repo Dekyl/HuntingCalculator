@@ -5,12 +5,11 @@ from PyQt6.QtCore import QSize
 from typing import Any
 
 from gui.manage_widgets import ManagerWidgets
-from gui.dialogs_user import show_dialog_confirmation, show_dialog_results, show_dialog_error
 from gui.side_bar_widget import SideBarWidget
 from gui.home_widget import HomeWidget
 from gui.view_sessions_widget import ViewSessionsWidget
-from gui.settings_widget import SettingsWidget
 from gui.new_session_widget import NewSessionWidget
+from gui.dialogs_user import show_dialog_error, show_dialog_confirmation, show_dialog_results
 from controller.app_controller import AppController
 
 class MainWindow(QMainWindow):
@@ -38,6 +37,9 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(main_widget)
 
+        # Create the ManagerWidgets instance to manage different widgets in the application
+        manager = ManagerWidgets()
+
         # Create the AppController instance to manage the application logic
         # This controller will handle interactions between the view and the model
         AppController(self)
@@ -45,8 +47,6 @@ class MainWindow(QMainWindow):
         # Create the left-side menu and add it to the main layout
         self.side_bar_widget = SideBarWidget(self)
 
-        # Create the ManagerWidgets instance to manage different widgets in the application
-        manager = ManagerWidgets()
         self.stack = manager.get_stack()
 
         # Add the left-side menu and the main stack to the main layout
@@ -55,7 +55,7 @@ class MainWindow(QMainWindow):
 
         page_widgets: dict[str, QWidget] = { "home": HomeWidget(),
                                              "view_sessions": ViewSessionsWidget(),
-                                             "settings": SettingsWidget() }
+                                            }
 
         for name, widget in page_widgets.items():
             ManagerWidgets.get_instance().add_page(name, widget)
@@ -78,25 +78,23 @@ class MainWindow(QMainWindow):
         """
         show_dialog_results(message, confirm_action, res)
 
-    def create_new_session_widget(self, name_spot: str, spot_id_icon: str, no_market_items:list[str], items: dict[str, tuple[str, int]], 
-            elixirs: dict[str, tuple[str, int]], elixirs_cost: str):
-        """
-        Create a new session widget for the specified hunting spot.
-            :param name_spot: The name of the hunting spot.
-            :param spot_id_icon: The ID of the icon associated with the hunting spot.
-            :param no_market_items: A list of items that are not available on the market.
-            :param items: A dictionary containing the prices of items for the hunting spot.
-            :param elixirs: A dictionary containing the names and costs of elixirs for the hunting spot.
-            :param elixirs_cost: The cost of elixirs for the hunting spot.
-        """
-        self.actual_session = NewSessionWidget(name_spot, spot_id_icon, items, elixirs, no_market_items, elixirs_cost)
-
     def update_exchange_hides_results(self, exchange_results: tuple[int, int, int]):
         """
         Update the results of the exchange hides operation.
             :param exchange_results: A tuple containing the results of the exchange operation.
         """
         self.actual_session.update_session_exchange_results(exchange_results)
+
+    def create_new_session_widget(self, name_spot: str, spot_id_icon: str, no_market_items:list[str], items: dict[str, tuple[str, int]], elixirs_cost: str):
+        """
+        Create a new session widget for the specified hunting spot.
+            :param name_spot: The name of the hunting spot.
+            :param spot_id_icon: The ID of the icon associated with the hunting spot.
+            :param no_market_items: A list of items that are not available on the market.
+            :param items: A dictionary containing the prices of items for the hunting spot.
+            :param elixirs_cost: The cost of elixirs for the hunting spot.
+        """
+        self.actual_session = NewSessionWidget(name_spot, spot_id_icon, items, no_market_items, elixirs_cost)
 
     def set_ui_enabled(self, enabled: bool):
         """

@@ -4,6 +4,33 @@ from threading import Event
 
 from logic.logs import add_log
 
+reduced_item_names = {
+    "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",
+    "Blessing of Mystic Beasts - All AP": "BMB: All AP",
+    "Blessing of Mystic Beasts - Accuracy": "BMB: Accuracy",
+    "Blessing of Mystic Beasts - Damage Reduction": "BMB: Damage Reduction",
+    "Blessing of Mystic Beasts - Evasion": "BMB: Evasion",
+    "Blessing of Mystic Beasts - Max HP": "BMB: Max HP",
+    "Black Gem Fragment": "Black Gem Frag.",
+    "Sharp Black Crystal Shard": "S. Black Crystal Shard",
+    "Imperfect Lightstone of Flora": "Imp. Lightst. of Flora",
+    "Stuffed Shadow Lion Head": "St. Shadow Lion Head",
+    "Master's Stuffed Shadow Lion Head": "M. St. Shadow Lion Head",
+    "Master's Special Stuffed Shadow Lion Head": "M. St. Sp. Shadow Lion Head",
+    "Stuffed Grass Rhino Head": "St. Grass Rhino Head",
+    "Master's Stuffed Grass Rhino Head": "M. St. Grass Rhino Head",
+    "Master's Special Stuffed Grass Rhino Head": "M. St. Sp. Grass Rhino Head",
+    "Stuffed Vedure Doe Head": "St. Vedure Doe Head",
+    "Master's Stuffed Vedure Doe Head": "M. St. Vedure Doe Head",
+    "Master's Special Stuffed Vedure Doe Head": "M. St. Sp. Vedure Doe Head",
+    "Stuffed Verdure Buck Head": "St. Verdure Buck Head",
+    "Master's Stuffed Verdure Buck Head": "M. St. Verdure Buck Head",
+    "Master's Special Stuffed Verdure Buck Head": "M. St. Sp. Verdure Buck Head",
+    "Stuffed Shadow Wolf Head": "St. Shadow Wolf Head",
+    "Master's Stuffed Shadow Wolf Head": "M. St. Shadow Wolf Head",
+    "Master's Special Stuffed Shadow Wolf Head": "M. St. Sp. Shadow Wolf Head",
+}
+
 def get_sell_price(item_data:str, cancel_event: Event) -> str:
     """
     Fetch selling price of an item from the provided data.
@@ -136,6 +163,16 @@ def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_
 
     return 0  # Return 0 on success, -1 on failure
 
+def reduce_item_name_length(item_name: str) -> str:
+    """
+    Reduce the length of item names to fit in QLabel view.
+        :param item_name: The name of the item to reduce.
+        :type item_name: str
+    """
+    if item_name in reduced_item_names:
+        return reduced_item_names[item_name]
+    return item_name
+
 def get_item_name(id_item: str, connection: pycurl.Curl, cancel_event: Event, timeout_connection: int, region: str = "eu", language: str = "en-US") -> str:
     """
     Connect to the Black Desert Market API to fetch item or elixir name.
@@ -183,6 +220,7 @@ def get_item_name(id_item: str, connection: pycurl.Curl, cancel_event: Event, ti
         start_index = response_data.find('"name":"') + len('"name":"')
         end_index = response_data.find('"', start_index)
         item_name = response_data[start_index:end_index]
+        item_name = reduce_item_name_length(item_name)
         return item_name
     except Exception as e:
         add_log(f"Error extracting item name: {e}", "error")

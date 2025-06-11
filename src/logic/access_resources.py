@@ -31,7 +31,10 @@ def get_show_confirm_clean() -> bool:
     """
     with open('./res/settings.json', 'r', encoding='utf-8') as file:
         settings = json.load(file)
-        return settings['show_confirm_clean_message']
+        confirm_clean = settings['show_confirm_clean_message']
+        if confirm_clean:
+            add_log("Showing confirmation dialog for cleaning sessions.", "info")
+        return confirm_clean
     
 def get_show_confirm_exit() -> bool:
     """
@@ -112,3 +115,30 @@ def get_user_setting(setting: str) -> Any:
     with open('./res/settings.json', 'r', encoding='utf-8') as file:
         settings = json.load(file)
         return settings.get(setting, None)
+    
+def get_user_settings() -> dict[str, Any]:
+    """
+    Get all user settings from the settings file.
+        :return: A dictionary containing all user settings.
+    """
+    with open('./res/settings.json', 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+        return settings
+    
+def save_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
+    """
+    Save the new user settings to the settings file.
+        :param new_settings: A dictionary containing the new settings to save.
+    """
+    try:
+        new_settings_to_save = {}
+        for _, (id, val) in new_settings.items():
+            new_settings_to_save[id] = val  # Convert tuple to a simple value
+
+        with open('./res/settings.json', 'w', encoding='utf-8') as file:
+            json.dump(new_settings_to_save, file, indent=4)
+        add_log("Settings saved successfully.", "info")
+    except Exception as e:
+        add_log(f"Error saving settings: {e}", "error")
+        return -1  # Return -1 to indicate an error in saving settings
+    return 0  # Return 0 to indicate success

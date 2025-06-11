@@ -5,7 +5,18 @@ from typing import Any
 from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
-from logic.access_resources import update_confirm_dialog, get_show_confirm_clean, get_show_confirm_exit, get_spots_list, get_spot_loot, get_user_setting, get_spot_id_icon, get_no_market_items
+from logic.access_resources import (
+    update_confirm_dialog, 
+    get_show_confirm_clean, 
+    get_show_confirm_exit, 
+    get_spots_list, 
+    get_spot_loot, 
+    get_user_setting, 
+    get_spot_id_icon, 
+    get_no_market_items,
+    get_user_settings,
+    save_user_settings
+)
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
 from interface.view_interface import ViewInterface
@@ -118,7 +129,7 @@ class AppController:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
             self.view.set_ui_enabled(True) # Re-enable the UI
             self.view.set_session_button_enabled(False) # Disable the new session button
-            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 70 seconds.")
+            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 75 seconds.")
             return
         
         spot_id_icon = get_spot_id_icon(spot_name)
@@ -134,7 +145,6 @@ class AppController:
             spot_id_icon,
             no_market_items,
             data_retrieved['items'],
-            data_retrieved['elixirs'],
             calculate_elixirs_cost_hour(data_retrieved['elixirs'])
         )
         self.view.set_ui_enabled(True)
@@ -175,6 +185,30 @@ class AppController:
             :return: A dictionary containing the results of the session or -1 if settings.json is not found, -2 if input data is invalid.
         """
         return calculate_results_session(data_input, elixirs_cost)
+    
+    def get_settings_data(self) -> dict[str, Any]:
+        """
+        Get the settings data from the settings.json file.
+            :return: A dictionary containing the settings data.
+        """
+        return get_user_settings()
+    
+    def save_user_settings(self, new_settings: dict[str, tuple[str, Any]]) -> int:
+        """
+        Save the new settings to the settings.json file.
+            :param new_settings: A dictionary containing the new settings to save.
+        """
+        result = save_user_settings(new_settings)
+        if result == 0:
+            add_log("Settings saved successfully.", "info")
+        elif result == -1:
+            add_log("Error saving settings: settings.json file not found.", "error")
+            self.view.show_dialog_error("Error saving user settings in 'settings.json' file.")
+        else:
+            add_log(f"Unexpected result when saving settings: {result}", "error")
+            self.view.show_dialog_error("Unexpected error occurred while saving user settings in 'settings.json' file.")
+            
+        return result
 
     @staticmethod
     def get_instance() -> "AppController":

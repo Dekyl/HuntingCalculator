@@ -48,7 +48,7 @@ def calculate_results_session(data_input: dict[str, tuple[str, str]], elixirs_co
     if not settings:
         return -1
     market_tax, value_pack = settings
-    hours = data_input.get('Hours', ("", "1"))[1] or "1"
+    hours = data_input.get('Hours', ("", "0"))[1] or "0" # If 'Hours' is not in data_input or if it is empty, default to "0"
     elixirs_cost = elixirs_cost.replace(',', '').replace(' ', '')  # Remove commas and spaces for validation
 
     if not elixirs_cost.isdigit():
@@ -60,7 +60,7 @@ def calculate_results_session(data_input: dict[str, tuple[str, str]], elixirs_co
         return -2
     
     hours = int(hours)
-    elixirs_cost_val = int(elixirs_cost)
+    elixirs_cost_h = int(elixirs_cost) if hours > 0 else 0  # Elixirs cost per hour, if hours is 0, set to 0
 
     extra_breath_of_narcion = get_extra_breath_of_narcions(data_input) # Get the total number of extra Breath of Narcions
     total = results_total(data_input, extra_breath_of_narcion)
@@ -71,27 +71,36 @@ def calculate_results_session(data_input: dict[str, tuple[str, str]], elixirs_co
     total_h = results_h(total, hours)
     taxed = results_taxed(total, market_tax, value_pack)
     taxed_h = results_taxed_h(taxed, hours)
+    total_elixirs_cost = get_total_elixirs_cost(elixirs_cost_h, hours)  # Get the total cost of elixirs for the session
 
-    total_with_elixirs_cost = elixirs_cost_val * hours  # Subtract elixirs cost
-    total_h_with_elixirs_cost = elixirs_cost_val  # Subtract elixirs cost per 1 hour
-
-    total -= total_with_elixirs_cost  # Subtract elixirs cost
-    taxed -= total_with_elixirs_cost  # Subtract elixirs cost after tax
-    total_h -= total_h_with_elixirs_cost  # Subtract elixirs cost per 1 hour
-    taxed_h -= total_h_with_elixirs_cost # Subtract elixirs cost per 1 hour after tax
+    total -= total_elixirs_cost  # Subtract elixirs cost
+    taxed -= total_elixirs_cost  # Subtract elixirs cost after tax
+    total_h -= elixirs_cost_h # Subtract elixirs cost per 1 hour
+    taxed_h -= elixirs_cost_h # Subtract elixirs cost per 1 hour after tax
 
     return {
         'total': total,
         'total_h': total_h,
         'taxed': taxed,
         'taxed_h': taxed_h,
-        'new_labels_input_text': recalculate_labels_input(total, data_input)
-    }   
+        'new_labels_input_text': recalculate_labels_input(total, data_input),
+        'elixirs_cost': str(f"{total_elixirs_cost:,}")
+    }
+
+def get_total_elixirs_cost(elixirs_cost: int, hours: int) -> int:
+    """
+    Calculate the total cost of elixirs for the session based on the cost per hour and the number of hours.
+        :param elixirs_cost: The cost of elixirs per hour.
+        :param hours: The number of hours the session lasted.
+        :return: The total cost of elixirs for the session.
+    """
+    return elixirs_cost * hours
 
 def results_total(data_input: dict[str, tuple[str, str]], extra_breath_of_narcion: int) -> int | None:
     """
     Calculate the total results from the session based on the input data.
         :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
+        :param extra_breath_of_narcion: The total number of extra Breath of Narcions.
         :return: The total results from the session or None if an error occurs.
     """
     total = 0
