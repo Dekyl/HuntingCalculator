@@ -35,7 +35,7 @@ class SettingsWidget(QWidget):
         """)
 
         self.controller = AppController.get_instance()
-        settings_data = self.controller.get_settings_data()
+        settings_data = self.controller.get_all_settings_data()
         
         self.original_settings: dict[str, Any] = {
             'Region': settings_data.get('region', 'eu'),

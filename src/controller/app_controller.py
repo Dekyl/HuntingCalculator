@@ -62,12 +62,18 @@ class AppController:
             This method is called when the clean sessions button is clicked.
         """
         add_log("Clean sessions button clicked.", "info")
-        show_confirm_clean = get_show_confirm_clean()
+        (res, show_confirm_clean) = get_show_confirm_clean()
+
+        if not res:
+            add_log("Error retrieving data from settings.json, check if the file exists and is writable", "error")
+            self.view.show_dialog_error("Error retrieving data from settings.json, check if the file exists and is writable.")
+            return
 
         if show_confirm_clean:
             add_log("Showing confirmation dialog for cleaning sessions.", "info")
             enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the sessions?", self.on_clean_sessions_clicked, "clean_sessios")
-            update_confirm_dialog(enable_confirm_message, "clean_sessions")
+            if not update_confirm_dialog(enable_confirm_message, "clean_sessions"):
+                self.view.show_dialog_error("Error updating settings in file 'settings.json'. Check if the file exists and is writable.")
         else:
             self.on_clean_sessions_clicked()
         
@@ -76,12 +82,18 @@ class AppController:
         Handle the exit button click event.
         """
         add_log("Exit button clicked.", "info")
-        show_confirm_exit = get_show_confirm_exit()
+        res, show_confirm_exit = get_show_confirm_exit()
+
+        if not res:
+            add_log("Error retrieving data from settings.json, check if the file exists and is writable", "error")
+            self.view.show_dialog_error("Error retrieving data from settings.json, check if the file exists and is writable.")
+            return
 
         if show_confirm_exit:
             add_log("Showing confirmation dialog for exiting app.", "info")
             enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to exit?", lambda: self.view.close_window(), "exit")
-            update_confirm_dialog(enable_confirm_message, "exit")
+            if not update_confirm_dialog(enable_confirm_message, "exit"):
+                self.view.show_dialog_error("Error updating settings in file 'settings.json'. Check if the file exists and is writable.")
         else:
             self.view.close_window()
 
@@ -99,15 +111,33 @@ class AppController:
         """
         add_log(f"Session selected: {spot_name}, retrieving data", "info")
         loot_ids = get_spot_loot(spot_name)
+
+        if not loot_ids:
+            add_log(f"No loot found for spot: {spot_name}", "error")
+            self.view.show_dialog_error(f"Error fetching loot for spot '{spot_name}'.")
+            return
+
         self.view.set_ui_enabled(False)
+
+        region = get_user_setting("region")
+        if not region:
+            add_log("Region setting not found, add it in settings section or check 'settings.json'", "error")
+            self.view.show_dialog_error("Region setting not found, add it in settings section.")
+            return
+        
+        language = get_user_setting("language")
+        if not language:
+            add_log("Language setting not found, add it in settings section or check 'settings.json'", "error")
+            self.view.show_dialog_error("Language setting not found, add it in settings section.")
+            return
 
         self.thread = QThread()
         self.worker = DataFetcher(
             spot_name,
             loot_ids,
             get_user_setting("elixir_ids"),
-            get_user_setting("region"),
-            get_user_setting("language")
+            region,
+            language
         )
 
         self.worker.moveToThread(self.thread)
@@ -186,7 +216,7 @@ class AppController:
         """
         return calculate_results_session(data_input, elixirs_cost)
     
-    def get_settings_data(self) -> dict[str, Any]:
+    def get_all_settings_data(self) -> dict[str, Any]:
         """
         Get the settings data from the settings.json file.
             :return: A dictionary containing the settings data.

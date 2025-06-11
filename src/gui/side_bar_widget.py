@@ -175,7 +175,7 @@ class SideBarWidget(QWidget):
         spots = self.controller.get_spots_list() if self.controller else [] # Assume this method retrieves the list of spots
 
         if not spots:
-            return # Exit if there are no spots available
+            return # Exit if there is no 'spots' field
 
         # Create a widget to hold the list of buttons
         spots_dialog = QDialog(self.parent_window)

@@ -23,7 +23,7 @@ def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
 
 def load_data() -> tuple[int, float] | None:
     try:
-        with open('./res/settings.json', 'r', encoding='utf-8') as file:
+        with open('res/settings.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
             market_tax = data['market_tax']
             value_pack = data['value_pack']

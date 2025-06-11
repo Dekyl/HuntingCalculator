@@ -1,5 +1,5 @@
 from logic.logs import setup_logs, add_log
-from logic.startup_resources import prepare_resources
+from logic.prepare_resources import startup_resources
 
 def setup_all() -> bool:
     """
@@ -12,7 +12,7 @@ def setup_all() -> bool:
     setup_logs()
     add_log("Starting APP - Setting up all components\n", "info")
     add_log("Preparing resources...", "info")
-    if not prepare_resources():
+    if not startup_resources():
         add_log("Failed to prepare resources. Exiting application.", "error")
         return False
     add_log("Loading app...\n", "info")
