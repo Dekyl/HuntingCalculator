@@ -1,8 +1,8 @@
 import os
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QGridLayout, QLineEdit
-from PyQt6.QtGui import QFont, QIcon
-from PyQt6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QGridLayout, QLineEdit
+from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import Qt
 
 from gui.manage_widgets import ManagerWidgets
 from gui.dialogs_user import show_dialog_error
@@ -10,20 +10,26 @@ from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
 
 class NewSessionWidget(QWidget):
-    def __init__(self, name_spot: str, spot_id_icon: str, items: dict[str, tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
+    def __init__(self, name_spot: str, value_pack: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, items: dict[str, tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
         """
         Initialize the NewSessionWidget with the provided parameters.
             :param name_spot: The name of the hunting spot for the new session.
+            :param value_pack: A boolean indicating if the value pack is active.
+            :param market_tax: The market tax percentage to apply to the session results.
+            :param extra_profit: The extra profit percentage applied or not to the session results.
             :param spot_id_icon: The ID of the icon associated with the hunting spot.
             :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
             :param no_market_items: A list of items that are not available in the market.
             :param elixirs_cost: The cost of elixirs per hour for the new session.
         """
         super().__init__()
-
+        
         # Controller instance to handle the logic of the new session
         self.controller = AppController.get_instance()
         self.elixirs_cost = elixirs_cost
+        self.value_pack = value_pack
+        self.market_tax = market_tax
+        self.extra_profit = extra_profit
 
         # Main widget and layout for new session
         new_session_layout = QVBoxLayout(self)
@@ -173,7 +179,7 @@ class NewSessionWidget(QWidget):
             self.line_edit_inputs[i].setFont(self.default_font)
             self.line_edit_inputs[i].setStyleSheet(self.default_style)
             # Connects each input with callback function that updates the results of the new session
-            self.line_edit_inputs[i].textChanged.connect(self.update_session_results) # type: ignore
+            self.line_edit_inputs[i].textChanged.connect(self.update_session_results)
 
             row_offset = (i // 7) * 3  # Calculate the row offset based on the group of 7 (3 rows per group)
 
@@ -200,7 +206,7 @@ class NewSessionWidget(QWidget):
 
         return inputs_widget
     
-    def on_exchage_hides(self, green_hides: str, blue_hides: str):
+    def on_exchange_hides(self, green_hides: str, blue_hides: str):
         """ Handle the exchange of hides when the input fields are changed.
             :param green_hides: The number of green hides to exchange.
             :param blue_hides: The number of blue hides to exchange.
@@ -293,11 +299,11 @@ class NewSessionWidget(QWidget):
 
         self.elixirs_cost_line_edit = QLineEdit("0")
         self.elixirs_cost_line_edit.setStyleSheet("""
-                background-color: rgba(255,255,255,0.05);
-                border: 1px solid black;
-                border-radius: 4px;
-                color: rgba(0, 0, 0, 0.6);
-            """)
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid black;
+            border-radius: 4px;
+            color: rgba(0, 0, 0, 0.6);
+        """)
         self.elixirs_cost_line_edit.setFont(self.default_font)
         self.elixirs_cost_line_edit.setReadOnly(True)
         self.elixirs_cost_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -391,7 +397,7 @@ class NewSessionWidget(QWidget):
         
         self.save_button.setEnabled(False) # Inits the save button as disabled, it will be enabled when the user inputs data
         self.save_button.setFixedSize(250, 50)
-        self.save_button.clicked.connect(self.save_session_excel) # type: ignore
+        self.save_button.clicked.connect(self.save_session_excel)
 
         save_button_layout.addWidget(self.save_button, alignment= Qt.AlignmentFlag.AlignCenter)
 
@@ -464,9 +470,9 @@ class NewSessionWidget(QWidget):
                         }"""
                     )
 
-        res_data = self.controller.get_session_results(data_input, self.elixirs_cost)
-        if res_data == -1:
-            show_dialog_error("Error calculating results, please ensure that 'settings.json' exists in the 'res' directory.")
+        res_data = self.controller.get_session_results(self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost)
+        if not res_data:
+            show_dialog_error("Error calculating results, please ensure that 'settings.json' exists in 'res' directory and there are no missing fields.")
             return
         
         if isinstance(res_data, int):

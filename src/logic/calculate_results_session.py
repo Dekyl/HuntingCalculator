@@ -1,9 +1,9 @@
 from typing import Any
-import json
 
 from logic.logs import add_log
 
-value_pack_percent: float = 0.315 # Default value for value pack, can be overridden by settings
+value_pack_multiplier = 0.315 # Value pack multiplier for the results calculation
+extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
 
 def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
     """
@@ -21,56 +21,43 @@ def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
 
     return str(f"{cost_elixirs:,}")
 
-def load_data() -> tuple[int, float] | None:
-    try:
-        with open('res/settings.json', 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            market_tax = data['market_tax']
-            value_pack = data['value_pack']
-
-    except FileNotFoundError:
-        add_log("Data JSON file not found. Please ensure that 'settings.json' exists in the 'res' directory.", "error")
-        return None
-    
-    if value_pack:
-        return (market_tax, value_pack_percent)
-    else:
-        return (market_tax, 0.0)
-
-def calculate_results_session(data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any] | int:
+def calculate_results_session(value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any]:
     """
     Calculate the results of a hunting session based on the provided input data.
+        :param value_pack: A boolean indicating whether the value pack is active.
+        :param market_tax: The market tax percentage to apply.
+        :param extra_profit: The extra profit to apply or not to results
         :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
         :param elixirs_cost: The cost of elixirs for the session.
-        :return: A dictionary containing the results of the session or -1 if settings.json is not found, -2 if input data is invalid.
+        :return: A dictionary containing the calculated results of the session, including total results, total per hour, taxed results, taxed per hour, 
+            and updated labels for input text. or an empty dictionary if there is an error in the input data.
     """
-    settings = load_data()
-    if not settings:
-        return -1
-    market_tax, value_pack = settings
     hours = data_input.get('Hours', ("", "0"))[1] or "0" # If 'Hours' is not in data_input or if it is empty, default to "0"
     elixirs_cost = elixirs_cost.replace(',', '').replace(' ', '')  # Remove commas and spaces for validation
 
     if not elixirs_cost.isdigit():
         add_log(f"Invalid elixirs cost: {elixirs_cost}. Expected a number.", "error")
-        return -2
+        return {}
     
     if not hours.isdigit():
         add_log(f"Invalid hours: {hours}. Expected a number.", "error")
-        return -2
+        return {}
     
     hours = int(hours)
     elixirs_cost_h = int(elixirs_cost) if hours > 0 else 0  # Elixirs cost per hour, if hours is 0, set to 0
 
     extra_breath_of_narcion = get_extra_breath_of_narcions(data_input) # Get the total number of extra Breath of Narcions
-    total = results_total(data_input, extra_breath_of_narcion)
+    total = results_total(data_input, extra_breath_of_narcion) if hours > 0 else 0  # Calculate total results only if hours is greater than 0
     if total is None:
         add_log("Invalid input data for results_total calculation.", "error")
-        return -2
+        return {}
+    
+    value_pack_val = value_pack_multiplier if value_pack else 0  # Set value pack multiplier if value pack is active, otherwise set to 0
+    value_pack_val += extra_profit_multiplier if extra_profit else 0  # Add extra profit multiplier if extra profit is active, otherwise add 0
 
-    total_h = results_h(total, hours)
-    taxed = results_taxed(total, market_tax, value_pack)
-    taxed_h = results_taxed_h(taxed, hours)
+    total_h = results_h(total, hours) if hours > 0 else 0  # Calculate total results per hour only if hours is greater than 0
+    taxed = results_taxed(total, market_tax, value_pack_val) if hours > 0 else 0 # Apply market tax, value pack and extra profit if applicable if hours is greater than 0
+    taxed_h = results_taxed_h(taxed, hours) if hours > 0 else 0  # Calculate taxed results per hour only if hours is greater than 0
     total_elixirs_cost = get_total_elixirs_cost(elixirs_cost_h, hours)  # Get the total cost of elixirs for the session
 
     total -= total_elixirs_cost  # Subtract elixirs cost
@@ -132,9 +119,9 @@ def results_h(total: int, hours: int) -> int:
         :param hours: The number of hours the session lasted.
         :return: The total results per hour.
     """
-    return int(total / hours) if hours > 0 else 0
+    return int(total / hours)
 
-def results_taxed(total: int, market_tax: int, value_pack: float) -> int:
+def results_taxed(total: int, market_tax: float, value_pack: float) -> int:
     """
     Calculate the results after applying market tax and value pack.
         :param total: The total results from the session.
@@ -153,7 +140,7 @@ def results_taxed_h(taxed: int, hours: int) -> int:
         :param hours: The number of hours the session lasted.
         :return: The total results after tax per hour.
     """
-    return int(taxed / hours) if hours > 0 else 0
+    return int(taxed / hours)
 
 def recalculate_labels_input(total: int, data_input: dict[str, tuple[str, str]]) -> list[str]:
     """

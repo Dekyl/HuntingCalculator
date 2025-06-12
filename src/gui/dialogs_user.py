@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QMessageBox, QCheckBox
-from PyQt6.QtGui import QIcon
+from PySide6.QtWidgets import QMessageBox, QCheckBox
+from PySide6.QtGui import QIcon
 
 from typing import Any, Callable
 

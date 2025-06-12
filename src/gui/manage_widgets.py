@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QStackedWidget, QWidget, QMainWindow
+from PySide6.QtWidgets import QStackedWidget, QWidget, QMainWindow
 
 class ManagerWidgets:
     """

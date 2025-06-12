@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QFrame, QLabel
+from PySide6.QtWidgets import QFrame, QLabel
 
 class QHLine(QFrame):
     """
@@ -44,6 +44,7 @@ class SmartLabel(QLabel):
         Set the text of the label and update the tooltip.
             :param text: The text to display in the label.
         """
-        super(SmartLabel, self).setText(a0)
-        self.setToolTip(a0)
+        text = a0 if a0 is not None else ""
+        super(SmartLabel, self).setText(text)
+        self.setToolTip(text)
     

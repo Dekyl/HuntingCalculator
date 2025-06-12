@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
-from PyQt6.QtGui import QIcon, QGuiApplication
-from PyQt6.QtCore import QSize
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
+from PySide6.QtGui import QIcon, QGuiApplication
+from PySide6.QtCore import QSize
 
 from typing import Any
 
@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(400, 300))
         
         primary_screen = QGuiApplication.primaryScreen()
-        if primary_screen is not None:
+        if primary_screen:
             screen_geometry = primary_screen.availableGeometry()  # Use availableGeometry so the taskbar is not included
             x = (screen_geometry.width() - self.width()) // 2
             y = (screen_geometry.height() - self.height()) // 2
@@ -85,16 +85,19 @@ class MainWindow(QMainWindow):
         """
         self.actual_session.update_session_exchange_results(exchange_results)
 
-    def create_new_session_widget(self, name_spot: str, spot_id_icon: str, no_market_items:list[str], items: dict[str, tuple[str, int]], elixirs_cost: str):
+    def create_new_session_widget(self, name_spot: str, value_pack: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, no_market_items:list[str], items: dict[str, tuple[str, int]], elixirs_cost: str):
         """
         Create a new session widget for the specified hunting spot.
             :param name_spot: The name of the hunting spot.
+            :param value_pack: A boolean indicating whether the value pack is active.
+            :param market_tax: The market tax rate for the hunting spot.
+            :param extra_profit: Extra profit percentage applied or not.
             :param spot_id_icon: The ID of the icon associated with the hunting spot.
             :param no_market_items: A list of items that are not available on the market.
             :param items: A dictionary containing the prices of items for the hunting spot.
             :param elixirs_cost: The cost of elixirs for the hunting spot.
         """
-        self.actual_session = NewSessionWidget(name_spot, spot_id_icon, items, no_market_items, elixirs_cost)
+        self.actual_session = NewSessionWidget(name_spot, value_pack, market_tax, extra_profit, spot_id_icon, items, no_market_items, elixirs_cost)
 
     def set_ui_enabled(self, enabled: bool):
         """

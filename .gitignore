@@ -2,6 +2,7 @@ __pycache__
 Hunting Sessions
 .vscode
 data.json
+settings.json
 *.exe
 *.zip
 *.tar.gz
@@ -9,4 +10,6 @@ dist/
 logs/
 elixirs/
 items/
-settings.json
+designs/
+venv/
+pyrightconfig.json

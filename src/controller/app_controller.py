@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QThread
+from PySide6.QtCore import QThread
 
 from typing import Any
 
@@ -9,13 +9,13 @@ from logic.access_resources import (
     update_confirm_dialog, 
     get_show_confirm_clean, 
     get_show_confirm_exit, 
-    get_spots_list, 
     get_spot_loot, 
     get_user_setting, 
     get_spot_id_icon, 
     get_no_market_items,
     get_user_settings,
-    save_user_settings
+    save_user_settings,
+    get_data_value
 )
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
@@ -102,7 +102,7 @@ class AppController:
         Get the list of spots from the data file.
             :return: A list of spots.
         """
-        return get_spots_list()
+        return get_data_value('spots')
         
     def select_new_session(self, spot_name: str):
         """
@@ -130,29 +130,48 @@ class AppController:
             add_log("Language setting not found, add it in settings section or check 'settings.json'", "error")
             self.view.show_dialog_error("Language setting not found, add it in settings section.")
             return
+        
+        market_tax = get_data_value("market_tax")
+        if market_tax is None:
+            add_log("Market tax setting not found, check 'data.json' file", "error")
+            self.view.show_dialog_error("Missing data in 'data.json' file.")
+            return
+        
+        extra_profit = get_user_setting("extra_profit")
+        if extra_profit is None:
+            add_log("Extra profit setting not found, add it in settings section or check 'settings.json'", "error")
+            self.view.show_dialog_error("Extra profit setting not found, add it in settings section.")
+            return
+        
+        value_pack = get_user_setting("value_pack")
+        if value_pack is None:
+            add_log("Value pack setting not found, add it in settings section or check 'settings.json'", "error")
+            self.view.show_dialog_error("Value pack usage or not was not found, add it in settings section.")
+            return
 
         self.thread = QThread()
         self.worker = DataFetcher(
-            spot_name,
             loot_ids,
             get_user_setting("elixir_ids"),
             region,
             language
         )
 
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run) # type: ignore
-        self.worker.finished.connect(self.on_data_retrieved) # type: ignore
-        self.worker.finished.connect(self.thread.quit) # type: ignore
-        self.worker.finished.connect(self.worker.deleteLater) # type: ignore
-        self.thread.finished.connect(self.thread.deleteLater) # type: ignore
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(lambda: self.on_data_retrieved(spot_name, value_pack, market_tax, extra_profit, self.worker.data_retrieved))
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
 
-    def on_data_retrieved(self, spot_name: str, data_retrieved: dict[str, dict[str, tuple[str, int]]] | None):
+    def on_data_retrieved(self, spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_retrieved: dict[str, dict[str, tuple[str, int]]] | None):
         """
         Handle the data retrieval from the API.
             :param spot_name: The name of the hunting spot.
+            :param value_pack: Whether the value pack is used or not.
+            :param market_tax: The market tax percentage.
+            :param extra_profit: If extra profit is enabled or not.
             :param data_retrieved: The data retrieved from the API, or None if an error occurred.
         """
         if data_retrieved is None:
@@ -172,6 +191,9 @@ class AppController:
         no_market_items = get_no_market_items(spot_name)
         self.view.create_new_session_widget(
             spot_name,
+            value_pack,
+            market_tax,
+            extra_profit,
             spot_id_icon,
             no_market_items,
             data_retrieved['items'],
@@ -207,14 +229,17 @@ class AppController:
         """
         return save_session(labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
     
-    def get_session_results(self, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any] | int:
+    def get_session_results(self, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any]:
         """
         Get the results of a hunting session.
+            :param value_pack: Whether the value pack is used or not.
+            :param market_tax: The market tax percentage.
+            :param extra_profit: The extra profit percentage applied or not to session results.
             :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
             :param elixirs_cost: The cost of elixirs for the session.
-            :return: A dictionary containing the results of the session or -1 if settings.json is not found, -2 if input data is invalid.
+            :return: A dictionary containing the results of the session or empty dictionary if settings.json is not found or input data is invalid.
         """
-        return calculate_results_session(data_input, elixirs_cost)
+        return calculate_results_session(value_pack, market_tax, extra_profit, data_input, elixirs_cost)
     
     def get_all_settings_data(self) -> dict[str, Any]:
         """

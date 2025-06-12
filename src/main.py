@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 from gui.main_window import MainWindow
 from logic.startup import setup_all

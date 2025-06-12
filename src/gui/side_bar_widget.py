@@ -1,9 +1,9 @@
 import os
 from typing import Callable
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDialog, QMainWindow
-from PyQt6.QtGui import QFont, QIcon
-from PyQt6.QtCore import QTimer, QSize, Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDialog, QMainWindow
+from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import QTimer, QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
 from gui.settings_widget import SettingsWidget
@@ -53,13 +53,13 @@ class SideBarWidget(QWidget):
         """)
 
         self.manager_widgets = ManagerWidgets.get_instance()
-        buttons_side_bar: list[tuple[str, Callable[..., None]]] = [
-            ("Home", lambda: self.manager_widgets.set_page("home")),
-            ("New session", lambda: self.show_spots_list_widget()),
-            ("View sessions", lambda: self.manager_widgets.set_page("view_sessions")),
-            ("Clean sessions", lambda: self.controller.on_clean_sessions_button() if self.controller else None),
-            ("Settings", lambda: self.create_settings_widget()),
-            ("Exit", lambda: self.controller.on_exit_button() if self.controller else None)
+        buttons_side_bar: list[tuple[str, Callable[[QPushButton], None]]] = [
+            ("Home", lambda _: self.manager_widgets.set_page("home")),
+            ("New session", lambda btn: self.show_spots_list_widget(btn)),
+            ("View sessions", lambda _: self.manager_widgets.set_page("view_sessions")),
+            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None),
+            ("Settings", lambda _: self.create_settings_widget()),
+            ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None)
         ]
 
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
@@ -94,7 +94,7 @@ class SideBarWidget(QWidget):
             button_side_bar.setFont(QFont("Arial", 12))
             button_side_bar.setMinimumHeight(50)
             button_side_bar.setMinimumWidth(50)
-            button_side_bar.clicked.connect(action) # type: ignore
+            button_side_bar.clicked.connect(lambda _, b=button_side_bar, a=action: a(b)) # type: ignore
             left_layout.addWidget(button_side_bar)
 
             if i < len(buttons_side_bar) - 1:
@@ -167,10 +167,11 @@ class SideBarWidget(QWidget):
         if not enabled:
             QTimer.singleShot(75000, lambda: self.set_left_widget_button_enabled(button_name, True))  # type: ignore
     
-    def show_spots_list_widget(self):
+    def show_spots_list_widget(self, button: QPushButton):
         """
         Display a list of buttons, each representing a spot. When a button is clicked,
         the new_session widget is opened for the selected spot.
+            :param button: The button that triggered the dialog to show the spots list.
         """
         spots = self.controller.get_spots_list() if self.controller else [] # Assume this method retrieves the list of spots
 
@@ -187,19 +188,15 @@ class SideBarWidget(QWidget):
             }
         """)
         spots_dialog.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Popup)
-        # Center the dialog on the parent window
-        button = self.parent_window.sender()  # Get the button that triggered the dialog
-        if button is not None:
-            if isinstance(button, QWidget):
-                button_geometry = button.geometry()
-            else:
-                return  # Exit if the sender is not a QWidget
-            button = button_geometry.topLeft()
+        
+        if button:
+            button_geometry = button.geometry()
+            button_position = button_geometry.topLeft()
             parent_geometry = self.parent_window.geometry()
             dialog_width = 200
             dialog_height = 280
-            x = button.x() + parent_geometry.x() + button_geometry.width() + 25  # Position to the right of the button
-            y = button.y() + parent_geometry.y() + 5
+            x = button_position.x() + parent_geometry.x() + button_geometry.width() + 25  # Position to the right of the button
+            y = button_position.y() + parent_geometry.y() + 5
             spots_dialog.setGeometry(x, y, dialog_width, dialog_height)
 
         spots_layout = QVBoxLayout(spots_dialog)
@@ -227,7 +224,7 @@ class SideBarWidget(QWidget):
             # This is necessary to avoid late binding issues in lambda functions
             # Calls open_new_session_for_spot with the selected spot when the button is clicked
             # Closes the dialog after opening the new session
-            button.clicked.connect(lambda _, s=spot: (AppController.get_instance().select_new_session(s), spots_dialog.accept()))  # type: ignore
+            button.clicked.connect(lambda _, s=spot: (AppController.get_instance().select_new_session(s), spots_dialog.accept())) # type: ignore
             spots_layout.addWidget(button)
 
         spots_dialog.exec()
