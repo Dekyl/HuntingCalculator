@@ -103,7 +103,13 @@ class AppController:
             :return: A list of spots.
         """
         return get_data_value('spots')
-        
+
+    def create_settings_widget(self):
+        """
+        Call view method defined in ViewInterface to create the settings widget.
+        """
+        self.view.create_settings_widget()
+       
     def select_new_session(self, spot_name: str):
         """
         Handle the selection of a new hunting session.

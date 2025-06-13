@@ -2,11 +2,10 @@ import os
 from typing import Callable
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDialog, QMainWindow
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtGui import QFont, QIcon, QShortcut
 from PySide6.QtCore import QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
-from gui.settings_widget import SettingsWidget
 from gui.aux_components import QHLine
 from controller.app_controller import AppController
 
@@ -32,7 +31,7 @@ class SideBarWidget(QWidget):
 
         super().__init__()  # Initialize the QWidget
 
-        self.parent_window = view  # Parent QMainWindow for the widgets
+        self.view = view  # Parent QMainWindow for the widgets
         self.controller = AppController.get_instance()
         self.button_icon_size = QSize(20, 20) # Default icon size for buttons
         self.res_icons = {
@@ -56,17 +55,17 @@ class SideBarWidget(QWidget):
         """)
 
         self.manager_widgets = ManagerWidgets.get_instance()
-        buttons_side_bar: list[tuple[str, Callable[[QPushButton], None]]] = [
+        self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None]]] = [
             ("Home", lambda _: self.manager_widgets.set_page("home")),
             ("New session", lambda btn: self.show_spots_list_widget(btn)),
             ("View sessions", lambda _: self.manager_widgets.set_page("view_sessions")),
             ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None),
-            ("Settings", lambda _: self.create_settings_widget()),
+            ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None),
             ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None)
         ]
 
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
-        for i, (text, action) in enumerate(buttons_side_bar):
+        for i, (text, action) in enumerate(self.buttons_side_bar):
             button_side_bar = QPushButton()
             self.left_widget_buttons[text.lower().replace(' ', '_')] = button_side_bar
             if not os.path.exists(self.res_icons[text.lower()]):
@@ -106,19 +105,11 @@ class SideBarWidget(QWidget):
             button_side_bar.clicked.connect(lambda _, b=button_side_bar, a=action: a(b)) # type: ignore
             left_layout.addWidget(button_side_bar)
 
-            if i < len(buttons_side_bar) - 1:
+            if i < len(self.buttons_side_bar) - 1:
                 left_layout.addWidget(QHLine())
                 
         # Add stretch to the bottom of the layout to push buttons to the top
         left_layout.addStretch()
-
-    def create_settings_widget(self):
-        """
-        Create and display the settings widget in the manager widgets.
-        This method initializes the SettingsWidget and adds it to the manager widgets.
-        """
-        self.manager_widgets.add_page("settings", SettingsWidget())  # Add the settings widget to the manager
-        self.manager_widgets.set_page("settings")  # Switch to the settings page
 
     def set_left_widget_buttons_enabled(self, enabled: bool):
         """
@@ -148,7 +139,7 @@ class SideBarWidget(QWidget):
             return # Exit if there is no 'spots' field
 
         # Create a widget to hold the list of buttons
-        spots_dialog = QDialog(self.parent_window)
+        spots_dialog = QDialog(self.view)
         spots_dialog.setStyleSheet("""
             QDialog {
                 border: 2px solid rgb(120, 120, 120);
@@ -161,7 +152,7 @@ class SideBarWidget(QWidget):
         if button:
             button_geometry = button.geometry()
             button_position = button_geometry.topLeft()
-            parent_geometry = self.parent_window.geometry()
+            parent_geometry = self.view.geometry()
             dialog_width = 200
             dialog_height = 280
             x = button_position.x() + parent_geometry.x() + button_geometry.width() + 25  # Position to the right of the button
@@ -170,7 +161,7 @@ class SideBarWidget(QWidget):
 
         spots_layout = QVBoxLayout(spots_dialog)
 
-        for spot in spots:
+        for i, spot in enumerate(spots):
             button = QPushButton(spot)
             button.setFont(QFont("Arial", 12))
             button.setStyleSheet("""
@@ -186,17 +177,37 @@ class SideBarWidget(QWidget):
                 QPushButton:pressed {
                     background-color: rgba(255, 255, 255, 0.7);
                 }
+                QToolTip {
+                    background-color: rgb(30, 30, 30);;
+                    border: 1px solid rgb(120, 120, 120);
+                    border-radius: 6px;
+                    font-size: 14px;
+                }              
             """)
+            button.setToolTip(f"{spot} (Ctrl+{i+1})")  # Add tooltip to display spot name on hover
             button.setMinimumHeight(50)
 
             # Takes spot value the moment lambda is defined, not when button is clicked
             # This is necessary to avoid late binding issues in lambda functions
             # Calls open_new_session_for_spot with the selected spot when the button is clicked
             # Closes the dialog after opening the new session
-            button.clicked.connect(lambda _, s=spot: (AppController.get_instance().select_new_session(s), spots_dialog.accept())) # type: ignore
+            button.clicked.connect(lambda _, s=spot: (self.controller.select_new_session(s), spots_dialog.accept())) # type: ignore
+
+            # Create a keyboard shortcut for each button spot
+            shortcut_view_sessions = QShortcut(f"Ctrl+{i+1}", spots_dialog)
+            shortcut_view_sessions.activated.connect(button.click)
+            
             spots_layout.addWidget(button)
 
         spots_dialog.exec()
+
+    def get_left_widget_button(self, button_name: str) -> QPushButton | None:
+        """
+        Get a button from the left-side menu by its name.
+            :param button_name: The name of the button to retrieve.
+            :return: The QPushButton instance corresponding to the given name.
+        """
+        return self.left_widget_buttons.get(button_name, None)
 
     @staticmethod
     def get_instance() -> "SideBarWidget":

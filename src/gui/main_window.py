@@ -1,11 +1,12 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
-from PySide6.QtGui import QIcon, QGuiApplication
+from PySide6.QtGui import QIcon, QGuiApplication, QShortcut
 from PySide6.QtCore import QSize
 
 from typing import Any
 
 from gui.manage_widgets import ManagerWidgets
 from gui.side_bar_widget import SideBarWidget
+from gui.settings_widget import SettingsWidget
 from gui.home_widget import HomeWidget
 from gui.view_sessions_widget import ViewSessionsWidget
 from gui.new_session_widget import NewSessionWidget
@@ -39,16 +40,16 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
         # Create the ManagerWidgets instance to manage different widgets in the application
-        manager = ManagerWidgets()
+        self.manager = ManagerWidgets()
 
         # Create the AppController instance to manage the application logic
         # This controller will handle interactions between the view and the model
-        AppController(self)
+        self.controller = AppController(self)
 
         # Create the left-side menu and add it to the main layout
         self.side_bar_widget = SideBarWidget(self)
 
-        stack = manager.get_stack()
+        stack = self.manager.get_stack()
 
         # Add the left-side menu and the main stack to the main layout
         main_layout.addWidget(self.side_bar_widget)
@@ -59,7 +60,32 @@ class MainWindow(QMainWindow):
                                             }
 
         for name, widget in page_widgets.items():
-            ManagerWidgets.get_instance().add_page(name, widget)
+            self.manager.add_page(name, widget)
+
+        self.create_shortcuts()
+
+    def create_shortcuts(self):
+        """
+        Create keyboard shortcuts for various actions in the application.
+        """
+        shortcut_home = QShortcut("Ctrl+H", self)
+        shortcut_home.activated.connect(lambda: self.manager.set_page("home"))
+
+        shortcut_new_session = QShortcut("Ctrl+N", self)
+        new_session_button = self.side_bar_widget.get_left_widget_button("new_session")
+        shortcut_new_session.activated.connect(new_session_button.click if new_session_button else None)
+
+        shortcut_view_sessions = QShortcut("Ctrl+A", self)
+        shortcut_view_sessions.activated.connect(lambda: self.manager.set_page("view_sessions"))
+
+        shortcut_clean_sessions = QShortcut("Ctrl+L", self)
+        shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button() if self.controller else None)
+
+        shortcut_settings = QShortcut("Ctrl+G", self)
+        shortcut_settings.activated.connect(lambda: self.create_settings_widget())
+
+        shortcut_exit = QShortcut("Ctrl+Q", self)
+        shortcut_exit.activated.connect(self.close_window)
 
     def show_dialog_confirmation(self, message: str, action: Any, confirm_action: str = "exit") -> bool:
         """
@@ -100,6 +126,14 @@ class MainWindow(QMainWindow):
         """
         self.actual_session = NewSessionWidget(name_spot, value_pack, market_tax, extra_profit, spot_id_icon, items, no_market_items, elixirs_cost)
 
+    def create_settings_widget(self):
+        """
+        Create and display the settings widget in the application.
+        This method initializes the settings widget and adds it to the manager.
+        """
+        self.manager.add_page("settings", SettingsWidget())  # Add the settings widget to the manager
+        self.manager.set_page("settings")  # Switch to the settings page
+       
     def set_ui_enabled(self, enabled: bool):
         """
         Enable or disable the main UI components of the application.

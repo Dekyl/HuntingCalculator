@@ -41,7 +41,7 @@ class HomeWidget(QWidget):
             "New session": "Ctrl + N",
             "View sessions": "Ctrl + A",
             "Clean sessions": "Ctrl + L",
-            "Settings": "Ctrl + S",
+            "Settings": "Ctrl + G",
             "Exit": "Ctrl + Q"
         } 
 
