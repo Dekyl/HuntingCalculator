@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         # Create a main layout and widget for the window
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
         self.setCentralWidget(main_widget)
 
@@ -47,11 +48,11 @@ class MainWindow(QMainWindow):
         # Create the left-side menu and add it to the main layout
         self.side_bar_widget = SideBarWidget(self)
 
-        self.stack = manager.get_stack()
+        stack = manager.get_stack()
 
         # Add the left-side menu and the main stack to the main layout
         main_layout.addWidget(self.side_bar_widget)
-        main_layout.addWidget(self.stack, stretch=1)
+        main_layout.addWidget(stack, stretch=1)
 
         page_widgets: dict[str, QWidget] = { "home": HomeWidget(),
                                              "view_sessions": ViewSessionsWidget(),
@@ -104,9 +105,7 @@ class MainWindow(QMainWindow):
         Enable or disable the main UI components of the application.
             :param enabled: A boolean indicating whether to enable or disable the UI.
         """
-        self.side_bar_widget.setEnabled(enabled)
         self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
-        self.stack.setEnabled(enabled)
 
     def show_dialog_error(self, msg: str):
         """

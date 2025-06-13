@@ -47,12 +47,13 @@ class NewSessionWidget(QWidget):
             border-radius: 4px
         """
         self.qtooltip_style = """
-                QToolTip {
+            QToolTip {
                 background-color: rgb(30, 30, 30);;
                 border: 1px solid rgb(120, 120, 120);
                 color: rgb(220, 220, 220);
-                border-radius: 3px;
-                }
+                border-radius: 6px;
+                font-size: 14px;
+            }
         """
 
         # Set the hunting spot title and icon
@@ -383,14 +384,23 @@ class NewSessionWidget(QWidget):
         self.save_button.setToolTip("Save") # Add tooltip to display text on hover
         self.save_button.setFont(self.default_font)
         self.save_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: rgba(255,255,255,0.05); 
+            QPushButton:disabled {{
+                background-color: rgba(255, 255, 255, 0.05); 
                 border: 1px solid black; 
                 border-radius: 6px;
                 color: rgba(0, 0, 0, 0.6);
             }}
+            QPushButton:enabled {{
+                background-color: rgba(255, 255, 255, 0.2); 
+                border: 1px solid black; 
+                border-radius: 6px;
+                color: rgba(0, 0, 0, 1);
+            }}
             QPushButton:hover{{
                 background-color: rgba(255,255,255,0.5);
+            }}
+            QPushButton:pressed{{
+                background-color: rgba(255,255,255,0.7);
             }}
             {self.qtooltip_style}
         """)
@@ -422,12 +432,12 @@ class NewSessionWidget(QWidget):
             labels_res.append(self.labels_result[i].text())
 
         try:
-            total_res = int(self.inputs_result[0].text())
-            total_res_h = int(self.inputs_result[1].text())
-            taxed_res = int(self.inputs_result[2].text())
-            taxed_res_h = int(self.inputs_result[3].text())
+            total_res = int(self.inputs_result[0].text().replace(",", ""))
+            total_res_h = int(self.inputs_result[1].text().replace(",", ""))
+            taxed_res = int(self.inputs_result[2].text().replace(",", ""))
+            taxed_res_h = int(self.inputs_result[3].text().replace(",", ""))
         except ValueError:
-            show_dialog_error("Error: Invalid data in results fields")
+            show_dialog_error("Invalid data in results fields")
             return
         
         res_lab: list[str] = []
@@ -458,17 +468,6 @@ class NewSessionWidget(QWidget):
                 all_inputs_filled = False
                 if self.save_button.isEnabled():
                     self.save_button.setEnabled(False)
-                    self.save_button.setStyleSheet("""
-                        QPushButton{
-                            background-color: rgba(255,255,255,0.05); 
-                            border: 1px solid black; 
-                            border-radius: 6px;
-                            color: rgba(0, 0, 0, 0.5);
-                        }
-                        QPushButton:hover{
-                            background-color: rgba(255,255,255,0.5);
-                        }"""
-                    )
 
         res_data = self.controller.get_session_results(self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost)
         if not res_data:
@@ -499,14 +498,3 @@ class NewSessionWidget(QWidget):
 
         if all_inputs_filled:
             self.save_button.setEnabled(True) # Enable the save button after updating the results
-            self.save_button.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: rgba(255,255,255,0.2); 
-                    border: 1px solid black; 
-                    border-radius: 6px;
-                }}
-                QPushButton:hover {{
-                    background-color: rgba(255,255,255,0.5);
-                }}
-                {self.qtooltip_style}
-            """)

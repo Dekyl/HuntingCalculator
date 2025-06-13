@@ -1,4 +1,4 @@
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, QTimer
 
 from typing import Any
 
@@ -109,44 +109,53 @@ class AppController:
         Handle the selection of a new hunting session.
             :param spot_name: The name of the hunting spot selected by the user.
         """
+        self.view.set_ui_enabled(False) # Disable the UI while fetching data
+        QTimer.singleShot(0, lambda: self.start_data_retrieval(spot_name)) # Retrieve data for the selected spot after giving time to render the UI changes
+
+    def show_error_and_enable_ui(self, message: str):
+        """
+        Show an error message and re-enable the UI.
+            :param message: The error message to display.
+        """
+        add_log(message, "error")
+        self.view.show_dialog_error(message)
+        self.view.set_ui_enabled(True)
+
+    def start_data_retrieval(self, spot_name: str):
+        """
+        Start the data retrieval process for the selected hunting spot.
+            :param spot_name: The name of the hunting spot selected by the user.
+        """
         add_log(f"Session selected: {spot_name}, retrieving data", "info")
         loot_ids = get_spot_loot(spot_name)
 
         if not loot_ids:
-            add_log(f"No loot found for spot: {spot_name}", "error")
-            self.view.show_dialog_error(f"Error fetching loot for spot '{spot_name}'.")
+            self.show_error_and_enable_ui(f"Error fetching loot for spot '{spot_name}'.")
             return
-
-        self.view.set_ui_enabled(False)
-
+        
         region = get_user_setting("region")
         if not region:
-            add_log("Region setting not found, add it in settings section or check 'settings.json'", "error")
-            self.view.show_dialog_error("Region setting not found, add it in settings section.")
+            self.show_error_and_enable_ui("Region setting not found, add it in settings section.")
             return
         
         language = get_user_setting("language")
         if not language:
-            add_log("Language setting not found, add it in settings section or check 'settings.json'", "error")
-            self.view.show_dialog_error("Language setting not found, add it in settings section.")
+            self.show_error_and_enable_ui("Language setting not found, add it in settings section.")
             return
         
         market_tax = get_data_value("market_tax")
         if market_tax is None:
-            add_log("Market tax setting not found, check 'data.json' file", "error")
-            self.view.show_dialog_error("Missing data in 'data.json' file.")
+            self.show_error_and_enable_ui("Missing data in 'data.json' file.")
             return
         
         extra_profit = get_user_setting("extra_profit")
         if extra_profit is None:
-            add_log("Extra profit setting not found, add it in settings section or check 'settings.json'", "error")
-            self.view.show_dialog_error("Extra profit setting not found, add it in settings section.")
+            self.show_error_and_enable_ui("Extra profit setting not found, add it in settings section.")
             return
         
         value_pack = get_user_setting("value_pack")
         if value_pack is None:
-            add_log("Value pack setting not found, add it in settings section or check 'settings.json'", "error")
-            self.view.show_dialog_error("Value pack usage or not was not found, add it in settings section.")
+            self.show_error_and_enable_ui("Value pack usage or not was not found, add it in settings section.")
             return
 
         self.thread = QThread()
@@ -174,17 +183,17 @@ class AppController:
             :param extra_profit: If extra profit is enabled or not.
             :param data_retrieved: The data retrieved from the API, or None if an error occurred.
         """
+        self.view.set_ui_enabled(True) # Re-enable the UI
         if data_retrieved is None:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
-            self.view.set_ui_enabled(True) # Re-enable the UI
             self.view.set_session_button_enabled(False) # Disable the new session button
             self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 75 seconds.")
+            QTimer.singleShot(75000, lambda: self.view.set_session_button_enabled(True)) # Re-enable the button after 75 seconds
             return
         
         spot_id_icon = get_spot_id_icon(spot_name)
         if not spot_id_icon:
             add_log(f"No icon found for spot '{spot_name}'", "error")
-            self.view.set_ui_enabled(True) # Re-enable the UI
             self.view.show_dialog_error(f"Error fetching spot '{spot_name}' icon from JSON file.")
             return
         
@@ -199,7 +208,6 @@ class AppController:
             data_retrieved['items'],
             calculate_elixirs_cost_hour(data_retrieved['elixirs'])
         )
-        self.view.set_ui_enabled(True)
 
     def on_exchange_hides(self, green_hides: str, blue_hides: str):
         """

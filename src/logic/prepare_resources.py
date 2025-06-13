@@ -25,7 +25,8 @@ res_list = [
     'res/icons/sharp_tooth.png',
     'res/icons/supreme_hide.png',
     'res/icons/usable_hide.png',
-    'res/icons/wildspark.png'
+    'res/icons/wildspark.png',
+    'res/icons/home_page_background.png'
 ]
 
 json_files = {

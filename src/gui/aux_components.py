@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QFrame, QLabel
+from PySide6.QtWidgets import QFrame, QLabel, QLineEdit
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtCore import Qt
 
 class QHLine(QFrame):
     """
@@ -47,4 +49,42 @@ class SmartLabel(QLabel):
         text = a0 if a0 is not None else ""
         super(SmartLabel, self).setText(text)
         self.setToolTip(text)
+
+class NoClickLineEdit(QLineEdit):
+    """
+    A QLineEdit that does not allow user interaction, effectively making it a read-only text display.
+    Inherits from QLineEdit and overrides mouse events to prevent editing.
+    """
+    def __init__(self, text: str = ""):
+        super().__init__(text)
+        self.setReadOnly(True)
+        self.setStyleSheet("""
+            QLineEdit {
+                background-color: rgba(50, 50, 50, 0.6);
+                border: 1px solid rgb(100, 100, 100);
+                border-radius: 4px;
+                color: white;
+                font-size: 16px;
+            }
+            QToolTip {
+                background-color: rgb(30, 30, 30);
+                border: 1px solid rgb(120, 120, 120);
+                color: rgb(220, 220, 220);
+                border-radius: 6px;
+                font-size: 14px;
+            }
+        """)
+        self.setMaximumWidth(80)
+        self.setReadOnly(True)
+        self.setToolTip(f"{text}")
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+    def mousePressEvent(self, event: QMouseEvent):
+        event.ignore()  # Ignore mouse press events to prevent editing
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent):
+        event.ignore()  # Ignore double-click events to prevent editing
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        event.ignore()  # Ignore mouse release events to prevent editing
     

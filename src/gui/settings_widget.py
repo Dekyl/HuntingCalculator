@@ -138,15 +138,25 @@ class SettingsWidget(QWidget):
         self.apply_settings_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         self.apply_settings_button.setEnabled(False)
         self.apply_settings_button.setStyleSheet("""
-            QPushButton {
+            QPushButton:disabled {
                 background-color: rgba(80, 80, 80, 0.05);
                 color: rgba(255, 255, 255, 0.6);
                 border: 1px solid rgb(80, 80, 80);
                 border-radius: 8px;
                 padding: 10px;
             }
+            QPushButton:enabled {
+                background-color: rgb(80, 80, 80);
+                color: rgba(255, 255, 255, 1);
+                border: 1px solid rgb(80, 80, 80);
+                border-radius: 8px;
+                padding: 10px;
+            }
             QPushButton:hover {
                 background-color: rgb(80, 80, 80);
+            }
+            QPushButton:pressed {
+                background-color: rgb(120, 120, 120);
             }
         """)
         self.apply_settings_button.clicked.connect(lambda _: self.save_user_settings()) # type: ignore
@@ -169,18 +179,6 @@ class SettingsWidget(QWidget):
             self.update_original_settings() # Update the original settings to match the current actual data
             self.setEnabled(True) # Re-enable the widget after saving settings
             # Buttons style is changed to indicate that the settings are saved (no changes to apply)
-            self.apply_settings_button.setStyleSheet("""
-                QPushButton {
-                    background-color: rgba(80, 80, 80, 0.05);
-                    color: rgba(255, 255, 255, 0.6);
-                    border: 1px solid rgb(80, 80, 80);
-                    border-radius: 8px;
-                    padding: 10px;
-                }
-                QPushButton:hover {
-                    background-color: rgb(80, 80, 80);
-                }
-            """)
             self.apply_settings_button.setEnabled(False)
         else:
             self.setEnabled(True) # Re-enable the widget after saving settings
@@ -193,36 +191,6 @@ class SettingsWidget(QWidget):
         """
         if setting_name in self.original_settings and self.original_settings[setting_name] != value:
             self.settings_actual_data[setting_name] = (self.settings_actual_data[setting_name][0], value)
-            self.apply_settings_button.setStyleSheet("""
-                QPushButton {
-                    background-color: rgb(80, 80, 80);
-                    color: rgba(255, 255, 255, 1);
-                    border: 1px solid rgb(80, 80, 80);
-                    border-radius: 8px;
-                    padding: 10px;
-                }
-                QPushButton:hover {
-                    background-color: rgb(80, 80, 80);
-                }
-                QPushButton:pressed {
-                    background-color: rgb(120, 120, 120);
-                }
-            """)
             self.apply_settings_button.setEnabled(True) # Enable the apply settings button to apply changes
         else:
-            self.apply_settings_button.setStyleSheet("""
-                QPushButton {
-                    background-color: rgba(80, 80, 80, 0.05);
-                    color: rgba(255, 255, 255, 0.6);
-                    border: 1px solid rgb(80, 80, 80);
-                    border-radius: 8px;
-                    padding: 10px;
-                }
-                QPushButton:hover {
-                    background-color: rgb(80, 80, 80);
-                }
-                QPushButton:pressed {
-                    background-color: rgb(120, 120, 120);
-                }
-            """)
-            self.apply_settings_button.setEnabled(False)
+            self.apply_settings_button.setEnabled(False) # Disable the apply settings button if the value is the same as the original setting

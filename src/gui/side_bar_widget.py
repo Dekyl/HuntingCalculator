@@ -3,7 +3,7 @@ from typing import Callable
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDialog, QMainWindow
 from PySide6.QtGui import QFont, QIcon
-from PySide6.QtCore import QTimer, QSize, Qt
+from PySide6.QtCore import QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
 from gui.settings_widget import SettingsWidget
@@ -45,11 +45,14 @@ class SideBarWidget(QWidget):
         }
 
         left_layout = QVBoxLayout(self)
-        self.setContentsMargins(0, 0, 5, 0) # Sidebar margin with the main window
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # As SideBarWidget is a customized QWidget, we need to set this attribute to apply styles
         self.setStyleSheet("""
             background-color: rgb(30, 30, 30);
             border-right: 2px solid rgb(120, 120, 120);
+            border-top: 2px solid rgb(120, 120, 120);
+            border-bottom: 2px solid rgb(120, 120, 120);
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
         """)
 
         self.manager_widgets = ManagerWidgets.get_instance()
@@ -73,8 +76,13 @@ class SideBarWidget(QWidget):
 
             button_side_bar.setIconSize(self.button_icon_size) # Set a default icon size
             button_side_bar.setStyleSheet("""
-                QPushButton {
+                QPushButton:enabled {
                     background-color: rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.5);
+                    border-radius: 6px;
+                }
+                QPushButton:disabled {
+                    background-color: rgba(255, 255, 255, 0.05);
                     border: 1px solid rgba(255, 255, 255, 0.5);
                     border-radius: 6px;
                 }
@@ -87,7 +95,8 @@ class SideBarWidget(QWidget):
                 QToolTip {
                     background-color: rgb(30, 30, 30);;
                     border: 1px solid rgb(120, 120, 120);
-                    border-radius: 3px;
+                    border-radius: 6px;
+                    font-size: 14px;
                 }
             """)
             button_side_bar.setToolTip(f"{text}") # Add tooltip to display text on hover
@@ -126,46 +135,6 @@ class SideBarWidget(QWidget):
             :param enabled: True to enable the button, False to disable it.
         """
         self.left_widget_buttons[button_name].setEnabled(enabled)
-        if enabled:
-            self.left_widget_buttons[button_name].setStyleSheet("""
-                QPushButton {
-                    background-color: rgba(255, 255, 255, 0.2);
-                    border: 1px solid rgba(255, 255, 255, 0.5);
-                    border-radius: 6px;
-                }
-                QPushButton:hover {
-                    background-color: rgba(255, 255, 255, 0.5);
-                }
-                QPushButton:pressed {
-                    background-color: rgba(255, 255, 255, 0.7);
-                }
-                QToolTip {
-                    background-color: rgb(30, 30, 30);;
-                    border: 1px solid rgb(120, 120, 120);
-                    border-radius: 3px;
-                }
-            """)
-        else:
-            self.left_widget_buttons[button_name].setStyleSheet("""
-                QPushButton {
-                    background-color: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.5);
-                    border-radius: 6px;
-                }
-                QPushButton:hover {
-                    background-color: rgba(255, 255, 255, 0.5);
-                }
-                QPushButton:pressed {
-                    background-color: rgba(255, 255, 255, 0.7);
-                }
-                QToolTip {
-                    background-color: rgb(30, 30, 30);;
-                    border: 1px solid rgb(120, 120, 120);
-                    border-radius: 3px;
-                }
-            """)
-        if not enabled:
-            QTimer.singleShot(75000, lambda: self.set_left_widget_button_enabled(button_name, True))  # type: ignore
     
     def show_spots_list_widget(self, button: QPushButton):
         """
