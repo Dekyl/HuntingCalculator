@@ -47,25 +47,22 @@ class SideBarWidget(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # As SideBarWidget is a customized QWidget, we need to set this attribute to apply styles
         self.setStyleSheet("""
             background-color: rgb(30, 30, 30);
-            border-right: 2px solid rgb(120, 120, 120);
-            border-top: 2px solid rgb(120, 120, 120);
-            border-bottom: 2px solid rgb(120, 120, 120);
-            border-top-right-radius: 8px;
-            border-bottom-right-radius: 8px;
+            border: 2px solid rgb(120, 120, 120);
+            border-radius: 8px;
         """)
 
         self.manager_widgets = ManagerWidgets.get_instance()
-        self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None]]] = [
-            ("Home", lambda _: self.manager_widgets.set_page("home")),
-            ("New session", lambda btn: self.show_spots_list_widget(btn)),
-            ("View sessions", lambda _: self.manager_widgets.set_page("view_sessions")),
-            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None),
-            ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None),
-            ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None)
+        self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None,], str]] = [
+            ("Home", lambda _: self.manager_widgets.set_page("home"), "Ctrl+H"),
+            ("New session", lambda btn: self.show_spots_list_widget(btn), "Ctrl+N"),
+            ("View sessions", lambda _: self.manager_widgets.set_page("view_sessions"), "Ctrl+A"),
+            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None, "Ctrl+L"),
+            ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None, "Ctrl+G"),
+            ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None, "Ctrl+Q")
         ]
 
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
-        for i, (text, action) in enumerate(self.buttons_side_bar):
+        for i, (text, action, shortcut) in enumerate(self.buttons_side_bar):
             button_side_bar = QPushButton()
             self.left_widget_buttons[text.lower().replace(' ', '_')] = button_side_bar
             if not os.path.exists(self.res_icons[text.lower()]):
@@ -98,7 +95,7 @@ class SideBarWidget(QWidget):
                     font-size: 14px;
                 }
             """)
-            button_side_bar.setToolTip(f"{text}") # Add tooltip to display text on hover
+            button_side_bar.setToolTip(f"{text} ({shortcut})") # Add tooltip to display text on hover
             button_side_bar.setFont(QFont("Arial", 12))
             button_side_bar.setMinimumHeight(50)
             button_side_bar.setMinimumWidth(50)

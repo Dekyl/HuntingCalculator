@@ -193,8 +193,8 @@ class AppController:
         if data_retrieved is None:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
             self.view.set_session_button_enabled(False) # Disable the new session button
-            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 75 seconds.")
-            QTimer.singleShot(75000, lambda: self.view.set_session_button_enabled(True)) # Re-enable the button after 75 seconds
+            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 60 seconds.")
+            QTimer.singleShot(60000, lambda: self.view.set_session_button_enabled(True)) # Re-enable the button after 60 seconds
             return
         
         spot_id_icon = get_spot_id_icon(spot_name)

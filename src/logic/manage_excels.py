@@ -1,5 +1,6 @@
 from datetime import datetime
 import openpyxl, os, shutil
+from openpyxl.utils import get_column_letter
 from logic.logs import add_log
 
 def clean_sessions() -> int:
@@ -63,8 +64,9 @@ def save_session(labels_input: list[str], data_input: list[str], labels_res:list
     worksheet = workbook["Sheet"]
 
     for i, label in enumerate(labels_input):
-        cell_labels = chr(65 + i) + "1"
-        cell_data = chr(65 + i) + "2"
+        col_letter = get_column_letter(i + 1)
+        cell_labels = f"{col_letter}1"
+        cell_data = f"{col_letter}2"
 
         worksheet[cell_labels] = label
 
@@ -138,9 +140,12 @@ def save_average(results_tax_h:int, hours_session:int, labels_input:list[str], d
         worksheet['A7'] = "Average/hour"
 
         for i, label in enumerate(labels_input):
-            cell_labels = chr(65 + i) + "4"
-            cell_data = chr(65 + i) + "6"
-            cell_data_average = chr(65 + i) + "8"
+
+            col_letter = get_column_letter(i + 1)
+
+            cell_labels = f"{col_letter}4"
+            cell_data = f"{col_letter}6"
+            cell_data_average = f"{col_letter}8"
 
             worksheet[cell_labels] = label[0:label.rfind(" ")]
 
@@ -185,9 +190,11 @@ def save_average(results_tax_h:int, hours_session:int, labels_input:list[str], d
     worksheet['A7'] = "Average/hour"
 
     for i, label in enumerate(labels_input):
-        cell_labels = chr(65 + i) + "4"
-        cell_data = chr(65 + i) + "6"
-        cell_data_average = chr(65 + i) + "8"
+        col_letter = get_column_letter(i + 1)
+
+        cell_labels = f"{col_letter}4"
+        cell_data = f"{col_letter}6"
+        cell_data_average = f"{col_letter}8"
 
         worksheet[cell_labels] = label[0:label.rfind(" ")]
 

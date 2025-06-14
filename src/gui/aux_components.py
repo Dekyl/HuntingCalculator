@@ -70,7 +70,7 @@ class NoClickLineEdit(QLineEdit):
                 background-color: rgb(30, 30, 30);
                 border: 1px solid rgb(120, 120, 120);
                 color: rgb(220, 220, 220);
-                border-radius: 6px;
+                border-radius: 4px;
                 font-size: 14px;
             }
         """)

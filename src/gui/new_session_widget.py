@@ -34,17 +34,28 @@ class NewSessionWidget(QWidget):
         # Main widget and layout for new session
         new_session_layout = QVBoxLayout(self)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # As NewSessionWidget is a customized QWidget, we need to set this attribute to apply styles
+        self.setObjectName("sessionContainer")
         self.setStyleSheet("""
-            background-color: rgb(80, 130, 0); 
-            color: black;
+            #sessionContainer {
+                background-color: rgb(80, 130, 0);
+                border-radius: 8px;
+            }            
+            #sessionContainer * {
+                background-color: rgb(80, 130, 0);
+                color: black;
+            }
         """)
 
         # Default font and style for the widgets
         self.default_font = QFont('Arial', 14)
         self.default_style = """
-            background-color: rgba(255,255,255,0.2); 
-            border: 1px solid black; 
-            border-radius: 4px
+            QLineEdit, QLabel, QPushButton {
+                background-color: rgba(255, 255, 255, 0.4);
+                border: 1px solid black; 
+                border-radius: 4px;
+                color: black;
+                padding: 2px;
+            }
         """
         self.qtooltip_style = """
             QToolTip {
@@ -53,6 +64,14 @@ class NewSessionWidget(QWidget):
                 color: rgb(220, 220, 220);
                 border-radius: 6px;
                 font-size: 14px;
+            }
+        """
+        self.results_default_style = """
+            QLineEdit, QLabel {
+                background-color: rgba(255,255,255,0.05);
+                border: 1px solid black;
+                border-radius: 4px;
+                color: rgba(0, 0, 0, 0.7);
             }
         """
 
@@ -77,6 +96,8 @@ class NewSessionWidget(QWidget):
         ManagerWidgets.get_instance().add_page("new_session", self)
         ManagerWidgets.get_instance().set_page("new_session")
 
+        self.green_exchange_line_edit.setFocus() # Set focus on the green exchange line edit by default
+
     def create_session_title_widget(self, name_spot: str, id_icon: str) -> QWidget:
         """
         Create the title widget for the new session.
@@ -93,7 +114,6 @@ class NewSessionWidget(QWidget):
         title_widget.setStyleSheet("""
             #titleWidget {
                 padding: 10px;
-                border-bottom: 2px solid black;
             }
         """)
 
@@ -176,7 +196,7 @@ class NewSessionWidget(QWidget):
         for i, (icon, label, price) in enumerate(self.labels_icons_input):
             self.line_edit_inputs.append(QLineEdit())
             self.line_edit_inputs[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.line_edit_inputs[i].setMinimumHeight(25)
+            self.line_edit_inputs[i].setMinimumHeight(26)
             self.line_edit_inputs[i].setFont(self.default_font)
             self.line_edit_inputs[i].setStyleSheet(self.default_style)
             # Connects each input with callback function that updates the results of the new session
@@ -241,29 +261,29 @@ class NewSessionWidget(QWidget):
         blue_exchange_label.setFont(self.default_font)
         blue_exchange_label.setContentsMargins(25, 0, 0, 0)
 
-        green_exchange_line_edit = QLineEdit()
-        green_exchange_line_edit.setFont(self.default_font)
-        green_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        green_exchange_line_edit.setMinimumHeight(25)
-        green_exchange_line_edit.setStyleSheet(self.default_style)
-        green_exchange_line_edit.setMinimumWidth(220)
-        green_exchange_line_edit.setContentsMargins(0, 0, 25, 0)
+        self.green_exchange_line_edit = QLineEdit()
+        self.green_exchange_line_edit.setFont(self.default_font)
+        self.green_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.green_exchange_line_edit.setMinimumHeight(26)
+        self.green_exchange_line_edit.setStyleSheet(self.default_style)
+        self.green_exchange_line_edit.setMinimumWidth(220)
+        self.green_exchange_line_edit.setContentsMargins(25, 0, 0, 0)
         
         blue_exchange_line_edit = QLineEdit()
         blue_exchange_line_edit.setFont(self.default_font)
         blue_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        blue_exchange_line_edit.setMinimumHeight(25)
+        blue_exchange_line_edit.setMinimumHeight(26)
         blue_exchange_line_edit.setStyleSheet(self.default_style)
         blue_exchange_line_edit.setMinimumWidth(220)
         blue_exchange_line_edit.setContentsMargins(25, 0, 0, 0)
 
         # Connects each input field with the function that resolves the request
-        green_exchange_line_edit.textChanged.connect(lambda greens: self.on_exchange_hides(greens, blue_exchange_line_edit.text())) # type: ignore
-        blue_exchange_line_edit.textChanged.connect(lambda blues: self.on_exchange_hides(green_exchange_line_edit.text(), blues)) # type: ignore
+        self.green_exchange_line_edit.textChanged.connect(lambda greens: self.on_exchange_hides(greens, blue_exchange_line_edit.text())) # type: ignore
+        blue_exchange_line_edit.textChanged.connect(lambda blues: self.on_exchange_hides(self.green_exchange_line_edit.text(), blues)) # type: ignore
 
         exchange_input_layout.addWidget(green_exchange_label, 0, 0, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight)
         exchange_input_layout.addWidget(blue_exchange_label, 0, 1, Qt.AlignmentFlag.AlignBottom)
-        exchange_input_layout.addWidget(green_exchange_line_edit, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        exchange_input_layout.addWidget(self.green_exchange_line_edit, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
         exchange_input_layout.addWidget(blue_exchange_line_edit, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         # Adds the results of the exchange hides
@@ -274,7 +294,7 @@ class NewSessionWidget(QWidget):
         self.exchange_results_line_edit.setReadOnly(True)
         self.exchange_results_line_edit.setFont(self.default_font)
         self.exchange_results_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.exchange_results_line_edit.setMinimumHeight(25)
+        self.exchange_results_line_edit.setMinimumHeight(26)
         self.exchange_results_line_edit.setStyleSheet(self.default_style)
         self.exchange_results_line_edit.setMaximumWidth(220)
 
@@ -299,12 +319,7 @@ class NewSessionWidget(QWidget):
         elixirs_cost_label.setFont(self.default_font)
 
         self.elixirs_cost_line_edit = QLineEdit("0")
-        self.elixirs_cost_line_edit.setStyleSheet("""
-            background-color: rgba(255,255,255,0.05);
-            border: 1px solid black;
-            border-radius: 4px;
-            color: rgba(0, 0, 0, 0.6);
-        """)
+        self.elixirs_cost_line_edit.setStyleSheet(self.results_default_style)
         self.elixirs_cost_line_edit.setFont(self.default_font)
         self.elixirs_cost_line_edit.setReadOnly(True)
         self.elixirs_cost_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -356,14 +371,9 @@ class NewSessionWidget(QWidget):
             self.inputs_result.append(QLineEdit("0"))
             self.labels_result[i].setFont(self.default_font)
             self.inputs_result[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.inputs_result[i].setMinimumHeight(25)
+            self.inputs_result[i].setMinimumHeight(26)
             self.inputs_result[i].setFont(self.default_font)
-            self.inputs_result[i].setStyleSheet("""
-                background-color: rgba(255,255,255,0.05); 
-                border: 1px solid black; 
-                border-radius: 4px;
-                color: rgba(0, 0, 0, 0.6);
-            """)
+            self.inputs_result[i].setStyleSheet(self.results_default_style)
             self.inputs_result[i].setReadOnly(True)
 
             results_layout.addWidget(self.labels_result[i], 0, i, Qt.AlignmentFlag.AlignBottom)

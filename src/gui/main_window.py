@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
         self.setWindowTitle("Hunting Calculator")
-        self.resize(QSize(1800, 1000))
+        self.resize(QSize(1800, 1020))
         self.setMinimumSize(QSize(400, 300))
         
         primary_screen = QGuiApplication.primaryScreen()
