@@ -20,7 +20,7 @@ class NewSessionWidget(QWidget):
             :param spot_id_icon: The ID of the icon associated with the hunting spot.
             :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
             :param no_market_items: A list of items that are not available in the market.
-            :param elixirs_cost: The cost of elixirs per hour for the new session.
+            :param elixirs_cost: The cost of elixirs per hour for the new session (once the user specifies number of hours it will be multiplied by the number of hours).
         """
         super().__init__()
         
