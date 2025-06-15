@@ -2,8 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
 from PySide6.QtCore import Qt
 
 from gui.aux_components import NoClickLineEdit
-
-home_background_path = './res/icons/home_page_background.png'
+from config.config import home_background_path
 
 class HomeWidget(QWidget):
     """Widget that displays the home page with a background image and command shortcuts."""

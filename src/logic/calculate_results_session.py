@@ -1,9 +1,7 @@
 from typing import Any
 
 from logic.logs import add_log
-
-value_pack_multiplier = 0.315 # Value pack multiplier for the results calculation
-extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
+from config.config import value_pack_multiplier, extra_profit_multiplier
 
 def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
     """

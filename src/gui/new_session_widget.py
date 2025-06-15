@@ -206,7 +206,7 @@ class NewSessionWidget(QWidget):
 
             icon_label_widget = QWidget()
             icon_label_layout = QHBoxLayout(icon_label_widget)
-            icon_label_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)  # Align content to the left
+            icon_label_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
             if icon:
                 icon_label = QLabel()

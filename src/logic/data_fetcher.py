@@ -3,6 +3,11 @@ from PySide6.QtCore import QObject, Signal
 from logic.api_connection import connect_api
 
 class DataFetcher(QObject):
+    """
+    DataFetcher is a QObject that handles the fetching of data from an API.
+    It retrieves data for specified loot and elixir IDs, region, and language.
+    It emits a signal when the data fetching is complete or fails.
+    """
     finished = Signal(object) # Signal to emit when data fetching is complete or fails (type of data sent)
 
     def __init__(self, loot_ids: list[str], elixir_ids: list[str], region: str, language: str):
@@ -25,8 +30,8 @@ class DataFetcher(QObject):
         This method connects to the API and retrieves the data for the specified hunting spot.
         It emits a signal with the results or None if an error occurs.
         """
-        self.data_retrieved = connect_api(self.loot_ids, self.elixir_ids, self.region, self.language) # type: ignore
+        self.data_retrieved = connect_api(self.loot_ids, self.elixir_ids, self.region, self.language)
         if self.data_retrieved:
             self.finished.emit(self.data_retrieved)
         else:
-            self.finished.emit(None)
+            self.finished.emit(None)  # Emit None if data retrieval fails

@@ -135,7 +135,7 @@ class SideBarWidget(QWidget):
         if not spots:
             return # Exit if there is no 'spots' field
 
-        # Create a widget to hold the list of buttons
+        # Create a dialog to hold the list of buttons
         spots_dialog = QDialog(self.view)
         spots_dialog.setStyleSheet("""
             QDialog {

@@ -3,33 +3,7 @@ from io import BytesIO
 from threading import Event
 
 from logic.logs import add_log
-
-reduced_item_names = {
-    "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",
-    "Blessing of Mystic Beasts - All AP": "BMB: All AP",
-    "Blessing of Mystic Beasts - Accuracy": "BMB: Accuracy",
-    "Blessing of Mystic Beasts - Damage Reduction": "BMB: Damage Reduction",
-    "Blessing of Mystic Beasts - Evasion": "BMB: Evasion",
-    "Blessing of Mystic Beasts - Max HP": "BMB: Max HP",
-    "Black Gem Fragment": "Black Gem Frag.",
-    "Sharp Black Crystal Shard": "S. Black Crystal Shard",
-    "Imperfect Lightstone of Flora": "Imp. Lightst. of Flora",
-    "Stuffed Shadow Lion Head": "St. Shadow Lion Head",
-    "Master's Stuffed Shadow Lion Head": "M. St. Shadow Lion Head",
-    "Master's Special Stuffed Shadow Lion Head": "M. St. Sp. Shadow Lion Head",
-    "Stuffed Grass Rhino Head": "St. Grass Rhino Head",
-    "Master's Stuffed Grass Rhino Head": "M. St. Grass Rhino Head",
-    "Master's Special Stuffed Grass Rhino Head": "M. St. Sp. Grass Rhino Head",
-    "Stuffed Vedure Doe Head": "St. Vedure Doe Head",
-    "Master's Stuffed Vedure Doe Head": "M. St. Vedure Doe Head",
-    "Master's Special Stuffed Vedure Doe Head": "M. St. Sp. Vedure Doe Head",
-    "Stuffed Verdure Buck Head": "St. Verdure Buck Head",
-    "Master's Stuffed Verdure Buck Head": "M. St. Verdure Buck Head",
-    "Master's Special Stuffed Verdure Buck Head": "M. St. Sp. Verdure Buck Head",
-    "Stuffed Shadow Wolf Head": "St. Shadow Wolf Head",
-    "Master's Stuffed Shadow Wolf Head": "M. St. Shadow Wolf Head",
-    "Master's Special Stuffed Shadow Wolf Head": "M. St. Sp. Shadow Wolf Head",
-}
+from config.config import timeout_connection, max_attempts, reduced_item_names
 
 def get_sell_price(item_data:str, cancel_event: Event) -> str:
     """
@@ -104,7 +78,7 @@ def get_buy_price(elixir_data:str, cancel_event: Event) -> str:
 
     return buy_price
 
-def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_event: Event, timeout_connection: int) -> int:
+def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_event: Event, attempts: int = 0) -> int:
     """
     Fetch the icon of an item from the Black Desert Market API.
         :param id_item: The ID of the item to fetch the icon for.
@@ -115,8 +89,8 @@ def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_
         :type connection: pycurl.Curl
         :param cancel_event: An event to signal cancellation of the operation.
         :type cancel_event: Event
-        :param timeout_connection: The timeout for the connection in seconds.
-        :type timeout_connection: int
+        :param attempts: The number of attempts made to fetch the icon (default is 0).
+        :type attempts: int
         :return: 0 on success, -1 on failure.
     """
     if os.path.exists(save_path):
@@ -143,9 +117,12 @@ def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_
             add_log("Failed to connect to Black Desert Market API. Retrying...", "warning")
 
         if time.time() - start_time > timeout_connection:
-            if not cancel_event.is_set():
+            if attempts < max_attempts:
+                add_log(f"Connection timeout reached, retrying... (Attempt {attempts + 1}/{max_attempts})", "warning")
+                return get_item_icon(id_item, connection, save_path, cancel_event, attempts + 1)
+            else:
                 add_log("Connection timeout reached", "error")
-            return -1
+                return -1
     
     content_type = connection.getinfo(pycurl.CONTENT_TYPE) # type: ignore
 
@@ -173,21 +150,21 @@ def reduce_item_name_length(item_name: str) -> str:
         return reduced_item_names[item_name]
     return item_name
 
-def get_item_name(id_item: str, connection: pycurl.Curl, cancel_event: Event, timeout_connection: int, region: str = "eu", language: str = "en-US") -> str:
+def get_item_name(id_item: str, connection: pycurl.Curl, cancel_event: Event, region: str = "eu", language: str = "en-US", attempts: int = 0) -> str:
     """
     Connect to the Black Desert Market API to fetch item or elixir name.
         :param id_item: The ID of the item or elixir to fetch.
         :type id_item: str
         :param connection: The pycurl connection object to use for the request.
         :type connection: pycurl.Curl
-        :param region: The region for which to fetch the data (default is "eu").
-        :type region: str
-        :param language: The language for which to fetch the data (default is "en-US").
-        :type language: str
         :param cancel_event: An event to signal cancellation of the operation.
         :type cancel_event: Event
-        :param timeout_connection: The timeout for the connection in seconds.
-        :type timeout_connection: int
+        :param region: The region for which to fetch the name (default is "eu").
+        :type region: str
+        :param language: The language for which to fetch the name (default is "en-US").
+        :type language: str
+        :param attempts: The number of attempts made to fetch the name (default is 0).
+        :type attempts: int
         :return: The name of the item or elixir as a string, or an empty string if the request fails.
     """
     url_base = f"https://api.blackdesertmarket.com/item/{id_item}?region={region}&language={language}"
@@ -211,8 +188,12 @@ def get_item_name(id_item: str, connection: pycurl.Curl, cancel_event: Event, ti
 
         if time.time() - start_time > timeout_connection:
             if not cancel_event.is_set():
-                add_log("Connection timeout reached", "error")
-            return ""
+                if attempts < max_attempts:
+                    add_log(f"Connection timeout reached, retrying... (Attempt {attempts + 1}/{max_attempts})", "warning")
+                    return get_item_name(id_item, connection, cancel_event, region, language, attempts + 1)
+                else:
+                    add_log("Connection timeout reached", "error")
+                    return ""
         
     response_data = buffer.getvalue().decode('utf-8')
     try:
@@ -226,7 +207,7 @@ def get_item_name(id_item: str, connection: pycurl.Curl, cancel_event: Event, ti
         add_log(f"Error extracting item name: {e}", "error")
         return ""
 
-def get_item_data(id_item: str, connection: pycurl.Curl, cancel_event: Event, timeout_connection: int, region: str = "eu") -> str:
+def get_item_data(id_item: str, connection: pycurl.Curl, cancel_event: Event, region: str = "eu") -> str:
     """
     Connect to the Black Desert Market API to fetch item or elixir data.
         :param id_item: The ID of the item or elixir to fetch.
@@ -237,8 +218,6 @@ def get_item_data(id_item: str, connection: pycurl.Curl, cancel_event: Event, ti
         :type region: str
         :param cancel_event: An event to signal cancellation of the operation.
         :type cancel_event: Event
-        :param timeout_connection: The timeout for the connection in seconds.
-        :type timeout_connection: int
         :return: The raw data string containing response information from API, or an empty string if the request fails.
     """
     url_base = f"https://api.blackdesertmarket.com/item/{id_item}/0?region={region}"

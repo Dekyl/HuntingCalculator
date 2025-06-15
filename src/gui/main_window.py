@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         shortcut_settings.activated.connect(lambda: self.create_settings_widget())
 
         shortcut_exit = QShortcut("Ctrl+Q", self)
-        shortcut_exit.activated.connect(self.close_window)
+        shortcut_exit.activated.connect(self.controller.on_exit_button if self.controller else None)
 
     def show_dialog_confirmation(self, message: str, action: Any, confirm_action: str = "exit") -> bool:
         """

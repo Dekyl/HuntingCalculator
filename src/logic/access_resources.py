@@ -36,10 +36,14 @@ def update_confirm_dialog(enable: bool, confirm_action: str) -> bool:
     if confirm_action == "clean_sessions":
         if not check_field_exists("show_confirm_clean_message", settings, "settings.json"):
             settings["show_confirm_clean_message"] = False  # Default value
+        elif settings["show_confirm_clean_message"] == enable:
+            return True  # No change needed if the value is already set
         settings['show_confirm_clean_message'] = enable
     elif confirm_action == "exit":
         if not check_field_exists("show_confirm_exit_message", settings, "settings.json"):
             settings["show_confirm_exit_message"] = False  # Default value
+        elif settings["show_confirm_exit_message"] == enable:
+            return True  # No change needed if the value is already set
         settings['show_confirm_exit_message'] = enable
 
     try:
@@ -67,8 +71,6 @@ def get_show_confirm_clean() -> tuple[bool, bool]:
             if not check_field_exists("show_confirm_clean_message", settings, "settings.json"):
                 return (False, False)  # Return False if the field does not exist
             confirm_clean = settings['show_confirm_clean_message']
-            if confirm_clean:
-                add_log("Showing confirmation dialog for cleaning sessions.", "info")
             return (True, confirm_clean)  # Return True if the field exists and the value is retrieved successfully
     except FileNotFoundError:
         add_log("Settings file not found: './res/settings.json'.", "error")
@@ -90,8 +92,6 @@ def get_show_confirm_exit() -> tuple[bool, bool]:
             if not check_field_exists("show_confirm_exit_message", settings, "settings.json"):
                 return (False, False)  # Return False if the field does not exist
             confirm_exit = settings['show_confirm_exit_message']
-            if confirm_exit:
-                add_log("Showing confirmation dialog for exiting the application.", "info")
             return (True, confirm_exit)  # Return True if the field exists and the value is retrieved successfully
     except FileNotFoundError:
         add_log("Settings file not found: './res/settings.json'.", "error")
@@ -126,7 +126,6 @@ def get_spot_loot(spot_name: str) -> list[str]:
             - The second list contains the IDs of items that are not available on the market.
     """
     common_items = get_data_value('common_items')
-    
     try:
         with open('./res/data.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
@@ -210,6 +209,61 @@ def save_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
         add_log(f"Error saving settings: {e}", "error")
         return -1  # Return -1 to indicate an error in saving settings
     return 0  # Return 0 to indicate success
+
+def save_user_setting(setting: str, value: Any) -> int:
+    """
+    Save a specific user setting to the settings file.
+        :param setting: The name of the setting to save.
+        :param value: The value to save for the specified setting.
+        :return: 0 if successful, -1 if an error occurred.
+    """
+    try:
+        with open('./res/settings.json', 'r', encoding='utf-8') as file:
+            settings = json.load(file)
+    except FileNotFoundError:
+        add_log("Settings file not found: './res/settings.json'. Creating a new one.", "warning")
+        settings = {}
+    except json.JSONDecodeError:
+        add_log("Error decoding JSON in settings file: './res/settings.json'. Resetting to default.", "error")
+        settings = {}
+
+    settings[setting] = value
+
+    try:
+        with open('./res/settings.json', 'w', encoding='utf-8') as file:
+            json.dump(settings, file, indent=4)
+        add_log(f"Setting '{setting}' saved successfully.", "info")
+    except Exception as e:
+        add_log(f"Error saving setting '{setting}': {e}", "error")
+        return -1  # Return -1 to indicate an error in saving the setting
+
+    return 0  # Return 0 to indicate success
+
+def get_match_elixirs(elixir_name_id: str) -> dict[str, str]:
+    """
+    Get a dictionary of elixir IDs and names that match the provided elixir name or ID.
+        :param elixir_name_id: The name or ID of the elixir to match.
+        :return: A dictionary where keys are elixir IDs and values are elixir names that match the provided name or ID.
+    """
+    try:
+        with open('./res/data.json', 'r', encoding='utf-8') as file:
+            elixirs_perfumes = json.load(file).get('elixir_perfume_ids', {})
+    except FileNotFoundError:
+        add_log("Data file not found: './res/data.json'.", "error")
+        return {}
+    except json.JSONDecodeError:
+        add_log("Error decoding JSON in data file: './res/data.json'.", "error")
+        return {}
+    except Exception as e:
+        add_log(f"Unexpected error while reading data file: {e}", "error")
+        return {}
+    
+    matches: dict[str, str] = {}
+    for elixir_id, elixir_name in elixirs_perfumes.items():
+        if elixir_name_id in elixir_id[:len(elixir_name_id)] or elixir_name_id.lower() in elixir_name.lower():
+            matches[elixir_id] = elixir_name
+
+    return matches
 
 def get_data_value(data_name: str) -> Any:
     """

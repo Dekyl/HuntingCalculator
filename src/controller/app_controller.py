@@ -15,10 +15,13 @@ from logic.access_resources import (
     get_no_market_items,
     get_user_settings,
     save_user_settings,
-    get_data_value
+    get_data_value,
+    save_user_setting,
+    get_match_elixirs
 )
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
+from config.config import settings_keys
 from interface.view_interface import ViewInterface
 
 class AppController:
@@ -77,6 +80,13 @@ class AppController:
         else:
             self.on_clean_sessions_clicked()
         
+    def exit_application(self):
+        """
+        Perform the actions required to exit the application.
+        """
+        add_log("Exiting application.", "info")
+        self.view.close_window()
+
     def on_exit_button(self):
         """
         Handle the exit button click event.
@@ -91,11 +101,16 @@ class AppController:
 
         if show_confirm_exit:
             add_log("Showing confirmation dialog for exiting app.", "info")
-            enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to exit?", lambda: self.view.close_window(), "exit")
+            enable_confirm_message = self.view.show_dialog_confirmation(
+                "Are you sure you want to exit?", 
+                lambda: self.exit_application(), 
+                "exit"
+            )
             if not update_confirm_dialog(enable_confirm_message, "exit"):
                 self.view.show_dialog_error("Error updating settings in file 'settings.json'. Check if the file exists and is writable.")
         else:
-            self.view.close_window()
+            add_log("Exiting app without confirmation dialog.", "info")
+            self.exit_application()
 
     def get_spots_list(self) -> list[str]:
         """
@@ -163,19 +178,26 @@ class AppController:
         if value_pack is None:
             self.show_error_and_enable_ui("Value pack usage or not was not found, add it in settings section.")
             return
+        
+        elixirs = get_user_setting("elixirs")
+        if elixirs is None:
+            self.show_error_and_enable_ui("Elixirs setting not found, add it in settings section.")
+            return
+        
+        elixirs_ids = list(elixirs.values()) # Get the list of elixir IDs from user settings
 
         self.thread = QThread()
-        self.worker = DataFetcher(
+        self.worker_costs = DataFetcher(
             loot_ids,
-            get_user_setting("elixir_ids"),
+            elixirs_ids,
             region,
             language
         )
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(lambda: self.on_data_retrieved(spot_name, value_pack, market_tax, extra_profit, self.worker.data_retrieved))
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.started.connect(self.worker_costs.run)
+        self.worker_costs.finished.connect(lambda: self.on_data_retrieved(spot_name, value_pack, market_tax, extra_profit, self.worker_costs.data_retrieved))
+        self.worker_costs.finished.connect(self.thread.quit)
+        self.worker_costs.finished.connect(self.worker_costs.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
@@ -229,6 +251,25 @@ class AppController:
         except:
             return
         
+    def save_user_setting(self, setting_name: str, setting_value: Any) -> int:
+        """
+        Save a user setting to the settings.json file.
+            :param setting_name: The name of the setting to save.
+            :param setting_value: The value of the setting to save.
+            :return: 0 if successful, -1 if an error occurs.
+        """
+        result = save_user_setting(setting_name, setting_value)
+        if result == 0:
+            add_log(f"Setting '{setting_name}' saved successfully.", "info")
+        elif result == -1:
+            add_log(f"Error saving setting '{setting_name}': settings.json file not found.", "error")
+            self.view.show_dialog_error("Error saving user settings in 'settings.json' file.")
+        else:
+            add_log(f"Unexpected result when saving setting '{setting_name}': {result}", "error")
+            self.view.show_dialog_error("Unexpected error occurred while saving user settings in 'settings.json' file.")
+        
+        return result
+        
     def save_session(self, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
         """
         Save the results of a hunting session to an Excel file.
@@ -255,12 +296,20 @@ class AppController:
         """
         return calculate_results_session(value_pack, market_tax, extra_profit, data_input, elixirs_cost)
     
-    def get_all_settings_data(self) -> dict[str, Any]:
+    def get_all_settings_data(self) -> dict[str, Any] | None:
         """
         Get the settings data from the settings.json file.
-            :return: A dictionary containing the settings data.
+            :return: A dictionary containing the settings data or None if the settings file is not found or if any required keys are missing.
         """
-        return get_user_settings()
+        all_settings = get_user_settings()
+        if not all_settings:
+            return None
+
+        missing_keys = [key for key in settings_keys if key not in all_settings]
+        if missing_keys:
+            return None
+
+        return all_settings
     
     def save_user_settings(self, new_settings: dict[str, tuple[str, Any]]) -> int:
         """
@@ -278,6 +327,19 @@ class AppController:
             self.view.show_dialog_error("Unexpected error occurred while saving user settings in 'settings.json' file.")
             
         return result
+    
+    def get_match_elixirs(self, elixir_name_id: str) -> dict[str, str] | str | None:
+        """
+        Get the matching elixirs for the given elixir name or elixir ID.
+            :param elixir_name_id: The name ID of the elixir to match.
+            :return: A dictionary containing the matching elixirs or a message if no matches are found.
+        """
+        if not elixir_name_id:
+            return None
+        if elixir_name_id.isspace():
+            return "No matches."
+        matches = get_match_elixirs(elixir_name_id)
+        return matches if matches else "No matches."
 
     @staticmethod
     def get_instance() -> "AppController":

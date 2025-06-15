@@ -1,11 +1,11 @@
 import logging, os
 from threading import Lock
+from config.config import log_level, threshold_delete_logs
 
-threshold_delete_logs = 1024 * 1024  # 1 MB
 lock = Lock()  # Create a lock for thread-safe logging
 
 logger = logging.getLogger('logs_app')
-logger.setLevel(logging.DEBUG)  # Set the logging level to DEBUG
+logger.setLevel(log_level)  # Set the logging level
 log_types = { 'info': logger.info,
               'warning': logger.warning,
               'error': logger.error,

@@ -2,37 +2,7 @@ import sys, os, json
 import shutil
 
 from logic.logs import add_log
-
-res_list = [
-    'res/data.json',
-    'res/settings.json',
-    'res/icons/matchlock.ico',
-    'res/icons/settings.ico',
-    'res/icons/new_session.ico',
-    'res/icons/home.ico',
-    'res/icons/clean_sessions.ico',
-    'res/icons/view_sessions.ico',
-    'res/icons/exit_app.ico',
-    'res/icons/not_found.ico',
-    'res/icons/artifacts.png',
-    'res/icons/breath_of_narcion.png',
-    'res/icons/cracked_horn.png',
-    'res/icons/cracked_tooth.png',
-    'res/icons/damaged_hide.png',
-    'res/icons/intact_horn.png',
-    'res/icons/intact_tooth.png',
-    'res/icons/sharp_horn.png',
-    'res/icons/sharp_tooth.png',
-    'res/icons/supreme_hide.png',
-    'res/icons/usable_hide.png',
-    'res/icons/wildspark.png',
-    'res/icons/home_page_background.png'
-]
-
-json_files = {
-    'res/data.json': 'data.json',
-    'res/settings.json': 'settings.json'
-}
+from config.config import res_list, json_files
 
 def get_resource_MEIPASS(relative_path: str) -> str:
     """
