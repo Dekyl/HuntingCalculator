@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint
 from typing import Any
 
 from controller.app_controller import AppController
-from gui.dialogs_user import show_dialog_error
+from gui.dialogs_user import show_dialog_error, show_dialog_info
 from gui.manage_widgets import ManagerWidgets
 
 class SettingsWidget(QWidget):
@@ -355,6 +355,7 @@ class SettingsWidget(QWidget):
         id_entry_json, elixirs_dict = self.settings_actual_data['Elixirs'] # Get the actual elixirs list
 
         if elixir_id in elixirs_dict.values():
+            show_dialog_info(f"Elixir {elixir_name} ({elixir_id}) is already in the list.")
             return # If the elixir ID is already in the dict, do nothing
 
         elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list

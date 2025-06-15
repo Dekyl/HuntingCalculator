@@ -109,3 +109,25 @@ def show_dialog_error(msg: str):
     """)
     dialog.addButton(QMessageBox.StandardButton.Ok)
     dialog.exec()
+
+def show_dialog_info(msg: str):
+    """
+    Show a dialog box indicating an informational message.
+        This function displays a message box with an information icon and a message.
+        :param msg: The informational message to display.
+    """
+    dialog = QMessageBox()
+    dialog.setWindowTitle("Information")
+    dialog.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
+    dialog.setIcon(QMessageBox.Icon.Information)
+    dialog.setText(msg)
+    dialog.setStyleSheet("""
+        QLabel {
+            font-size: 14px;
+        }
+        QPushButton {
+            font-size: 14px;
+        }
+    """)
+    dialog.addButton(QMessageBox.StandardButton.Ok)
+    dialog.exec()
