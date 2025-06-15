@@ -53,7 +53,7 @@ class SettingsWidget(QWidget):
             background-color: rgb(30, 30, 30); 
         """)
         
-        self.original_settings: dict[str, Any] = {
+        self.original_settings: dict[str, Any] = { # Get original settings from the controller to show or not show apply settings button
             'Region': settings_data.get('region', 'eu'),
             'Show Confirm Clean Sessions Message': settings_data.get('show_confirm_clean_message', True),
             'Show Confirm Exit Message': settings_data.get('show_confirm_exit_message', True),
@@ -70,13 +70,13 @@ class SettingsWidget(QWidget):
             'Value Pack': ('value_pack', self.original_settings['Value Pack']),
             'Extra profit (Ring, Old moon...)': ('extra_profit', self.original_settings['Extra profit (Ring, Old moon...)']),
             'Language': ('language', self.original_settings['Language']),
-            'Elixirs': ('elixirs', self.original_settings['Elixirs'])
+            'Elixirs': ('elixirs', self.original_settings['Elixirs'].copy()) # Copy to avoid modifying the original settings
         }
 
         for setting_name, setting_val in self.original_settings.items():
             setting_label = QLabel(setting_name)
             setting_widget = QWidget()
-            setting_widget.setMinimumWidth(900)
+            setting_widget.setMinimumWidth(950)
             setting_layout = QHBoxLayout(setting_widget)
             setting_label.setFont(QFont("Arial", 14))
             setting_layout.addWidget(setting_label, 0, Qt.AlignmentFlag.AlignLeft)
@@ -142,7 +142,7 @@ class SettingsWidget(QWidget):
 
             else:
                 self.elixirs_text_edit = QTextEdit("\n".join(f"{id}: {name}" for id, name in setting_val.items()))
-                self.elixirs_text_edit.setMinimumWidth(400)
+                self.elixirs_text_edit.setMinimumWidth(500)
                 self.elixirs_text_edit.setMaximumHeight(150)
                 self.elixirs_text_edit.setReadOnly(True) # Make the line edit read-only for settings that are not editable
                 self.elixirs_text_edit.setFont(QFont("Arial", 14))
@@ -153,6 +153,9 @@ class SettingsWidget(QWidget):
                     padding: 5px;
                     border-radius: 8px;
                 """)
+
+                self.elixirs_text_edit.textChanged.connect(lambda val=self.settings_actual_data["Elixirs"][1], text=setting_name: 
+                    self.on_settings_changed(text, val)) # type: ignore
 
                 setting_layout.addWidget(self.elixirs_text_edit, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 layout_settings_inputs.addWidget(setting_widget)
@@ -206,10 +209,10 @@ class SettingsWidget(QWidget):
                 padding: 10px;
             }
             QPushButton:hover {
-                background-color: rgb(80, 80, 80);
+                background-color: rgb(120, 120, 120);
             }
             QPushButton:pressed {
-                background-color: rgb(120, 120, 120);
+                background-color: rgb(150, 150, 150);
             }
         """)
         self.apply_settings_button.clicked.connect(lambda _: self.save_user_settings()) # type: ignore
@@ -224,15 +227,14 @@ class SettingsWidget(QWidget):
             :param event: The event that occurred.
             :return: True if the event was handled, False otherwise.
         """
-        if event.type() == QEvent.Type.MouseButtonPress:
-            if self.matches_dialog and self.matches_dialog.isVisible():
-                if isinstance(event, QMouseEvent):
-                    # Find the widget under the mouse click
-                    clicked_widget = self.childAt(self.mapFromGlobal(event.globalPos()))
-                    
-                    # If clicked widget is None or NOT a child/descendant of matches_dialog, close dialog
-                    if clicked_widget is None or not (clicked_widget == self.matches_dialog or self.matches_dialog.isAncestorOf(clicked_widget)):
-                        self.matches_dialog.close()
+        if event.type() == QEvent.Type.MouseButtonPress and self.matches_dialog and self.matches_dialog.isVisible():
+            if isinstance(event, QMouseEvent):
+                # Find the widget under the mouse click
+                clicked_widget = self.childAt(self.mapFromGlobal(event.globalPos()))
+                
+                # If clicked widget is None or NOT a child/descendant of matches_dialog, close dialog
+                if clicked_widget is None or not (clicked_widget == self.matches_dialog or self.matches_dialog.isAncestorOf(clicked_widget)):
+                    self.matches_dialog.close()
                         
         return super().eventFilter(obj, event)
 
@@ -270,21 +272,6 @@ class SettingsWidget(QWidget):
             Qt.WindowType.FramelessWindowHint |
             Qt.WindowType.WindowStaysOnTopHint
         )
-
-        self.matches_dialog.setMaximumHeight(500)
-        if isinstance(matches, str):
-            self.matches_dialog.setMinimumHeight(100)
-            self.matches_dialog.setMinimumWidth(200)
-        else:
-            self.matches_dialog.setMinimumHeight(200)
-            self.matches_dialog.setMinimumWidth(500)
-      
-        if self.search_line_edit:
-            height_search_line = self.search_line_edit.height()
-            pos = self.search_line_edit.mapTo(self, QPoint(0, height_search_line))
-            offset_x = (self.matches_dialog.width() - self.search_line_edit.width()) // 2  # Center the dialog horizontally below the search line edit 
-            offset_y = 20
-            self.matches_dialog.move(pos.x() - offset_x, pos.y() + offset_y)  # Position dialog below the search line edit
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -346,18 +333,33 @@ class SettingsWidget(QWidget):
         dialog_layout = QVBoxLayout(self.matches_dialog)
         dialog_layout.addWidget(scroll_area)
 
+        self.matches_dialog.adjustSize()
+        self.matches_dialog.setMaximumHeight(200)
+        self.matches_dialog.setMinimumWidth(500)
+
+        if self.search_line_edit:
+            height_search_line = self.search_line_edit.height()
+            pos = self.search_line_edit.mapTo(self, QPoint(0, height_search_line))
+            offset_x = (self.matches_dialog.width() - self.search_line_edit.width()) // 2  # Center the dialog horizontally below the search line edit 
+            offset_y = 20
+            self.matches_dialog.move(pos.x() - offset_x, pos.y() + offset_y)  # Position dialog below the search line edit
+        
         self.matches_dialog.show() # Show dialog with matches
 
     def update_elixirs_list(self, elixir_name: str, elixir_id: str):
+        """
+        Update the elixirs list with the selected elixir from the matches dialog.
+            :param elixir_name: The name of the elixir to add.
+            :param elixir_id: The ID of the elixir to add.
+        """
+        id_entry_json, elixirs_dict = self.settings_actual_data['Elixirs'] # Get the actual elixirs list
 
-        elixirs_list = self.original_settings['Elixirs'] # Get the actual elixirs list
+        if elixir_id in elixirs_dict.values():
+            return # If the elixir ID is already in the dict, do nothing
 
-        if elixir_id in elixirs_list.values():
-            return # If the elixir ID is already in the list, do nothing
-
-        elixirs_list[elixir_name] = elixir_id # Add the new elixir to the list
-        self.original_settings['Elixirs'] = elixirs_list
-
+        elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list
+        self.settings_actual_data['Elixirs'] = (id_entry_json, elixirs_dict)
+        
         current_text = self.elixirs_text_edit.toPlainText().strip()
         new_line = f"{elixir_name} ({elixir_id})"
         new_text = f"{current_text}\n{new_line}" if current_text else new_line
@@ -366,13 +368,10 @@ class SettingsWidget(QWidget):
         self.search_line_edit.setText("") # Clear the search line edit to show the updated elixirs list
         self.matches_dialog.close() if self.matches_dialog else None # Close the dialog with matches
 
-        # If saved correctly
-        #self.settings_actual_data["Elixirs"] = (self.settings_actual_data["Elixirs"][0], elixirs_list)
-
     def update_original_settings(self):
         """
         Update the original settings with the current actual data.
-        This is used to reset the original settings after saving.
+        This is used to update the original settings after saving.
         """
         self.original_settings = {key: value[1] for key, value in self.settings_actual_data.items()} # Takes second element of each tuple in settings_actual_data
 

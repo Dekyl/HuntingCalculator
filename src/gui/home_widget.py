@@ -46,12 +46,14 @@ class HomeWidget(QWidget):
 
         commands_widget = QWidget()
         commands_layout = QVBoxLayout(commands_widget)
+        commands_layout.setSpacing(15)
         commands_widget.setStyleSheet("""
             background-color: transparent;
         """)
 
         shortcuts_widget = QWidget()
         shortcuts_layout = QVBoxLayout(shortcuts_widget)
+        shortcuts_layout.setSpacing(15)
         shortcuts_widget.setStyleSheet("""
             background-color: transparent;
         """)
