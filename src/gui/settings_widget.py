@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QCheckBox, QComboBox, QPushButton, QDialog, QScrollArea, QTextEdit
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QCheckBox, QComboBox, QPushButton, QDialog, QScrollArea
 from PySide6.QtGui import QFont, QShortcut, QKeySequence, QMouseEvent
 from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint
 
@@ -28,9 +28,9 @@ class SettingsWidget(QWidget):
         
         self.installEventFilter(self) # Install event filter to capture mouse events
 
-        layout_settings = QVBoxLayout(self)
-        layout_settings.setSpacing(60)
-        layout_settings.setContentsMargins(20, 20, 20, 20)
+        layout_main = QVBoxLayout(self)
+        layout_main.setSpacing(60)
+        layout_main.setContentsMargins(20, 20, 20, 20)
 
         settings_title_label = QLabel("Settings")
         settings_title_label.setStyleSheet("""
@@ -40,10 +40,36 @@ class SettingsWidget(QWidget):
             padding: 10px;
             border-radius: 10px;
         """)
+        self.elixir_labels_style = """
+            QLabel {
+                color: white;
+                background-color: rgb(50, 50, 50);
+                border: 1px solid rgb(80, 80, 80);
+                padding: 5px;
+                border-radius: 8px;
+            }
+        """
+        self.elixir_buttons_style = """
+            QPushButton {
+                background-color: rgb(200, 50, 50);
+                color: white;
+                border: 1px solid rgb(80, 80, 80);
+                padding: 5px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: rgb(240, 100, 100);
+            }
+            QPushButton:pressed {
+                background-color: rgb(255, 130, 130);
+            }
+        """
+        self.elixirs_default_font = QFont("Arial", 14)
+        
         settings_title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
         settings_title_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        layout_settings.addWidget(settings_title_label, 0, Qt.AlignmentFlag.AlignTop)
+        layout_main.addWidget(settings_title_label, 0, Qt.AlignmentFlag.AlignTop)
         
         widget_settings_inputs = QWidget()
         layout_settings_inputs = QVBoxLayout(widget_settings_inputs)
@@ -76,7 +102,7 @@ class SettingsWidget(QWidget):
         for setting_name, setting_val in self.original_settings.items():
             setting_label = QLabel(setting_name)
             setting_widget = QWidget()
-            setting_widget.setMinimumWidth(950)
+            setting_widget.setMinimumWidth(1000)
             setting_layout = QHBoxLayout(setting_widget)
             setting_label.setFont(QFont("Arial", 14))
             setting_layout.addWidget(setting_label, 0, Qt.AlignmentFlag.AlignLeft)
@@ -105,7 +131,7 @@ class SettingsWidget(QWidget):
                     check_box.stateChanged.connect(lambda state, text=setting_name: self.on_settings_changed(text, state == Qt.CheckState.Checked.value)) # type: ignore
 
                     setting_layout.addWidget(check_box, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                    layout_settings_inputs.addWidget(setting_widget)
+                    layout_settings_inputs.addWidget(setting_widget) # Add the setting to the settings container widget
 
             elif setting_name in {'Region', 'Language'}:
                 combo_box = QComboBox()
@@ -132,34 +158,54 @@ class SettingsWidget(QWidget):
                     combo_box.addItems(['en-US'])
 
                 if combo_box.findText(setting_val) == -1:
-                    setting_val = 'en-US' if setting_name == 'Language' else 'eu'
-                    self.save_user_setting(setting_name, setting_val) # Save the setting if it is not in the combo box
+                    show_dialog_error(f"Invalid setting value for {setting_name}: {setting_val}.")
+                    manager_widgets = ManagerWidgets.get_instance()
+                    QTimer.singleShot(0, lambda: manager_widgets.set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
+                    return
 
                 combo_box.setCurrentText(setting_val)
                 combo_box.currentTextChanged.connect(lambda val, text=setting_name: self.on_settings_changed(text, val)) # type: ignore
                 setting_layout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                layout_settings_inputs.addWidget(setting_widget)
+                layout_settings_inputs.addWidget(setting_widget) # Add the setting to the settings container widget
 
             else:
-                self.elixirs_text_edit = QTextEdit("\n".join(f"{id}: {name}" for id, name in setting_val.items()))
-                self.elixirs_text_edit.setMinimumWidth(500)
-                self.elixirs_text_edit.setMaximumHeight(150)
-                self.elixirs_text_edit.setReadOnly(True) # Make the line edit read-only for settings that are not editable
-                self.elixirs_text_edit.setFont(QFont("Arial", 14))
-                self.elixirs_text_edit.setStyleSheet("""
-                    background-color: rgb(50, 50, 50);
-                    color: white;
-                    border: 1px solid rgb(80, 80, 80);
-                    padding: 5px;
-                    border-radius: 8px;
+                self.scroll_area_elixirs = QScrollArea()
+                self.scroll_area_elixirs.setStyleSheet("""
+                    QScrollArea { 
+                        background-color: rgb(30, 30, 30);
+                        border: 2px solid rgb(80, 80, 80);
+                        padding: 10px;
+                        border-radius: 8px;
+                    }
+                    QScrollBar:vertical {
+                        width: 16px;
+                        background-color: rgb(30, 30, 30);
+                    }
+                    QScrollBar:horizontal {
+                        height: 16px;
+                        background-color: rgb(30, 30, 30);
+                    }
                 """)
+                self.scroll_area_elixirs.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+                self.scroll_area_elixirs.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+                self.scroll_area_elixirs.setWidgetResizable(True)
+                self.scroll_area_elixirs.setFixedHeight(200)
+                self.scroll_area_elixirs.setFixedWidth(500)
 
-                self.elixirs_text_edit.textChanged.connect(lambda val=self.settings_actual_data["Elixirs"][1], text=setting_name: 
-                    self.on_settings_changed(text, val)) # type: ignore
+                elixirs_widget = QWidget()
+                self.elixirs_layout = QVBoxLayout(elixirs_widget)
+                self.elixirs_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+                self.elixirs_layout.setSpacing(5)
+                
+                self.scroll_area_elixirs.setWidget(elixirs_widget)
 
-                setting_layout.addWidget(self.elixirs_text_edit, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                layout_settings_inputs.addWidget(setting_widget)
+                for id, name in setting_val.items():
+                    self.add_elixir_entry(name, id)
 
+                setting_layout.addWidget(self.scroll_area_elixirs, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                layout_settings_inputs.addWidget(setting_widget) # Add the setting to the settings container widget
+
+                # Search elixirs input
                 search_label = QLabel("Search Elixirs")
                 search_widget = QWidget()
                 search_widget.setMinimumWidth(700)
@@ -185,10 +231,9 @@ class SettingsWidget(QWidget):
                 self.esc_shortcut.activated.connect(lambda: self.matches_dialog.close() if self.matches_dialog else None)
 
                 search_layout.addWidget(self.search_line_edit, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                layout_settings_inputs.addWidget(search_widget) # Add search widget to settings container widget
 
-                layout_settings_inputs.addWidget(search_widget)
-
-        layout_settings.addWidget(widget_settings_inputs, 0, Qt.AlignmentFlag.AlignTop)
+        layout_main.addWidget(widget_settings_inputs, 0, Qt.AlignmentFlag.AlignTop)
 
         self.apply_settings_button = QPushButton("Apply Settings")
         self.apply_settings_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
@@ -217,8 +262,47 @@ class SettingsWidget(QWidget):
         """)
         self.apply_settings_button.clicked.connect(lambda _: self.save_user_settings()) # type: ignore
 
-        layout_settings.addWidget(self.apply_settings_button, 0, Qt.AlignmentFlag.AlignHCenter)
-        layout_settings.addStretch()
+        layout_main.addWidget(self.apply_settings_button, 0, Qt.AlignmentFlag.AlignHCenter)
+        layout_main.addStretch()
+
+    def add_elixir_entry(self, elixir_id: str, elixir_name: str):
+        """
+        Add an entry for an elixir in the settings widget.
+            :param elixir_id: The ID of the elixir.
+            :param elixir_name: The name of the elixir.
+        """
+        entry_elixir_widget = QWidget()
+        entry_elixir_layout = QHBoxLayout(entry_elixir_widget)
+        entry_elixir_layout.setContentsMargins(0, 2, 0, 2)
+        entry_elixir_layout.setSpacing(10)
+
+        label_elixir = QLabel(f"{elixir_name} ({elixir_id})")
+        label_elixir.setFont(self.elixirs_default_font)
+        label_elixir.setStyleSheet(self.elixir_labels_style)
+
+        button_delete_elixir = QPushButton("X")
+        button_delete_elixir.setFont(self.elixirs_default_font)
+        button_delete_elixir.setStyleSheet(self.elixir_buttons_style)
+        button_delete_elixir.setFixedSize(25, 25)
+
+        button_delete_elixir.clicked.connect(lambda _, widget=entry_elixir_widget, name=elixir_name: self.delete_elixir_entry(widget, name)) # type: ignore
+
+        entry_elixir_layout.addWidget(button_delete_elixir, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        entry_elixir_layout.addWidget(label_elixir, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.elixirs_layout.addWidget(entry_elixir_widget, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+    def delete_elixir_entry(self, widget: QWidget, elixir_name: str):
+        """
+        Delete an elixir entry from the settings widget.
+            :param widget: The widget representing the elixir entry to be deleted.
+            :param elixir_name: The name of the elixir to be deleted.
+        """
+        self.elixirs_layout.removeWidget(widget)
+        widget.setParent(None)
+        widget.deleteLater()
+
+        self.settings_actual_data['Elixirs'][1].pop(elixir_name, None)  # Remove the elixir from the settings data
+        self.on_settings_changed('Elixirs', self.settings_actual_data['Elixirs'][1])  # Trigger settings change
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         """
@@ -245,17 +329,25 @@ class SettingsWidget(QWidget):
         """
         matches = self.controller.get_match_elixirs(text)
         if matches is None:
+            self.clean_matches_dialog()  # Clean previous dialog if exists
             return # Empty matches, do nothing
         self.show_elixir_matches(matches)
+
+    def clean_matches_dialog(self):
+        """
+        Clean the matches dialog if it exists.
+        This is used to ensure that the dialog is not duplicated when searching for elixirs.
+        """
+        if self.matches_dialog:
+            self.matches_dialog.close()
+            self.matches_dialog = None
 
     def show_elixir_matches(self, matches: dict[str, str] | str):
         """
         Show a dialog with the elixir matches found based on the search text.
             :param matches: A dictionary of elixir matches found (id: name) or a string indicating no matches found.
         """
-        if self.matches_dialog is not None:
-            self.matches_dialog.close()
-            self.matches_dialog = None  # Cleans reference to the dialog to allow it to be recreated
+        self.clean_matches_dialog()  # Clean previous dialog if exists
 
         # Create a dialog to show the elixir matches
         self.matches_dialog = QDialog(self)
@@ -360,41 +452,24 @@ class SettingsWidget(QWidget):
 
         elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list
         self.settings_actual_data['Elixirs'] = (id_entry_json, elixirs_dict)
-        
-        current_text = self.elixirs_text_edit.toPlainText().strip()
-        new_line = f"{elixir_name} ({elixir_id})"
-        new_text = f"{current_text}\n{new_line}" if current_text else new_line
-        self.elixirs_text_edit.setPlainText(new_text)
+
+        self.add_elixir_entry(elixir_id, elixir_name) # Add the new elixir entry to the UI
 
         self.search_line_edit.setText("") # Clear the search line edit to show the updated elixirs list
         self.matches_dialog.close() if self.matches_dialog else None # Close the dialog with matches
+
+        self.on_settings_changed('Elixirs', elixirs_dict) # Notify that the settings have changed
 
     def update_original_settings(self):
         """
         Update the original settings with the current actual data.
         This is used to update the original settings after saving.
         """
-        self.original_settings = {key: value[1] for key, value in self.settings_actual_data.items()} # Takes second element of each tuple in settings_actual_data
-
-    def save_user_setting(self, setting_name: str, value: Any):
-        """
-        Save a user setting by its name and value.
-            :param setting_name: The name of the setting to save.
-            :param value: The value to save for the setting.
-        """
-        self.setEnabled(False) # Disable the widget while saving settings
-        
-        setting_key = self.settings_actual_data[setting_name][0] # Get the key for the setting from the actual data
-        result = self.controller.save_user_setting(setting_key, value) # Save the setting using the controller
-
-        if result == 0: # If the setting was saved successfully
-            self.settings_actual_data[setting_name] = (setting_key, value) # Update the actual data with the new value
-            self.original_settings[setting_name] = value # Update the original settings with the new value
-            self.setEnabled(True) # Re-enable the widget after saving settings
-        else:
-            self.setEnabled(True) # Re-enable the widget after saving settings
-            show_dialog_error(f"Error saving setting: {setting_name}.") # Show an error dialog if the setting could not be saved
-            self.controller.exit_application() # Exit the application if there was an error saving the setting
+        for key, value in self.settings_actual_data.items():
+            if key == 'Elixirs':
+                self.original_settings[key] = value[1].copy() # Copies the elixirs dict to avoid modifying the original settings directly
+            else:
+                self.original_settings[key] = value[1]
 
     def save_user_settings(self):
         self.setEnabled(False) # Disable the widget while saving settings
@@ -417,5 +492,5 @@ class SettingsWidget(QWidget):
         if setting_name in self.original_settings and self.original_settings[setting_name] != value:
             self.settings_actual_data[setting_name] = (self.settings_actual_data[setting_name][0], value)
             self.apply_settings_button.setEnabled(True) # Enable the apply settings button to apply changes
-        else:
+        elif self.apply_settings_button.isEnabled():
             self.apply_settings_button.setEnabled(False) # Disable the apply settings button if the value is the same as the original setting

@@ -16,7 +16,6 @@ from logic.access_resources import (
     get_user_settings,
     save_user_settings,
     get_data_value,
-    save_user_setting,
     get_match_elixirs
 )
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
@@ -250,26 +249,7 @@ class AppController:
             self.view.update_exchange_hides_results(res_exchange)
         except:
             return
-        
-    def save_user_setting(self, setting_name: str, setting_value: Any) -> int:
-        """
-        Save a user setting to the settings.json file.
-            :param setting_name: The name of the setting to save.
-            :param setting_value: The value of the setting to save.
-            :return: 0 if successful, -1 if an error occurs.
-        """
-        result = save_user_setting(setting_name, setting_value)
-        if result == 0:
-            add_log(f"Setting '{setting_name}' saved successfully.", "info")
-        elif result == -1:
-            add_log(f"Error saving setting '{setting_name}': settings.json file not found.", "error")
-            self.view.show_dialog_error("Error saving user settings in 'settings.json' file.")
-        else:
-            add_log(f"Unexpected result when saving setting '{setting_name}': {result}", "error")
-            self.view.show_dialog_error("Unexpected error occurred while saving user settings in 'settings.json' file.")
-        
-        return result
-        
+
     def save_session(self, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
         """
         Save the results of a hunting session to an Excel file.

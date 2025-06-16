@@ -210,35 +210,6 @@ def save_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
         return -1  # Return -1 to indicate an error in saving settings
     return 0  # Return 0 to indicate success
 
-def save_user_setting(setting: str, value: Any) -> int:
-    """
-    Save a specific user setting to the settings file.
-        :param setting: The name of the setting to save.
-        :param value: The value to save for the specified setting.
-        :return: 0 if successful, -1 if an error occurred.
-    """
-    try:
-        with open('./res/settings.json', 'r', encoding='utf-8') as file:
-            settings = json.load(file)
-    except FileNotFoundError:
-        add_log("Settings file not found: './res/settings.json'. Creating a new one.", "warning")
-        settings = {}
-    except json.JSONDecodeError:
-        add_log("Error decoding JSON in settings file: './res/settings.json'. Resetting to default.", "error")
-        settings = {}
-
-    settings[setting] = value
-
-    try:
-        with open('./res/settings.json', 'w', encoding='utf-8') as file:
-            json.dump(settings, file, indent=4)
-        add_log(f"Setting '{setting}' saved successfully.", "info")
-    except Exception as e:
-        add_log(f"Error saving setting '{setting}': {e}", "error")
-        return -1  # Return -1 to indicate an error in saving the setting
-
-    return 0  # Return 0 to indicate success
-
 def get_match_elixirs(elixir_name_id: str) -> dict[str, str]:
     """
     Get a dictionary of elixir IDs and names that match the provided elixir name or ID.

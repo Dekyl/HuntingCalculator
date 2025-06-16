@@ -11,11 +11,15 @@ def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
     """
     cost_elixirs = 0
     for _, (name, cost) in elixirs.items():
-        if "Perfume" in name:
+        if "Whale" in name:
+            cost *= 6
+        elif "Perfume" in name:
             cost *= 3 # Perfumes cost 3 times more (3 perfumes per hour)
         else:
             cost *= 4 # Other elixirs cost 4 times more (4 elixirs per hour)
         cost_elixirs += cost
+
+    print(f"Total cost of elixirs per hour: {cost_elixirs}")
 
     return str(f"{cost_elixirs:,}")
 
