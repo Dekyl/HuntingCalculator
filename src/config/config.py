@@ -7,7 +7,7 @@ value_pack_multiplier = 0.315 # Value pack multiplier for the results calculatio
 extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
 log_level = logging.DEBUG # Logging level for the application
 threshold_delete_logs = 1024 * 1024  # 1 MB
-home_background_path = './res/icons/home_page_background.png'
+home_background_path = 'res/icons/home_page_background.png'
 
 res_list = [
     'res/data.json',
@@ -32,7 +32,8 @@ res_list = [
     'res/icons/supreme_hide.png',
     'res/icons/usable_hide.png',
     'res/icons/wildspark.png',
-    'res/icons/home_page_background.png'
+    'res/icons/home_page_background.png',
+    'res/icons/delete_elixir.png',
 ]
 
 json_files = {
@@ -79,3 +80,5 @@ settings_keys = [
     "language",
     "elixirs"
 ]
+
+saved_sessions_folder = "Hunting Sessions"  # Folder where hunting sessions are saved

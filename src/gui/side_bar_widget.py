@@ -8,6 +8,7 @@ from PySide6.QtCore import QSize, Qt
 from gui.manage_widgets import ManagerWidgets
 from gui.aux_components import QHLine
 from controller.app_controller import AppController
+from interface.view_interface import ViewInterface
 
 class SideBarWidget(QWidget):
     """
@@ -17,13 +18,15 @@ class SideBarWidget(QWidget):
     """
     _instance = None  # Singleton instance of SideBarWidget
 
-    def __init__(self, view: QMainWindow | None = None):
+    def __init__(self, view: ViewInterface | None = None):
         """
         Initialize the SideBarWidget with a reference to the main application window.
-            :param view: The QMainWindow instance that this sidebar will be associated with."""
+            :param view: Implement of ViewInterface.
+        """
         # If view is None, raise an error
         if view is None:
-            raise ValueError("View must be a QMainWindow instance.")
+            raise ValueError("View must be ViewerInterface implementation.")
+        
         # Ensure the view is a QMainWindow instance
         if SideBarWidget._instance is not None:
             raise Exception("This class is a singleton!")
@@ -31,7 +34,11 @@ class SideBarWidget(QWidget):
 
         super().__init__()  # Initialize the QWidget
 
-        self.view = view  # Parent QMainWindow for the widgets
+        self.view = view
+        self.main_window = self.view.get_main_window_instance() if hasattr(self.view, 'get_main_window_instance') else None
+        if not isinstance(self.main_window, QMainWindow):
+            raise TypeError("Expected QMainWindow from get_main_window_instance()")
+        
         self.controller = AppController.get_instance()
         self.button_icon_size = QSize(20, 20) # Default icon size for buttons
         self.res_icons = {
@@ -55,7 +62,7 @@ class SideBarWidget(QWidget):
         self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None,], str]] = [
             ("Home", lambda _: self.manager_widgets.set_page("home"), "Ctrl+H"),
             ("New session", lambda btn: self.show_spots_list_widget(btn), "Ctrl+N"),
-            ("View sessions", lambda _: self.manager_widgets.set_page("view_sessions"), "Ctrl+A"),
+            ("View sessions", lambda _: self.view.show_dialog_select_session(), "Ctrl+A"),
             ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None, "Ctrl+L"),
             ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None, "Ctrl+G"),
             ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None, "Ctrl+Q")
@@ -136,7 +143,7 @@ class SideBarWidget(QWidget):
             return # Exit if there is no 'spots' field
 
         # Create a dialog to hold the list of buttons
-        spots_dialog = QDialog(self.view)
+        spots_dialog = QDialog(self.main_window)
         spots_dialog.setStyleSheet("""
             QDialog {
                 border: 2px solid rgb(120, 120, 120);
@@ -149,7 +156,7 @@ class SideBarWidget(QWidget):
         if button:
             button_geometry = button.geometry()
             button_position = button_geometry.topLeft()
-            parent_geometry = self.view.geometry()
+            parent_geometry = self.main_window.geometry() if self.main_window else self.geometry()
             dialog_width = 200
             dialog_height = 280
             x = button_position.x() + parent_geometry.x() + button_geometry.width() + 25  # Position to the right of the button

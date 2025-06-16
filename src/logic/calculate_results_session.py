@@ -19,8 +19,6 @@ def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
             cost *= 4 # Other elixirs cost 4 times more (4 elixirs per hour)
         cost_elixirs += cost
 
-    print(f"Total cost of elixirs per hour: {cost_elixirs}")
-
     return str(f"{cost_elixirs:,}")
 
 def calculate_results_session(value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any]:

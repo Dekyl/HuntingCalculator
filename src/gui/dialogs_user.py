@@ -1,7 +1,9 @@
-from PySide6.QtWidgets import QMessageBox, QCheckBox
+from typing import Any, Callable
+
+from PySide6.QtWidgets import QMessageBox, QCheckBox, QFileDialog
 from PySide6.QtGui import QIcon
 
-from typing import Any, Callable
+from config.config import saved_sessions_folder
 
 def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "exit") -> bool:
     """
@@ -57,7 +59,7 @@ def show_dialog_results(message: str, confirm_action: str, res: int):
         :param message: The message to display in the results dialog.
         :param confirm_action: The action that was confirmed, used to set the icon.
         :param res: The result of the action, used to determine the icon type.
-            -1 for error, 0 for success, 1 for no actions taken.
+            -1 for folder containing sessions not found, -2 for unexpected error, 0 for success, 1 for no actions taken.
     """
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Results Action")
@@ -75,11 +77,13 @@ def show_dialog_results(message: str, confirm_action: str, res: int):
     """)
 
     if res == -1:
-        msg_box.setIcon(QMessageBox.Icon.Critical)
+        msg_box.setIcon(QMessageBox.Icon.Warning)
     elif res == 0:
         msg_box.setIcon(QMessageBox.Icon.Information)
     elif res == 1:
         msg_box.setIcon(QMessageBox.Icon.Question)
+    else:
+        msg_box.setIcon(QMessageBox.Icon.Critical)
 
     confirm_actions: dict[str, Callable [[], None]] = {
         "clean_sessions": lambda: msg_box.setWindowIcon(QIcon("res/icons/clean_sessions.ico"))
@@ -88,16 +92,28 @@ def show_dialog_results(message: str, confirm_action: str, res: int):
 
     msg_box.exec()
 
-def show_dialog_error(msg: str):
+def show_dialog_type(msg: str, type: str = "info"):
     """
-    Show a dialog box indicating an error occurred while fetching data from the API.
-        This function displays a message box with an error icon and a message indicating that there was an error fetching data from the API.
-        :param msg: The error message to display.
+    Show a dialog with a specific type of message.
+        :param msg: The message to display in the dialog.
+        :param type: The type of message, can be "error", "warning", "question", or "info".
     """
     dialog = QMessageBox()
-    dialog.setWindowTitle("Error")
-    dialog.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
-    dialog.setIcon(QMessageBox.Icon.Critical)
+
+    if type == "error":
+        dialog.setWindowTitle("Error")
+        dialog.setIcon(QMessageBox.Icon.Critical)
+    elif type == "warning":
+        dialog.setWindowTitle("Warning")
+        dialog.setIcon(QMessageBox.Icon.Warning)
+    elif type == "question":
+        dialog.setWindowTitle("Question")
+        dialog.setIcon(QMessageBox.Icon.Question)
+    else:
+        dialog.setWindowTitle("Information")
+        dialog.setIcon(QMessageBox.Icon.Information)
+
+    dialog.setWindowIcon(QIcon("res/icons/matchlock.ico"))
     dialog.setText(msg)
     dialog.setStyleSheet("""
         QLabel {
@@ -110,24 +126,19 @@ def show_dialog_error(msg: str):
     dialog.addButton(QMessageBox.StandardButton.Ok)
     dialog.exec()
 
-def show_dialog_info(msg: str):
+def show_dialog_view_session() -> str:
     """
-    Show a dialog box indicating an informational message.
-        This function displays a message box with an information icon and a message.
-        :param msg: The informational message to display.
+    Show a dialog to choose a file.
+        This function opens a file dialog to allow the user to select a file.
+        :return: The selected file path or an empty string if no file was selected.
     """
-    dialog = QMessageBox()
-    dialog.setWindowTitle("Information")
-    dialog.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
-    dialog.setIcon(QMessageBox.Icon.Information)
-    dialog.setText(msg)
-    dialog.setStyleSheet("""
-        QLabel {
-            font-size: 14px;
-        }
-        QPushButton {
-            font-size: 14px;
-        }
-    """)
-    dialog.addButton(QMessageBox.StandardButton.Ok)
-    dialog.exec()
+    options = QFileDialog.Option(0)
+    file_path, _ = QFileDialog.getOpenFileName(
+        None,
+        "Select Session",
+        saved_sessions_folder,
+        "XLSX (*.xlsx)",
+        options=options
+    )
+
+    return file_path if file_path else ""

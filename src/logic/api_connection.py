@@ -3,7 +3,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock, Event
 
 from logic.logs import add_log
-from logic.get_data_api_requests import get_item_name, get_item_data, get_item_icon, get_sell_price, get_buy_price
+from logic.get_data_api_requests import (
+    get_item_name, get_item_data, get_item_icon, get_sell_price, get_buy_price
+)
 from config.config import max_threads
 
 def make_api_requests_items(item_ids: list[str], region: str, language: str = "en-US") -> dict[str, tuple[str, int]] | None:
@@ -52,7 +54,7 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
             connection.close()
             return -1
         
-        res_get_icon = get_item_icon(id, connection, f"./res/icons/items/{id}.png", cancel_event, attempts=3)
+        res_get_icon = get_item_icon(id, connection, f"res/icons/items/{id}.png", cancel_event, attempts=3)
         if cancel_event.is_set() or res_get_icon == -1:
             add_log(f"Failed to fetch icon for item ID {id}. Skipping...", "error")
             connection.close()
@@ -135,7 +137,7 @@ def make_api_requests_elixirs(elixir_ids: list[str], region: str, language: str 
             connection.close()
             return -1
         
-        res_get_icon = get_item_icon(id, connection, f"./res/icons/elixirs/{id}.png", cancel_event)
+        res_get_icon = get_item_icon(id, connection, f"res/icons/elixirs/{id}.png", cancel_event)
         if cancel_event.is_set() or res_get_icon == -1:
             add_log(f"Failed to fetch icon for elixir ID {id}. Skipping...", "error")
             connection.close()

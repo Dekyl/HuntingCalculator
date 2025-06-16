@@ -16,7 +16,8 @@ from logic.access_resources import (
     get_user_settings,
     save_user_settings,
     get_data_value,
-    get_match_elixirs
+    get_match_elixirs,
+    sessions_root_folder_exists
 )
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
@@ -55,6 +56,9 @@ class AppController:
             add_log(f"Clean sessions dialog selection -> {result}  (No elements found to delete)", "info")
             self.view.show_dialog_results("No saved sessions found. Nothing to clean.", "clean_sessions", result)
         elif result == -1:
+            add_log(f"Clean sessions dialog selection -> {result}  (Folder not found, created)", "warning")
+            self.view.show_dialog_results("Folder not found, created. No sessions were deleted.", "clean_sessions", result)
+        else:
             add_log(f"Clean sessions dialog selection -> {result}  (Error)", "error")
             self.view.show_dialog_results("An error occurred while cleaning sessions.", "clean_sessions", result)
 
@@ -68,14 +72,14 @@ class AppController:
 
         if not res:
             add_log("Error retrieving data from settings.json, check if the file exists and is writable", "error")
-            self.view.show_dialog_error("Error retrieving data from settings.json, check if the file exists and is writable.")
+            self.view.show_dialog_type("Error retrieving data from settings.json, check if the file exists and is writable.", "error")
             return
 
         if show_confirm_clean:
             add_log("Showing confirmation dialog for cleaning sessions.", "info")
             enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the sessions?", self.on_clean_sessions_clicked, "clean_sessios")
             if not update_confirm_dialog(enable_confirm_message, "clean_sessions"):
-                self.view.show_dialog_error("Error updating settings in file 'settings.json'. Check if the file exists and is writable.")
+                self.view.show_dialog_type("Error updating settings in file 'settings.json'. Check if the file exists and is writable.", "error")
         else:
             self.on_clean_sessions_clicked()
         
@@ -95,7 +99,7 @@ class AppController:
 
         if not res:
             add_log("Error retrieving data from settings.json, check if the file exists and is writable", "error")
-            self.view.show_dialog_error("Error retrieving data from settings.json, check if the file exists and is writable.")
+            self.view.show_dialog_type("Error retrieving data from settings.json, check if the file exists and is writable.", "error")
             return
 
         if show_confirm_exit:
@@ -106,7 +110,7 @@ class AppController:
                 "exit"
             )
             if not update_confirm_dialog(enable_confirm_message, "exit"):
-                self.view.show_dialog_error("Error updating settings in file 'settings.json'. Check if the file exists and is writable.")
+                self.view.show_dialog_type("Error updating settings in file 'settings.json'. Check if the file exists and is writable.", "error")
         else:
             add_log("Exiting app without confirmation dialog.", "info")
             self.exit_application()
@@ -138,7 +142,7 @@ class AppController:
             :param message: The error message to display.
         """
         add_log(message, "error")
-        self.view.show_dialog_error(message)
+        self.view.show_dialog_type(message, "error")
         self.view.set_ui_enabled(True)
 
     def start_data_retrieval(self, spot_name: str):
@@ -214,14 +218,14 @@ class AppController:
         if data_retrieved is None:
             add_log(f"Error retrieving data for spot '{spot_name}'", "error")
             self.view.set_session_button_enabled(False) # Disable the new session button
-            self.view.show_dialog_error("Error fetching data from API, too many requests, disabling new session button for 60 seconds.")
+            self.view.show_dialog_type("Error fetching data from API, too many requests, disabling new session button for 60 seconds.", "error")
             QTimer.singleShot(60000, lambda: self.view.set_session_button_enabled(True)) # Re-enable the button after 60 seconds
             return
         
         spot_id_icon = get_spot_id_icon(spot_name)
         if not spot_id_icon:
             add_log(f"No icon found for spot '{spot_name}'", "error")
-            self.view.show_dialog_error(f"Error fetching spot '{spot_name}' icon from JSON file.")
+            self.view.show_dialog_type(f"Error fetching spot '{spot_name}' icon from JSON file.", "error")
             return
         
         no_market_items = get_no_market_items(spot_name)
@@ -301,10 +305,10 @@ class AppController:
             add_log("Settings saved successfully.", "info")
         elif result == -1:
             add_log("Error saving settings: settings.json file not found.", "error")
-            self.view.show_dialog_error("Error saving user settings in 'settings.json' file.")
+            self.view.show_dialog_type("Error saving user settings in 'settings.json' file.", "error")
         else:
             add_log(f"Unexpected result when saving settings: {result}", "error")
-            self.view.show_dialog_error("Unexpected error occurred while saving user settings in 'settings.json' file.")
+            self.view.show_dialog_type("Unexpected error occurred while saving user settings in 'settings.json' file.", "error")
             
         return result
     
@@ -320,6 +324,13 @@ class AppController:
             return "No matches."
         matches = get_match_elixirs(elixir_name_id)
         return matches if matches else "No matches."
+    
+    def sessions_root_folder_exists(self) -> int:
+        """
+        Check if the sessions root folder exists.
+            :return: -1 if the folder does not exist and was created, -2 if it is not a directory, 0 if it exists and is a directory.
+        """
+        return sessions_root_folder_exists()
 
     @staticmethod
     def get_instance() -> "AppController":

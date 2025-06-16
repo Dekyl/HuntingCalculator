@@ -1,11 +1,13 @@
 import os
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QGridLayout, QLineEdit
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QGridLayout, QLineEdit
+)
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt
 
 from gui.manage_widgets import ManagerWidgets
-from gui.dialogs_user import show_dialog_error
+from gui.dialogs_user import show_dialog_type
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
 
@@ -447,7 +449,7 @@ class NewSessionWidget(QWidget):
             taxed_res = int(self.inputs_result[2].text().replace(",", ""))
             taxed_res_h = int(self.inputs_result[3].text().replace(",", ""))
         except ValueError:
-            show_dialog_error("Invalid data in results fields")
+            show_dialog_type("Invalid data in results fields", "error")
             return
         
         res_lab: list[str] = []
@@ -461,7 +463,7 @@ class NewSessionWidget(QWidget):
             res_data.append(inp)
 
         if self.controller.save_session(res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h) == -1:
-            show_dialog_error("Error saving data, wrong data")
+            show_dialog_type("Error saving data, wrong data", "error")
                 
     def update_session_results(self):
         """
@@ -481,11 +483,11 @@ class NewSessionWidget(QWidget):
 
         res_data = self.controller.get_session_results(self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost)
         if not res_data:
-            show_dialog_error("Error calculating results, please ensure that 'settings.json' exists in 'res' directory and there are no missing fields.")
+            show_dialog_type("Error calculating results, please ensure that 'settings.json' exists in 'res' directory and there are no missing fields.", "error")
             return
         
         if isinstance(res_data, int):
-            show_dialog_error("Error calculating results, please ensure that all input data is valid.")
+            show_dialog_type("Error calculating results, please ensure that all input data is valid.", "error")
             return
         
         results_tot = res_data["total"]

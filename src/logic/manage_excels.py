@@ -3,35 +3,37 @@ import openpyxl, os, shutil
 from openpyxl.utils import get_column_letter
 from logic.logs import add_log
 
+from config.config import saved_sessions_folder
+
 def clean_sessions() -> int:
     """
     Clean the sessions of the hunting session by all saved files.
     This function deletes the "Hunting Sessions" directory and all its contents,
     then recreates the directory to start fresh.
-        :return: 1 if successful, 0 if folder not found or empty, -1 if an error occurs.
+        :return: 1 if successful, 0 if folder not found or empty, -1 if folder not found, -2 if an unexpected error occurs.
     """
-    saved_sessions = "Hunting Sessions"
     try:
-        if not os.path.exists(saved_sessions):
-            add_log(f"Folder {saved_sessions} not found, creating it. No sessions were deleted", "info")
-            os.mkdir(saved_sessions)
-        elif os.path.isdir(saved_sessions) and not os.listdir(saved_sessions):
-            add_log(f"Folder {saved_sessions} is empty, nothing to delete", "info")
-        elif os.path.isdir(saved_sessions):
-            add_log(f"Deleting all saved sessions in '{saved_sessions}'", "info")
-            shutil.rmtree(saved_sessions)
-            os.mkdir(saved_sessions)
+        if not os.path.exists(saved_sessions_folder):
+            add_log(f"Folder {saved_sessions_folder} not found, creating it. No sessions were deleted", "info")
+            os.mkdir(saved_sessions_folder)
+            return -1
+        elif os.path.isdir(saved_sessions_folder) and not os.listdir(saved_sessions_folder):
+            add_log(f"Folder {saved_sessions_folder} is empty, nothing to delete", "info")
+        elif os.path.isdir(saved_sessions_folder):
+            add_log(f"Deleting all saved sessions in '{saved_sessions_folder}'", "info")
+            shutil.rmtree(saved_sessions_folder)
+            os.mkdir(saved_sessions_folder)
             add_log(f"Clean sessions dialog selection -> 1 (Success)", "info")
             return 1
         else:
-            add_log(f"'{saved_sessions}' is not a directory or does not exist", "error")
-            add_log(f"Clean sessions dialog selection -> -1 (Error)", "error")
-            return -1
+            add_log(f"Unexpected error. '{saved_sessions_folder}' is not a directory or does not exist", "error")
+            add_log(f"Clean sessions dialog selection -> -2 (Unexpected error)", "error")
+            return -2
 
     except Exception as e:
-        add_log(f"Error while cleaning sessions: {e}", "error")
-        add_log(f"Clean sessions dialog selection -> -1 (Error)", "error")
-        return -1
+        add_log(f"Unexpected error. Error while cleaning sessions: {e}", "error")
+        add_log(f"Clean sessions dialog selection -> -2 (Unexpected error)", "error")
+        return -2
 
     add_log(f"Clean sessions dialog selection -> 0 (No elements found to delete)", "info")
     return 0

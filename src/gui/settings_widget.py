@@ -1,11 +1,23 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QCheckBox, QComboBox, QPushButton, QDialog, QScrollArea
-from PySide6.QtGui import QFont, QShortcut, QKeySequence, QMouseEvent
-from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint
-
 from typing import Any
+import os
+
+from PySide6.QtWidgets import (
+    QWidget, 
+    QVBoxLayout, 
+    QLabel, 
+    QLineEdit, 
+    QHBoxLayout, 
+    QCheckBox,
+    QComboBox, 
+    QPushButton, 
+    QDialog, 
+    QScrollArea
+)
+from PySide6.QtGui import QFont, QShortcut, QKeySequence, QMouseEvent, QIcon
+from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint, QSize
 
 from controller.app_controller import AppController
-from gui.dialogs_user import show_dialog_error, show_dialog_info
+from gui.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
 
 class SettingsWidget(QWidget):
@@ -22,7 +34,7 @@ class SettingsWidget(QWidget):
 
         settings_data = self.controller.get_all_settings_data()
         if settings_data is None:
-            show_dialog_error("Failed to load settings data. Please check the settings file.")
+            show_dialog_type("Failed to load settings data. Please check the settings file.", "error")
             QTimer.singleShot(0, lambda: ManagerWidgets.get_instance().set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
             return
         
@@ -49,22 +61,7 @@ class SettingsWidget(QWidget):
                 border-radius: 8px;
             }
         """
-        self.elixir_buttons_style = """
-            QPushButton {
-                background-color: rgb(200, 50, 50);
-                color: white;
-                border: 1px solid rgb(80, 80, 80);
-                padding: 5px;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: rgb(240, 100, 100);
-            }
-            QPushButton:pressed {
-                background-color: rgb(255, 130, 130);
-            }
-        """
-        self.elixirs_default_font = QFont("Arial", 14)
+        self.elixirs_default_font = QFont("Arial", 12)
         
         settings_title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
         settings_title_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -102,7 +99,7 @@ class SettingsWidget(QWidget):
         for setting_name, setting_val in self.original_settings.items():
             setting_label = QLabel(setting_name)
             setting_widget = QWidget()
-            setting_widget.setMinimumWidth(1000)
+            setting_widget.setMinimumWidth(900)
             setting_layout = QHBoxLayout(setting_widget)
             setting_label.setFont(QFont("Arial", 14))
             setting_layout.addWidget(setting_label, 0, Qt.AlignmentFlag.AlignLeft)
@@ -158,7 +155,7 @@ class SettingsWidget(QWidget):
                     combo_box.addItems(['en-US'])
 
                 if combo_box.findText(setting_val) == -1:
-                    show_dialog_error(f"Invalid setting value for {setting_name}: {setting_val}.")
+                    show_dialog_type(f"Invalid setting value for {setting_name}: {setting_val}.", "error")
                     manager_widgets = ManagerWidgets.get_instance()
                     QTimer.singleShot(0, lambda: manager_widgets.set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
                     return
@@ -190,7 +187,7 @@ class SettingsWidget(QWidget):
                 self.scroll_area_elixirs.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
                 self.scroll_area_elixirs.setWidgetResizable(True)
                 self.scroll_area_elixirs.setFixedHeight(200)
-                self.scroll_area_elixirs.setFixedWidth(500)
+                self.scroll_area_elixirs.setFixedWidth(400)
 
                 elixirs_widget = QWidget()
                 self.elixirs_layout = QVBoxLayout(elixirs_widget)
@@ -206,24 +203,22 @@ class SettingsWidget(QWidget):
                 layout_settings_inputs.addWidget(setting_widget) # Add the setting to the settings container widget
 
                 # Search elixirs input
-                search_label = QLabel("Search Elixirs")
                 search_widget = QWidget()
-                search_widget.setMinimumWidth(700)
                 search_layout = QHBoxLayout(search_widget)
-                search_label.setFont(QFont("Arial", 14))
-                search_layout.addWidget(search_label, 0, Qt.AlignmentFlag.AlignLeft)
 
                 self.search_line_edit = QLineEdit()
-                self.search_line_edit.setMinimumWidth(400)
+                self.search_line_edit.setFixedWidth(400)
                 self.search_line_edit.setPlaceholderText("Elixir Name or ID")
                 self.search_line_edit.setFont(QFont("Arial", 14))
                 self.search_line_edit.setClearButtonEnabled(True)
                 self.search_line_edit.setStyleSheet("""
-                    background-color: rgb(50, 50, 50);
-                    color: white;
-                    border: 1px solid rgb(80, 80, 80);
-                    padding: 5px;
-                    border-radius: 8px;
+                    QLineEdit {
+                        background-color: rgb(50, 50, 50);
+                        color: white;
+                        border: 1px solid rgb(80, 80, 80);
+                        padding: 5px;
+                        border-radius: 8px;
+                    }
                 """)
 
                 self.search_line_edit.textChanged.connect(lambda text: self.search_elixir(text)) # type: ignore
@@ -276,16 +271,29 @@ class SettingsWidget(QWidget):
         entry_elixir_layout.setContentsMargins(0, 2, 0, 2)
         entry_elixir_layout.setSpacing(10)
 
+        button_delete_elixir = QPushButton()
+        button_delete_elixir.setFont(self.elixirs_default_font)
+        button_delete_elixir.setIcon(QIcon('res/icons/delete_elixir.png') if os.path.exists('res/icons/delete_elixir.png') else QIcon("res/icons/not_found.ico"))
+        button_delete_elixir.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border-radius: 16px;
+                padding: 2px;
+            }
+            QPushButton:hover {
+                background-color: rgb(120, 60, 60);
+            }
+            QPushButton:pressed {
+                background-color: rgb(160, 60, 60);
+            }
+        """)
+        button_delete_elixir.setIconSize(QSize(30, 30))
+
+        button_delete_elixir.clicked.connect(lambda _, widget=entry_elixir_widget, name=elixir_name: self.delete_elixir_entry(widget, name)) # type: ignore
+
         label_elixir = QLabel(f"{elixir_name} ({elixir_id})")
         label_elixir.setFont(self.elixirs_default_font)
         label_elixir.setStyleSheet(self.elixir_labels_style)
-
-        button_delete_elixir = QPushButton("X")
-        button_delete_elixir.setFont(self.elixirs_default_font)
-        button_delete_elixir.setStyleSheet(self.elixir_buttons_style)
-        button_delete_elixir.setFixedSize(25, 25)
-
-        button_delete_elixir.clicked.connect(lambda _, widget=entry_elixir_widget, name=elixir_name: self.delete_elixir_entry(widget, name)) # type: ignore
 
         entry_elixir_layout.addWidget(button_delete_elixir, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         entry_elixir_layout.addWidget(label_elixir, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
@@ -447,7 +455,7 @@ class SettingsWidget(QWidget):
         id_entry_json, elixirs_dict = self.settings_actual_data['Elixirs'] # Get the actual elixirs list
 
         if elixir_id in elixirs_dict.values():
-            show_dialog_info(f"Elixir {elixir_name} ({elixir_id}) is already in the list.")
+            show_dialog_type(f"Elixir {elixir_name} ({elixir_id}) is already in the list.", "info")
             return # If the elixir ID is already in the dict, do nothing
 
         elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list

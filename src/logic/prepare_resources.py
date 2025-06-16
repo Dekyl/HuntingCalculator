@@ -76,6 +76,9 @@ def startup_resources() -> bool:
 
     is_dev_mode = not hasattr(sys, '_MEIPASS')
 
+    if not os.path.exists('./Hunting Sessions'):
+        os.mkdir('Hunting Sessions')
+
     if is_dev_mode:
         add_log("Running in development mode — skipping resource checks.", "info")
         return True
@@ -105,7 +108,5 @@ def startup_resources() -> bool:
         add_log(f"Resource {res_path} not found in MEIPASS and not copied", "error")
         return False
 
-    if not os.path.exists('./Hunting Sessions'):
-        os.mkdir('Hunting Sessions')
     return True
     

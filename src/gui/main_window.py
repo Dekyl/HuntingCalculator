@@ -1,17 +1,18 @@
+from typing import Any
+
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 from PySide6.QtGui import QIcon, QGuiApplication, QShortcut
 from PySide6.QtCore import QSize
-
-from typing import Any
 
 from gui.manage_widgets import ManagerWidgets
 from gui.side_bar_widget import SideBarWidget
 from gui.settings_widget import SettingsWidget
 from gui.home_widget import HomeWidget
-from gui.view_sessions_widget import ViewSessionsWidget
 from gui.new_session_widget import NewSessionWidget
-from gui.dialogs_user import show_dialog_error, show_dialog_confirmation, show_dialog_results
+from gui.view_sessions_widget import ViewSessionsWidget
+from gui.dialogs_user import show_dialog_type, show_dialog_confirmation, show_dialog_results, show_dialog_view_session
 from controller.app_controller import AppController
+from config.config import saved_sessions_folder
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -20,7 +21,7 @@ class MainWindow(QMainWindow):
         """
         super().__init__()
 
-        self.setWindowIcon(QIcon("./res/icons/matchlock.ico"))
+        self.setWindowIcon(QIcon("res/icons/matchlock.ico"))
         self.setWindowTitle("Hunting Calculator")
         self.resize(QSize(1800, 1020))
         self.setMinimumSize(QSize(400, 300))
@@ -55,12 +56,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.side_bar_widget)
         main_layout.addWidget(stack, stretch=1)
 
-        page_widgets: dict[str, QWidget] = { "home": HomeWidget(),
-                                             "view_sessions": ViewSessionsWidget(),
-                                            }
-
-        for name, widget in page_widgets.items():
-            self.manager.add_page(name, widget)
+        self.manager.add_page("home", HomeWidget())
 
         self.create_shortcuts()
 
@@ -76,7 +72,7 @@ class MainWindow(QMainWindow):
         shortcut_new_session.activated.connect(new_session_button.click if new_session_button else None)
 
         shortcut_view_sessions = QShortcut("Ctrl+A", self)
-        shortcut_view_sessions.activated.connect(lambda: self.manager.set_page("view_sessions"))
+        shortcut_view_sessions.activated.connect(self.show_dialog_select_session)
 
         shortcut_clean_sessions = QShortcut("Ctrl+L", self)
         shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button() if self.controller else None)
@@ -141,12 +137,13 @@ class MainWindow(QMainWindow):
         """
         self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
 
-    def show_dialog_error(self, msg: str):
+    def show_dialog_type(self, msg: str, type: str):
         """
-        Show an error dialog with the specified message.
-            :param msg: The error message to display.
+        Show a dialog with a specific type of message.
+            :param msg: The message to display in the dialog.
+            :param type: The type of message to display (e.g., "info", "warning", "error").
         """
-        show_dialog_error(msg)
+        show_dialog_type(msg, "error")
 
     def set_session_button_enabled(self, enabled: bool):
         """
@@ -154,6 +151,35 @@ class MainWindow(QMainWindow):
             :param enabled: A boolean indicating whether to enable or disable the new session button.
         """
         self.side_bar_widget.set_left_widget_button_enabled("new_session", enabled)
+
+    def show_dialog_select_session(self):
+        """
+        Show a dialog to view existing hunting sessions.
+            This function checks if the sessions root folder exists and then opens a dialog to view sessions.
+            If the folder does not exist, it shows an error dialog.
+        """
+        res = self.controller.sessions_root_folder_exists()
+        if res == -1:  # Sessions folder did not exist, created it
+            show_dialog_type(f"'{saved_sessions_folder}' was not found. It has been created.", "warning")
+            return
+        elif res == -2:
+            show_dialog_type(f"'{saved_sessions_folder}' is not a folder. Check it before trying", "warning")
+            return
+        
+        # Hunting sessions folder exists, proceed to show the dialog
+        session_file_selected = show_dialog_view_session()
+        if not session_file_selected:
+            return # Empty string means no file was selected
+        
+        self.manager.add_page("view_sessions", ViewSessionsWidget(session_file_selected)) # Add the view_sessions widget to the manager
+        self.manager.set_page("view_sessions")  # Switch to the view sessions page
+
+    def get_main_window_instance(self) -> QMainWindow:
+        """
+        Get the instance of the main window.
+            :return: The instance of the QMainWindow.
+        """
+        return self
 
     def close_window(self):
         """
