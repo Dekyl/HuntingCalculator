@@ -1,17 +1,16 @@
 import logging
+from typing import Any
 
 # Global configuration settings for the application
 
 max_threads = 12 # Maximum number of threads to use for concurrent requests
 value_pack_multiplier = 0.315 # Value pack multiplier for the results calculation
 extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
-log_level = logging.DEBUG # Logging level for the application
+log_level = logging.INFO # Logging level for the application
 threshold_delete_logs = 1024 * 1024  # 1 MB
-home_background_path = 'res/icons/app_images/home_page_background.png'
 
 res_list = {
     'data': 'res/data.json',
-    'settings': 'res/settings.json',
     'matchlock_ico': 'res/icons/app_icons/matchlock.ico',
     'settings_ico': 'res/icons/app_icons/settings.ico',
     'new_session_ico': 'res/icons/app_icons/new_session.ico',
@@ -40,12 +39,19 @@ res_list = {
     'right_arrow': 'res/icons/app_images/right_arrow.png'
 }
 
-item_icons_root = 'res/icons/items/'  # Root directory for item icons
-no_market_items_root = 'res/icons/no_market_items/'  # Root directory for no market items icons
+res_abs_paths: dict[str, str] = {}
 
-json_files = {
-    'res/data.json': 'data.json',
-    'res/settings.json': 'settings.json'
+item_icons_root = 'res/icons/items/'  # Root directory for item icons
+settings_json = 'res/settings.json'  # Path to the settings JSON file
+
+default_settings: dict[str, Any] = {
+    "region": "eu",
+    "show_confirm_clean_message": True,
+    "show_confirm_exit_message": True,
+    "value_pack": False,
+    "extra_profit": False,
+    "language": "en-US",
+    "elixirs": {}
 }
 
 reduced_item_names = {
@@ -77,15 +83,4 @@ reduced_item_names = {
 
 max_attempts = 2 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout for the connection in seconds
-
-settings_keys = [
-    "region",
-    "show_confirm_clean_message",
-    "show_confirm_exit_message",
-    "value_pack",
-    "extra_profit",
-    "language",
-    "elixirs"
-]
-
 saved_sessions_folder = "Hunting Sessions"  # Folder where hunting sessions are saved

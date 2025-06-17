@@ -19,7 +19,7 @@ from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint, QSize
 from controller.app_controller import AppController
 from gui.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
-from config.config import res_list
+from config.config import res_abs_paths
 
 class SettingsWidget(QWidget):
     """
@@ -35,7 +35,7 @@ class SettingsWidget(QWidget):
 
         settings_data = self.controller.get_all_settings_data()
         if settings_data is None:
-            show_dialog_type("Failed to load settings data. Please check the settings file.", "error")
+            show_dialog_type("Failed to load settings data. Please check the settings file.", "Settings load", "error", "others")
             QTimer.singleShot(0, lambda: ManagerWidgets.get_instance().set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
             return
         
@@ -157,7 +157,7 @@ class SettingsWidget(QWidget):
                     combo_box.addItems(['en-US'])
 
                 if combo_box.findText(setting_val) == -1:
-                    show_dialog_type(f"Invalid setting value for {setting_name}: {setting_val}.", "error")
+                    show_dialog_type(f"Invalid setting value for {setting_name}: {setting_val}.", "Setting value", "error", "others")
                     manager_widgets = ManagerWidgets.get_instance()
                     QTimer.singleShot(0, lambda: manager_widgets.set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
                     return
@@ -233,7 +233,7 @@ class SettingsWidget(QWidget):
         layout_main.addWidget(widget_settings_inputs, 0, Qt.AlignmentFlag.AlignTop)
 
         self.apply_settings_button = QPushButton("Apply Settings")
-        self.apply_settings_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        self.apply_settings_button.setFont(QFont("Arial", 16))
         self.apply_settings_button.setEnabled(False)
         self.apply_settings_button.setStyleSheet("""
             QPushButton:disabled {
@@ -259,8 +259,7 @@ class SettingsWidget(QWidget):
         """)
         self.apply_settings_button.clicked.connect(lambda _: self.save_user_settings()) # type: ignore
 
-        layout_main.addWidget(self.apply_settings_button, 0, Qt.AlignmentFlag.AlignHCenter)
-        layout_main.addStretch()
+        layout_main.addWidget(self.apply_settings_button, 1, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
 
     def add_elixir_entry(self, elixir_id: str, elixir_name: str):
         """
@@ -275,7 +274,7 @@ class SettingsWidget(QWidget):
 
         button_delete_elixir = QPushButton()
         button_delete_elixir.setFont(self.elixirs_default_font)
-        button_delete_elixir.setIcon(QIcon(res_list["delete_elixir"]) if os.path.exists(res_list["delete_elixir"]) else QIcon(res_list["not_found_ico"]))
+        button_delete_elixir.setIcon(QIcon(res_abs_paths["delete_elixir"]) if os.path.exists(res_abs_paths["delete_elixir"]) else QIcon(res_abs_paths["not_found_ico"]))
         button_delete_elixir.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -457,7 +456,7 @@ class SettingsWidget(QWidget):
         id_entry_json, elixirs_dict = self.settings_actual_data['Elixirs'] # Get the actual elixirs list
 
         if elixir_id in elixirs_dict.values():
-            show_dialog_type(f"Elixir {elixir_name} ({elixir_id}) is already in the list.", "info")
+            show_dialog_type(f"Elixir {elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "info", "others")
             return # If the elixir ID is already in the dict, do nothing
 
         elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list

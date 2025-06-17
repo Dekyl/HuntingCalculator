@@ -9,7 +9,7 @@ from gui.manage_widgets import ManagerWidgets
 from gui.aux_components import QHLine
 from controller.app_controller import AppController
 from interface.view_interface import ViewInterface
-from config.config import res_list
+from config.config import res_abs_paths
 
 class SideBarWidget(QWidget):
     """
@@ -67,10 +67,10 @@ class SideBarWidget(QWidget):
             text_low = text.lower().replace(' ', '_')
             self.left_widget_buttons[text_low] = button_side_bar
             
-            if not os.path.exists(res_list[f"{text_low}_ico"]):
-                button_side_bar.setIcon(QIcon(res_list["not_found_ico"]))
+            if not os.path.exists(res_abs_paths[f"{text_low}_ico"]):
+                button_side_bar.setIcon(QIcon(res_abs_paths["not_found_ico"]))
             else:
-                button_side_bar.setIcon(QIcon(res_list[f"{text_low}_ico"])) # Set an icon based on the side bar button text
+                button_side_bar.setIcon(QIcon(res_abs_paths[f"{text_low}_ico"])) # Set an icon based on the side bar button text
 
             button_side_bar.setIconSize(self.button_icon_size) # Set a default icon size
             button_side_bar.setStyleSheet("""

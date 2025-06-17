@@ -12,7 +12,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
 from PySide6.QtCore import Qt
 
 from controller.app_controller import AppController
-from config.config import res_list
+from config.config import res_abs_paths
 
 class ViewSessionsWidget(QWidget):
     """
@@ -75,7 +75,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: top;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_list['up_arrow']}");
+                image: url("{res_abs_paths['up_arrow']}");
             }}
 
             QScrollBar::add-line:vertical {{ /* Down arrow */
@@ -85,7 +85,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: bottom;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_list['down_arrow']}");
+                image: url("{res_abs_paths['down_arrow']}");
             }}
             
             QScrollBar:horizontal {{ /* Horizontal background scroll bar */
@@ -108,7 +108,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: left;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_list['left_arrow']}");
+                image: url("{res_abs_paths['left_arrow']}");
             }}
             
             QScrollBar::add-line:horizontal {{ /* Right arrow */
@@ -118,7 +118,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: right;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_list['right_arrow']}");
+                image: url("{res_abs_paths['right_arrow']}");
             }}
 
             QScrollBar::sub-line:vertical:hover, 
@@ -136,8 +136,8 @@ class ViewSessionsWidget(QWidget):
             QPushButton {
                 background-color: rgb(200, 60, 60);
                 color: white;
-                border-radius: 10px;
-                padding: 5px;
+                border-radius: 8px;
+                padding: 10px;
             }
             QPushButton:hover {
                 background-color: rgb(220, 100, 100);
@@ -155,11 +155,11 @@ class ViewSessionsWidget(QWidget):
         button_container = QWidget()
         button_layout = QVBoxLayout()
         button_layout.setContentsMargins(0, 30, 0, 0)
-        button_layout.addWidget(delete_session_button, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        button_layout.addWidget(delete_session_button, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
         button_container.setLayout(button_layout)
 
         session_layout.addWidget(table_view, 0)
-        session_layout.addWidget(button_container, 0)
+        session_layout.addWidget(button_container, 0, Qt.AlignmentFlag.AlignBottom)
 
         df: pd.DataFrame = pd.read_excel(file_path)  # type: ignore
         self.show_dataframe(df, table_view)

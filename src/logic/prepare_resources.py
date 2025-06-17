@@ -2,23 +2,14 @@ import sys, os, json
 import shutil
 
 from logic.logs import add_log
-from config.config import res_list, json_files, item_icons_root
+from config.config import res_list, item_icons_root, settings_json, default_settings, res_abs_paths
+from logic.access_resources import get_app_resource
 
-def get_resource_MEIPASS(relative_path: str) -> str:
-    """
-    Get the absolute path of a resource file in the MEIPASS directory.
-    This function is used to retrieve the path of a resource file when the application
-    is packaged with PyInstaller and run as an executable.
-        :param relative_path: The relative path of the resource file (e.g., 'res/settings.json').
-    """
-    base_path = getattr(sys, '_MEIPASS', "") # sys._MEIPASS is set by PyInstaller when running as an executable
-    return os.path.join(base_path, relative_path) if base_path else relative_path
-
-def check_all_fields_exist(target_file: str, meipass_src: str, label: str):
+def check_all_fields_exist_data(target_file: str, meipass_src: str, label: str):
     """
     Check if all fields in the target JSON file exist, and if not, add them with default values
     from the source JSON file located in the MEIPASS directory.
-        :param target_file: The path to the target JSON file (e.g., 'res/settings.json').
+        :param target_file: The path to the target JSON file
         :param meipass_src: The path to the source JSON file in the MEIPASS directory.
         :param label: A label for logging purposes, indicating which file is being checked.
         :return: True if all fields exist or were added successfully, False otherwise.
@@ -51,6 +42,31 @@ def check_all_fields_exist(target_file: str, meipass_src: str, label: str):
     
     return True
 
+def check_all_fields_exist_settings() -> bool:
+    """
+    Check if all fields in the settings JSON file exist, and if not, add them with default values.
+        :return: True if all fields exist or were added successfully, False otherwise.
+    """
+    f_name = os.path.basename(settings_json)
+    try:
+        with open(settings_json, 'r', encoding='utf-8') as file:
+            settings_data = json.load(file)
+
+        for field, val in default_settings.items():
+            if field not in settings_data:
+                add_log(f"Adding missing field '{field}' to '{f_name}'", "warning")
+                settings_data[field] = val
+
+        with open(settings_json, 'w', encoding='utf-8') as outfile:
+            json.dump(settings_data, outfile, indent=4)
+            add_log(f"Added missing fields to '{f_name}'", "warning")
+
+    except Exception as e:
+        add_log(f"Error checking fields in '{f_name}': {e}", "error")
+        return False
+
+    return True
+
 def reset_folder(folder_path: str):
     """
     Resets the specified folder by removing it if it exists and creating a new one.
@@ -71,41 +87,33 @@ def startup_resources() -> bool:
     resources are available in the expected directory structure.
         :return: True if resources are prepared successfully, False otherwise.
     """
-    reset_folder(item_icons_root)  # Reset the item icons folder
+    global res_abs_paths
 
-    is_dev_mode = not hasattr(sys, '_MEIPASS')
+    reset_folder(item_icons_root)  # Reset the item icons folder
 
     if not os.path.exists('./Hunting Sessions'):
         os.mkdir('Hunting Sessions')
 
-    if is_dev_mode:
-        add_log("Running in development mode — skipping resource checks.", "info")
-        return True
-    
-    add_log("Running from executable — performing resource checks.", "info")
-
-    for _, res_path in res_list.items():
-        meipass_src = get_resource_MEIPASS(res_path)
-
-        if os.path.exists(res_path):
-            if res_path in json_files:
-                if not check_all_fields_exist(res_path, meipass_src, json_files[res_path]):
-                    add_log(f"Missing fields in {json_files[res_path]}, could not be restored.", "error")
-                    return False
-                continue # All fields were checked, if the resource exists, skip copying it
-        
-        if meipass_src: # If the resource exists in the MEIPASS, copy it to the destination path
-            try:
-                # Copy the resource from the MEIPASS to the destination path
-                shutil.copyfile(meipass_src, res_path)
-                add_log(f"Copied resource {res_path} from MEIPASS", "info")
-            except Exception as e:
-                add_log(f"Failed to copy resource {res_path} from MEIPASS: {e}", "error")
-                return False
-            continue
-
-        add_log(f"Resource {res_path} not found in MEIPASS and not copied", "error")
+    if not os.path.exists(settings_json): #  Check if the settings JSON file exists
+        add_log(f"Settings file {settings_json} not found, creating a new one.", "info")
+        try:
+            with open(settings_json, 'w', encoding='utf-8') as settings_file:
+                json.dump(default_settings, settings_file, indent=4)  # Create a default settings JSON file
+        except Exception as e:
+            add_log(f"Failed to create settings file: {e}", "error")
+            return False
+    elif not check_all_fields_exist_settings():
+        add_log(f"Missing fields in {os.path.basename(settings_json)}, could not be restored.", "error")
         return False
+
+    is_dev_mode = not hasattr(sys, '_MEIPASS') # Check if running in development mode
+    for key, res_path in res_list.items():
+        res_src = get_app_resource(res_path)
+        res_abs_paths[key] = res_src
+
+        if not os.path.exists(res_src):
+            add_log(f"Resource {res_path} not found, exiting.", "error") if is_dev_mode else add_log(f"Resource {res_path} not found in MEIPASS, exiting.", "error")
+            return False
 
     return True
     

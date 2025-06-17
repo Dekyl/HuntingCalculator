@@ -10,7 +10,7 @@ from gui.manage_widgets import ManagerWidgets
 from gui.dialogs_user import show_dialog_type
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
-from config.config import res_list, item_icons_root, no_market_items_root
+from config.config import res_abs_paths, item_icons_root, settings_json
 
 class NewSessionWidget(QWidget):
     def __init__(self, name_spot: str, value_pack: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, items: dict[str, tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
@@ -121,7 +121,7 @@ class NewSessionWidget(QWidget):
         """)
 
         # Hunting zone title and icon
-        hunting_zone_icon = QIcon(f"{item_icons_root}{id_icon}.png") if os.path.exists(f"{item_icons_root}{id_icon}.png") else QIcon(res_list["not_found_ico"])
+        hunting_zone_icon = QIcon(f"{item_icons_root}{id_icon}.png") if os.path.exists(f"{item_icons_root}{id_icon}.png") else QIcon(res_abs_paths["not_found_ico"])
         hunting_zone_name = QLabel(self.name_spot)
         hunting_zone_name.setFont(QFont("Arial", 24))
         hunting_zone_name.setContentsMargins(0, 0, 50, 0) # Add right margin to title label so it stays in center of screen after adding icon and spacing it
@@ -147,7 +147,7 @@ class NewSessionWidget(QWidget):
         self.labels_icons_input: list[tuple[QIcon | None, QLabel, QLabel | None]] = []
 
         for i, (id, (item_name, price)) in enumerate(items.items()):
-            icon = QIcon(f"{item_icons_root}{id}.png") if os.path.exists(f"{item_icons_root}{id}.png") else QIcon(res_list["not_found_ico"])
+            icon = QIcon(f"{item_icons_root}{id}.png") if os.path.exists(f"{item_icons_root}{id}.png") else QIcon(res_abs_paths["not_found_ico"])
 
             label = SmartLabel(f"{item_name} (0.00%)")
             label.setFont(self.default_font)
@@ -171,10 +171,10 @@ class NewSessionWidget(QWidget):
             """)
 
             if "breath of narcion" in no_market_item.lower():
-                icon = QIcon(f"{no_market_items_root}breath_of_narcion.png") if os.path.exists(f"{no_market_items_root}breath_of_narcion.png") else QIcon(res_list["not_found_ico"])
+                icon = QIcon(res_abs_paths["breath_of_narcion"]) if os.path.exists(res_abs_paths["breath_of_narcion"]) else QIcon(res_abs_paths["not_found_ico"])
             else:
                 no_market_item_lower_replace = no_market_item.lower().replace(" ", "_")
-                icon = QIcon(f"{no_market_items_root}{no_market_item_lower_replace}.png") if os.path.exists(f"{no_market_items_root}{no_market_item_lower_replace}.png") else QIcon(res_list["not_found_ico"])
+                icon = QIcon(res_abs_paths[no_market_item_lower_replace]) if os.path.exists(res_abs_paths[no_market_item_lower_replace]) else QIcon(res_abs_paths["not_found_ico"])
 
             price_value = QLabel("0")
             price_value.setContentsMargins(15, 0, 0, 0)
@@ -450,7 +450,7 @@ class NewSessionWidget(QWidget):
             taxed_res = int(self.inputs_result[2].text().replace(",", ""))
             taxed_res_h = int(self.inputs_result[3].text().replace(",", ""))
         except ValueError:
-            show_dialog_type("Invalid data in results fields", "error")
+            show_dialog_type("Invalid data in results fields", "Invalid results data", "error", "others")
             return
         
         res_lab: list[str] = []
@@ -463,8 +463,12 @@ class NewSessionWidget(QWidget):
             res_lab.append(label)
             res_data.append(inp)
 
-        if self.controller.save_session(self.name_spot, res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h) == -1:
-            show_dialog_type("Error saving data, invalid data.", "error")
+        if not self.controller.save_session(self.name_spot, res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h):
+            show_dialog_type("Error saving data, invalid data.", "Error saving", "error", "others")
+            return
+        
+        show_dialog_type("Session saved successfully", "Success saving", "info", "others")
+        self.controller.change_page("home")  # Switch back to the home page after saving the session
                 
     def update_session_results(self):
         """
@@ -484,14 +488,14 @@ class NewSessionWidget(QWidget):
 
         res_data = self.controller.get_session_results(self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost)
         if res_data == -1:
-            show_dialog_type("Error calculating results, please ensure all fields contain digits", "error")
+            show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "others")
             return
         if not res_data:
-            show_dialog_type("Error calculating results, please ensure that 'settings.json' exists in 'res' directory and there are no missing fields.", "error")
+            show_dialog_type(f"Error calculating results, please ensure that '{settings_json}' exists in 'res' directory and there are no missing fields.", "Calculate results", "error", "others")
             return
         
         if isinstance(res_data, int):
-            show_dialog_type("Error calculating results, please ensure that all input data is valid.", "error")
+            show_dialog_type("Error calculating results, please ensure that all input data is valid.", "Calculate results", "error", "others")
             return
         
         results_tot = res_data["total"]

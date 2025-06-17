@@ -1,10 +1,10 @@
-import json, os
+import json, os, sys
 from typing import Any
 
 from logic.logs import add_log
-from config.config import saved_sessions_folder
+from config.config import res_abs_paths, saved_sessions_folder, settings_json
 
-def check_field_exists(field: str, settings: dict[str, Any], file_name: str) -> bool:
+def check_field_exists(field: str, settings: dict[str, Any], file_name: str = settings_json) -> bool:
     """
     Check if a field exists in the settings dictionary.
     If the field does not exist, log an error message.
@@ -25,30 +25,30 @@ def update_confirm_dialog(enable: bool, confirm_action: str) -> bool:
         :return: True if the update was successful, False if it failed.
     """
     try:
-        with open('res/settings.json', 'r', encoding='utf-8') as file:
+        with open(settings_json, 'r', encoding='utf-8') as file:
             settings: dict[str, Any] = json.load(file)
     except FileNotFoundError:
-        add_log("Settings file not found: 'res/settings.json'. Creating a new one.", "warning")
+        add_log(f"Settings file not found: '{settings_json}'. Creating a new one.", "warning")
         settings = {}
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in settings file: 'res/settings.json'. Resetting to default.", "error")
+        add_log(f"Error decoding JSON in settings file: '{settings_json}'. Resetting to default.", "error")
         settings = {}
 
     if confirm_action == "clean_sessions":
-        if not check_field_exists("show_confirm_clean_message", settings, "settings.json"):
+        if not check_field_exists("show_confirm_clean_message", settings, settings_json):
             settings["show_confirm_clean_message"] = False  # Default value
         elif settings["show_confirm_clean_message"] == enable:
             return True  # No change needed if the value is already set
         settings['show_confirm_clean_message'] = enable
     elif confirm_action == "exit":
-        if not check_field_exists("show_confirm_exit_message", settings, "settings.json"):
+        if not check_field_exists("show_confirm_exit_message", settings, settings_json):
             settings["show_confirm_exit_message"] = False  # Default value
         elif settings["show_confirm_exit_message"] == enable:
             return True  # No change needed if the value is already set
         settings['show_confirm_exit_message'] = enable
 
     try:
-        with open('res/settings.json', 'w', encoding='utf-8') as file:
+        with open(settings_json, 'w', encoding='utf-8') as file:
             json.dump(settings, file, indent=4)
         add_log(f"Confirmation dialog for {confirm_action} {'enabled' if enable else 'disabled'}.", "info")
     except Exception as e:
@@ -67,17 +67,17 @@ def get_show_confirm_clean() -> tuple[bool, bool]:
             - False if there was an error checking the field.
     """
     try:
-        with open('res/settings.json', 'r', encoding='utf-8') as file:
+        with open(settings_json, 'r', encoding='utf-8') as file:
             settings = json.load(file)
-            if not check_field_exists("show_confirm_clean_message", settings, "settings.json"):
+            if not check_field_exists("show_confirm_clean_message", settings, settings_json):
                 return (False, False)  # Return False if the field does not exist
             confirm_clean = settings['show_confirm_clean_message']
             return (True, confirm_clean)  # Return True if the field exists and the value is retrieved successfully
     except FileNotFoundError:
-        add_log("Settings file not found: 'res/settings.json'.", "error")
+        add_log(f"Settings file not found: '{settings_json}'.", "error")
         return (False, False)
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in settings file: 'res/settings.json'.", "error")
+        add_log(f"Error decoding JSON in settings file: '{settings_json}'.", "error")
         return (False, False)
     
 def get_show_confirm_exit() -> tuple[bool, bool]:
@@ -88,17 +88,17 @@ def get_show_confirm_exit() -> tuple[bool, bool]:
         :return: True if the confirmation dialog should be shown, False otherwise.
     """
     try:
-        with open('res/settings.json', 'r', encoding='utf-8') as file:
+        with open(settings_json, 'r', encoding='utf-8') as file:
             settings = json.load(file)
-            if not check_field_exists("show_confirm_exit_message", settings, "settings.json"):
+            if not check_field_exists("show_confirm_exit_message", settings, settings_json):
                 return (False, False)  # Return False if the field does not exist
             confirm_exit = settings['show_confirm_exit_message']
             return (True, confirm_exit)  # Return True if the field exists and the value is retrieved successfully
     except FileNotFoundError:
-        add_log("Settings file not found: 'res/settings.json'.", "error")
+        add_log(f"Settings file not found: '{settings_json}'.", "error")
         return (False, False)
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in settings file: 'res/settings.json'.", "error")
+        add_log(f"Error decoding JSON in settings file: '{settings_json}'.", "error")
         return (False, False)
     
 def get_spot_id_icon(spot_name: str) -> str:
@@ -108,14 +108,14 @@ def get_spot_id_icon(spot_name: str) -> str:
         :return: The ID of the icon associated with the hunting spot, or an empty string if not found.
     """
     try:
-        with open('res/data.json', 'r', encoding='utf-8') as file:
+        with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data.get('spots', {}).get(spot_name, {}).get('spot_id_icon', '')
     except FileNotFoundError:
-        add_log("Data file not found: 'res/data.json'.", "error")
+        add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
         return ''
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in data file: 'res/data.json'.", "error")
+        add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return ''
     
 def get_spot_loot(spot_name: str) -> list[str]:
@@ -128,15 +128,15 @@ def get_spot_loot(spot_name: str) -> list[str]:
     """
     common_items = get_data_value('common_items')
     try:
-        with open('res/data.json', 'r', encoding='utf-8') as file:
+        with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
             data = json.load(file)
             spot = data.get('spots', {}).get(spot_name, {})
             spot_items = spot.get('loot', [])
     except FileNotFoundError:
-        add_log("Data file not found: 'res/data.json'.", "error")
+        add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
         return []
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in data file: 'res/data.json'.", "error")
+        add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return []
 
     if not spot_items:
@@ -150,14 +150,14 @@ def get_no_market_items(spot_name: str) -> list[str]:
         :return: A list of item IDs that are not available on the market.
     """
     try:
-        with open('res/data.json', 'r', encoding='utf-8') as file:
+        with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data.get('spots', {}).get(spot_name, {}).get('no_market_items', [])
     except FileNotFoundError:
-        add_log("Data file not found: 'res/data.json'.", "error")
+        add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
         return []
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in data file: 'res/data.json'.", "error")
+        add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return []
     
 def get_user_setting(setting: str) -> Any:
@@ -167,14 +167,14 @@ def get_user_setting(setting: str) -> Any:
         :return: The value of the specified setting, or an empty string if not found.
     """
     try:
-        with open('res/settings.json', 'r', encoding='utf-8') as file:
+        with open(settings_json, 'r', encoding='utf-8') as file:
             settings = json.load(file)
             return settings.get(setting, None)
     except FileNotFoundError:
-        add_log("Settings file not found: 'res/settings.json'.", "error")
+        add_log(f"Settings file not found: '{settings_json}'.", "error")
         return None
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in settings file: 'res/settings.json'.", "error")
+        add_log(f"Error decoding JSON in settings file: '{settings_json}'.", "error")
         return None
     
 def get_user_settings() -> dict[str, Any]:
@@ -183,14 +183,14 @@ def get_user_settings() -> dict[str, Any]:
         :return: A dictionary containing all user settings.
     """
     try:
-        with open('res/settings.json', 'r', encoding='utf-8') as file:
+        with open(settings_json, 'r', encoding='utf-8') as file:
             settings = json.load(file)
             return settings
     except FileNotFoundError:
-        add_log("Settings file not found: 'res/settings.json'.", "error")
+        add_log(f"Settings file not found: '{settings_json}'.", "error")
         return {}
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in settings file: 'res/settings.json'.", "error")
+        add_log(f"Error decoding JSON in settings file: '{settings_json}'.", "error")
         return {}
     
 def save_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
@@ -203,7 +203,7 @@ def save_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
         for _, (id, val) in new_settings.items():
             new_settings_to_save[id] = val  # Convert tuple to a simple value
 
-        with open('res/settings.json', 'w', encoding='utf-8') as file:
+        with open(settings_json, 'w', encoding='utf-8') as file:
             json.dump(new_settings_to_save, file, indent=4)
         add_log("Settings saved successfully.", "info")
     except Exception as e:
@@ -234,13 +234,13 @@ def get_match_elixirs(elixir_name_id: str) -> dict[str, str]:
         :return: A dictionary where keys are elixir IDs and values are elixir names that match the provided name or ID.
     """
     try:
-        with open('res/data.json', 'r', encoding='utf-8') as file:
+        with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
             elixirs_perfumes = json.load(file).get('elixir_perfume_ids', {})
     except FileNotFoundError:
-        add_log("Data file not found: 'res/data.json'.", "error")
+        add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
         return {}
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in data file: 'res/data.json'.", "error")
+        add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return {}
     except Exception as e:
         add_log(f"Unexpected error while reading data file: {e}", "error")
@@ -260,14 +260,14 @@ def get_data_value(data_name: str) -> Any:
         :return: The value of the specified data, or None if not found.
     """
     try:
-        with open('res/data.json', 'r', encoding='utf-8') as file:
+        with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data.get(data_name, None)
     except FileNotFoundError:
-        add_log("Data file not found: 'res/data.json'.", "error")
+        add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
         return None
     except json.JSONDecodeError:
-        add_log("Error decoding JSON in data file: 'res/data.json'.", "error")
+        add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return None
     
 def delete_saved_session(file_path: str) -> int:
@@ -286,3 +286,12 @@ def delete_saved_session(file_path: str) -> int:
     except Exception as e:
         add_log(f"Error deleting session file '{file_path}': {e}", "error")
         return -2
+
+def get_app_resource(relative_path: str) -> str:
+    """
+    Get the absolute path to a resource file in the application (MEIPASS if executable, current dir if developer).
+        :param relative_path: The relative path to the resource file.
+        :return: The absolute path to the resource file.
+    """
+    base_path = getattr(sys, '_MEIPASS', "") # sys._MEIPASS is set by PyInstaller when running as an executable
+    return os.path.join(base_path, relative_path) if base_path else relative_path

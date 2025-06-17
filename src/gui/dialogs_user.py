@@ -3,7 +3,7 @@ from typing import Any, Callable
 from PySide6.QtWidgets import QMessageBox, QCheckBox, QFileDialog
 from PySide6.QtGui import QIcon
 
-from config.config import saved_sessions_folder, res_list
+from config.config import saved_sessions_folder, res_abs_paths
 
 def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "exit") -> bool:
     """
@@ -14,11 +14,11 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     """
     msg_box = QMessageBox()
     if confirm_action == "exit":
-        msg_box.setWindowIcon(QIcon(res_list["exit_ico"]))
+        msg_box.setWindowIcon(QIcon(res_abs_paths["exit_ico"]))
     elif confirm_action == "clean_sessions":
-        msg_box.setWindowIcon(QIcon(res_list["clean_sessions_ico"]))
+        msg_box.setWindowIcon(QIcon(res_abs_paths["clean_sessions_ico"]))
     else:
-        msg_box.setWindowIcon(QIcon(res_list["not_found_ico"]))
+        msg_box.setWindowIcon(QIcon(res_abs_paths["not_found_ico"]))
 
     msg_box.setWindowTitle("Confirm Action")
     msg_box.setText(message)
@@ -53,73 +53,43 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
         action()
     return True
 
-def show_dialog_results(message: str, confirm_action: str, res: int):
+def show_dialog_type(msg: str, title: str, type: str = "info", action: str = "others"):
     """
-    Show a message box with the results of an action.
-        :param message: The message to display in the results dialog.
-        :param confirm_action: The action that was confirmed, used to set the icon.
-        :param res: The result of the action, used to determine the icon type.
-            -1 for folder containing sessions not found, -2 for unexpected error, 0 for success, 1 for no actions taken.
+    Show a dialog with a specific type of message.
+        :param title: The title of the dialog.
+        :param msg: The message to display in the dialog.
+        :param type: The type of message, can be "error", "warning", "question", or "info".
+        :param action: The action that triggered the dialog, used to set the icon.
     """
-    msg_box = QMessageBox()
-    msg_box.setWindowTitle("Results Action")
-    msg_box.setText(message)
-    msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-    msg_box.setStyleSheet("""
+    dialog = QMessageBox()
+
+    dialog.setWindowTitle(title)
+    if type == "error":
+        dialog.setIcon(QMessageBox.Icon.Critical)
+    elif type == "warning":
+        dialog.setIcon(QMessageBox.Icon.Warning)
+    elif type == "question":
+        dialog.setIcon(QMessageBox.Icon.Question)
+    else:
+        dialog.setIcon(QMessageBox.Icon.Information)
+
+    dialog.setWindowIcon(QIcon(res_abs_paths["matchlock_ico"]))
+
+    actions: dict[str, Callable [[], None]] = {
+        "clean_sessions": lambda: dialog.setWindowIcon(QIcon(res_abs_paths["clean_sessions_ico"])),
+        "others": lambda: dialog.setWindowIcon(QIcon(res_abs_paths["matchlock_ico"]))
+    }
+    actions[action]() if action in actions else dialog.setWindowIcon(QIcon(res_abs_paths["not_found_ico"]))
+
+    dialog.setText(msg)
+    dialog.setStyleSheet("""
         QLabel {
+            padding: 5px;
             font-size: 14px;
         }
         QPushButton {
             min-width: 70px; 
-            min-height: 20px; 
-            font-size: 14px;
-        }
-    """)
-
-    if res == -1:
-        msg_box.setIcon(QMessageBox.Icon.Warning)
-    elif res == 0:
-        msg_box.setIcon(QMessageBox.Icon.Information)
-    elif res == 1:
-        msg_box.setIcon(QMessageBox.Icon.Question)
-    else:
-        msg_box.setIcon(QMessageBox.Icon.Critical)
-
-    confirm_actions: dict[str, Callable [[], None]] = {
-        "clean_sessions": lambda: msg_box.setWindowIcon(QIcon(res_list["clean_sessions_ico"]))
-    }
-    confirm_actions[confirm_action]() if confirm_action in confirm_actions else msg_box.setWindowIcon(QIcon(res_list["not_found_ico"]))
-
-    msg_box.exec()
-
-def show_dialog_type(msg: str, type: str = "info"):
-    """
-    Show a dialog with a specific type of message.
-        :param msg: The message to display in the dialog.
-        :param type: The type of message, can be "error", "warning", "question", or "info".
-    """
-    dialog = QMessageBox()
-
-    if type == "error":
-        dialog.setWindowTitle("Error")
-        dialog.setIcon(QMessageBox.Icon.Critical)
-    elif type == "warning":
-        dialog.setWindowTitle("Warning")
-        dialog.setIcon(QMessageBox.Icon.Warning)
-    elif type == "question":
-        dialog.setWindowTitle("Question")
-        dialog.setIcon(QMessageBox.Icon.Question)
-    else:
-        dialog.setWindowTitle("Information")
-        dialog.setIcon(QMessageBox.Icon.Information)
-
-    dialog.setWindowIcon(QIcon(res_list["matchlock_ico"]))
-    dialog.setText(msg)
-    dialog.setStyleSheet("""
-        QLabel {
-            font-size: 14px;
-        }
-        QPushButton {
+            min-height: 20px;
             font-size: 14px;
         }
     """)

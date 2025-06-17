@@ -38,7 +38,7 @@ def clean_sessions() -> int:
     add_log(f"Clean sessions dialog selection -> 0 (No elements found to delete)", "info")
     return 0
 
-def save_session(name_spot: str, labels_input: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
+def save_session(name_spot: str, labels_input: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> bool:
     """
     Save the results of a hunting session to an Excel file.
         :param name_spot: Name of the hunting spot.
@@ -49,12 +49,12 @@ def save_session(name_spot: str, labels_input: list[str], data_input: list[str],
         :param results_tot_h: Total results per hour.
         :param results_tax: Total results after tax.
         :param results_tax_h: Total results after tax per hour.
-        :return: -1 if an error occurs, otherwise 0.
+        :return: False if an error occurs, otherwise True.
     """
     try:
         int(data_input[-1])
     except:
-        return -1
+        return False
     
     now = datetime.now()
     now_str = now.strftime("%d-%m-%Y_%H-%M-%S")
@@ -75,7 +75,7 @@ def save_session(name_spot: str, labels_input: list[str], data_input: list[str],
         try:
             int(data_input[i])
         except:
-            return -1
+            return False
         
         row = i + 2  # Start from row 2 for labels and data
         worksheet[f"A{row}"] = label
@@ -123,7 +123,7 @@ def save_session(name_spot: str, labels_input: list[str], data_input: list[str],
 
     return save_average(name_spot, results_tax_h, int(data_input[-1]), labels_input, data_input)
 
-def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_input: list[str], data_input: list[str]) -> int:
+def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_input: list[str], data_input: list[str]) -> bool:
     """
     Updates the average results of hunting sessions of a spot saved into the excel file.
         :param name_spot: Name of the hunting spot.
@@ -131,13 +131,13 @@ def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_
         :param hours_session: Total hours of the session.
         :param labels_input: List of labels for the input data.
         :param data_input: List of input data values.
-        :return: 0 if successful, -1 if an error occurs.
+        :return: True if successful, False if an error occurs.
     """
     path = f"{saved_sessions_folder}/average_results_{name_spot}.xlsx"
 
     if not os.path.exists(path): # If the file does not exist, create it
         if hours_session <= 0 or len(labels_input) != len(data_input):
-            return -1
+            return False
         workbook = openpyxl.Workbook()
         worksheet = workbook["Sheet"]
 
@@ -170,14 +170,14 @@ def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_
         worksheet.column_dimensions['A'].width = max_label_width + 2
 
         workbook.save(filename=path)
-        return 0
+        return True
     
     workbook = openpyxl.load_workbook(filename=path)
     worksheet = workbook["Sheet"]
 
     total_hours = int(worksheet['D2'].value) # Total hours from the previous sessions
     if total_hours <= 0:
-        return -1
+        return False
 
     new_total_money = int(worksheet['G2'].value) + results_tax_h * hours_session
     new_total_hours = total_hours + hours_session
@@ -214,4 +214,4 @@ def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_
         f"\tAverage Money/Session: {results_tax_h * hours_session / hours_session:,}"
     )
     add_log(log_message, "info")
-    return 0
+    return True

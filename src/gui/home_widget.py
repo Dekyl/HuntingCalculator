@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
 from PySide6.QtCore import Qt
 
 from gui.aux_components import NoClickLineEdit
-from config.config import home_background_path
+from config.config import res_abs_paths
 
 class HomeWidget(QWidget):
     """Widget that displays the home page with a background image and command shortcuts."""
@@ -16,7 +16,7 @@ class HomeWidget(QWidget):
 
         label = QLabel()
         from PySide6.QtGui import QPixmap
-        label.setPixmap(QPixmap(home_background_path))
+        label.setPixmap(QPixmap(res_abs_paths['home_background']))
         label.setScaledContents(True)
         main_layout.addWidget(label)
         label.setContentsMargins(0, 50, 0, 50)

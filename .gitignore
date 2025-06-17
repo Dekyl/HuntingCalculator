@@ -10,4 +10,5 @@ logs/
 items/
 designs/
 venv/
-pyrightconfig.json
+*.spec
+build

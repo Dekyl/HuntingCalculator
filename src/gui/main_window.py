@@ -10,9 +10,9 @@ from gui.settings_widget import SettingsWidget
 from gui.home_widget import HomeWidget
 from gui.new_session_widget import NewSessionWidget
 from gui.view_sessions_widget import ViewSessionsWidget
-from gui.dialogs_user import show_dialog_type, show_dialog_confirmation, show_dialog_results, show_dialog_view_session
+from gui.dialogs_user import show_dialog_type, show_dialog_confirmation, show_dialog_view_session
 from controller.app_controller import AppController
-from config.config import saved_sessions_folder, res_list
+from config.config import saved_sessions_folder, res_abs_paths
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         """
         super().__init__()
 
-        self.setWindowIcon(QIcon(res_list["matchlock_ico"]))
+        self.setWindowIcon(QIcon(res_abs_paths["matchlock_ico"]))
         self.setWindowTitle("Hunting Calculator")
         self.resize(QSize(1800, 1020))
         self.setMinimumSize(QSize(400, 300))
@@ -91,15 +91,6 @@ class MainWindow(QMainWindow):
             :param confirm_action: The action that was confirmed, used to set the icon.
         """
         return show_dialog_confirmation(message, action, confirm_action)
-    
-    def show_dialog_results(self, message: str, confirm_action: str, res: int):
-        """
-        Show a message box with the results of an action.
-            :param message: The message to display in the results dialog.
-            :param confirm_action: The action that was confirmed, used to set the icon.
-            :param res: The result of the action, used to determine the icon and message.
-        """
-        show_dialog_results(message, confirm_action, res)
 
     def update_exchange_hides_results(self, exchange_results: tuple[int, int, int]):
         """
@@ -137,13 +128,15 @@ class MainWindow(QMainWindow):
         """
         self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
 
-    def show_dialog_type(self, msg: str, type: str):
+    def show_dialog_type(self, msg: str, title: str, type: str, action: str = "others"):
         """
         Show a dialog with a specific type of message.
             :param msg: The message to display in the dialog.
+            :param title: The title of the dialog.
             :param type: The type of message to display (e.g., "info", "warning", "error").
+            :param action: The action that triggered the dialog, used to set the icon.
         """
-        show_dialog_type(msg, type)
+        show_dialog_type(msg, title, type, action)
 
     def set_session_button_enabled(self, enabled: bool):
         """
@@ -160,10 +153,10 @@ class MainWindow(QMainWindow):
         """
         res = self.controller.sessions_root_folder_exists()
         if res == -1:  # Sessions folder did not exist, created it
-            show_dialog_type(f"'{saved_sessions_folder}' was not found. It has been created.", "warning")
+            show_dialog_type(f"'{saved_sessions_folder}' was not found. It has been created.", "Saved sessions folder", "warning", "others")
             return
         elif res == -2:
-            show_dialog_type(f"'{saved_sessions_folder}' is not a folder. Check it before trying", "warning")
+            show_dialog_type(f"'{saved_sessions_folder}' is not a folder. Check it before trying again.", "Saved sessions folder", "warning", "others")
             return
         
         # Hunting sessions folder exists, proceed to show the dialog
