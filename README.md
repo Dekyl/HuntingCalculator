@@ -2,7 +2,7 @@
 
 A tool to calculate and optimize your hunting activities. Simplify strategic decisions and maximize rewards with personalized statistics and resources.
 
-![GitHub license](https://img.shields.io/github/license/Dekyl/HuntingCalculator)
+![GitHub license](https://img.shields.io/github/license/Dekyl/HuntingCalculator?cacheSeconds=60)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Dekyl/HuntingCalculator)
 ![GitHub issues](https://img.shields.io/github/issues/Dekyl/HuntingCalculator)
 
