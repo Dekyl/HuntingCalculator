@@ -12,7 +12,7 @@ from gui.new_session_widget import NewSessionWidget
 from gui.view_sessions_widget import ViewSessionsWidget
 from gui.dialogs_user import show_dialog_type, show_dialog_confirmation, show_dialog_results, show_dialog_view_session
 from controller.app_controller import AppController
-from config.config import saved_sessions_folder
+from config.config import saved_sessions_folder, res_list
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         """
         super().__init__()
 
-        self.setWindowIcon(QIcon("res/icons/matchlock.ico"))
+        self.setWindowIcon(QIcon(res_list["matchlock_ico"]))
         self.setWindowTitle("Hunting Calculator")
         self.resize(QSize(1800, 1020))
         self.setMinimumSize(QSize(400, 300))

@@ -3,7 +3,7 @@ from typing import Any, Callable
 from PySide6.QtWidgets import QMessageBox, QCheckBox, QFileDialog
 from PySide6.QtGui import QIcon
 
-from config.config import saved_sessions_folder
+from config.config import saved_sessions_folder, res_list
 
 def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "exit") -> bool:
     """
@@ -14,11 +14,11 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     """
     msg_box = QMessageBox()
     if confirm_action == "exit":
-        msg_box.setWindowIcon(QIcon("res/icons/exit_app.ico"))
+        msg_box.setWindowIcon(QIcon(res_list["exit_ico"]))
     elif confirm_action == "clean_sessions":
-        msg_box.setWindowIcon(QIcon("res/icons/clean_sessions.ico"))
+        msg_box.setWindowIcon(QIcon(res_list["clean_sessions_ico"]))
     else:
-        msg_box.setWindowIcon(QIcon("res/icons/not_found.ico"))
+        msg_box.setWindowIcon(QIcon(res_list["not_found_ico"]))
 
     msg_box.setWindowTitle("Confirm Action")
     msg_box.setText(message)
@@ -86,9 +86,9 @@ def show_dialog_results(message: str, confirm_action: str, res: int):
         msg_box.setIcon(QMessageBox.Icon.Critical)
 
     confirm_actions: dict[str, Callable [[], None]] = {
-        "clean_sessions": lambda: msg_box.setWindowIcon(QIcon("res/icons/clean_sessions.ico"))
+        "clean_sessions": lambda: msg_box.setWindowIcon(QIcon(res_list["clean_sessions_ico"]))
     }
-    confirm_actions[confirm_action]() if confirm_action in confirm_actions else msg_box.setWindowIcon(QIcon("res/icons/not_found.ico"))
+    confirm_actions[confirm_action]() if confirm_action in confirm_actions else msg_box.setWindowIcon(QIcon(res_list["not_found_ico"]))
 
     msg_box.exec()
 
@@ -113,7 +113,7 @@ def show_dialog_type(msg: str, type: str = "info"):
         dialog.setWindowTitle("Information")
         dialog.setIcon(QMessageBox.Icon.Information)
 
-    dialog.setWindowIcon(QIcon("res/icons/matchlock.ico"))
+    dialog.setWindowIcon(QIcon(res_list["matchlock_ico"]))
     dialog.setText(msg)
     dialog.setStyleSheet("""
         QLabel {

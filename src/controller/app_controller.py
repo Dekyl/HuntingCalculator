@@ -81,7 +81,7 @@ class AppController:
 
         if show_confirm_clean:
             add_log("Showing confirmation dialog for cleaning sessions.", "info")
-            enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the sessions?", self.on_clean_sessions_clicked, "clean_sessios")
+            enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the sessions?", self.on_clean_sessions_clicked, "clean_sessions")
             if not update_confirm_dialog(enable_confirm_message, "clean_sessions"):
                 self.view.show_dialog_type("Error updating settings in file 'settings.json'. Check if the file exists and is writable.", "error")
         else:

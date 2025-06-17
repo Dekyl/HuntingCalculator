@@ -12,6 +12,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
 from PySide6.QtCore import Qt
 
 from controller.app_controller import AppController
+from config.config import res_list
 
 class ViewSessionsWidget(QWidget):
     """
@@ -47,85 +48,85 @@ class ViewSessionsWidget(QWidget):
 
         table_view = QTableView()
         table_view.setFont(QFont("Arial", 12))
-        table_view.setStyleSheet("""
-            QTableView {
+        table_view.setStyleSheet(f"""
+            QTableView {{
                 background-color: rgb(30, 30, 30);
                 border: 2px solid rgb(200, 200, 200);
                 border-radius: 5px;
-            }
+            }}
             
-            QScrollBar:vertical { /* Vertical background scroll bar */
+            QScrollBar:vertical {{ /* Vertical background scroll bar */
                 background-color: rgb(50, 50, 50);
                 width: 12px;
                 margin: 25px 0 25px 0;
                 border-radius: 5px;
-            }
+            }}
             
-            QScrollBar::handle:vertical { /* Vertical thumb scroll bar */
+            QScrollBar::handle:vertical {{ /* Vertical thumb scroll bar */
                 background-color: rgb(150, 150, 150);
                 min-height: 20px;
                 border-radius: 5px;
-            }
+            }}
 
-            QScrollBar::sub-line:vertical { /* Up arrow */
+            QScrollBar::sub-line:vertical {{ /* Up arrow */
                 background: rgb(150, 150, 150);
                 height: 25px;
                 width: 25px;
                 subcontrol-position: top;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url(res/icons/up_arrow.png);
-            }
+                image: url("{res_list['up_arrow']}");
+            }}
 
-            QScrollBar::add-line:vertical { /* Down arrow */
+            QScrollBar::add-line:vertical {{ /* Down arrow */
                 background: rgb(150, 150, 150);
                 height: 25px;
                 width: 25px;
                 subcontrol-position: bottom;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url(res/icons/down_arrow.png);
-            }
+                image: url("{res_list['down_arrow']}");
+            }}
             
-            QScrollBar:horizontal { /* Horizontal background scroll bar */
+            QScrollBar:horizontal {{ /* Horizontal background scroll bar */
                 background-color: rgb(50, 50, 50);
                 height: 12px;
                 margin: 0 25px 0 25px;
                 border-radius: 5px;
-            }
+            }}
             
-            QScrollBar::handle:horizontal { /* Horizontal thumb scroll bar */
+            QScrollBar::handle:horizontal {{ /* Horizontal thumb scroll bar */
                 background-color: rgb(150, 150, 150);
                 min-width: 20px;
                 border-radius: 5px;
-            }
+            }}
             
-            QScrollBar::sub-line:horizontal { /* Left arrow */
+            QScrollBar::sub-line:horizontal {{ /* Left arrow */
                 background: rgb(150, 150, 150);
                 height: 20px;
                 width: 18px;
                 subcontrol-position: left;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url(res/icons/left_arrow.png);
-            }
+                image: url("{res_list['left_arrow']}");
+            }}
             
-            QScrollBar::add-line:horizontal { /* Right arrow */
+            QScrollBar::add-line:horizontal {{ /* Right arrow */
                 background: rgb(150, 150, 150);
                 height: 20px;
                 width: 18px;
                 subcontrol-position: right;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url(res/icons/right_arrow.png);
-            }
+                image: url("{res_list['right_arrow']}");
+            }}
 
             QScrollBar::sub-line:vertical:hover, 
             QScrollBar::add-line:vertical:hover, 
             QScrollBar::sub-line:horizontal:hover, 
-            QScrollBar::add-line:horizontal:hover {
+            QScrollBar::add-line:horizontal:hover {{
                 background: rgb(200, 200, 200);
-            }
+            }}
         """)
         table_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         table_view.setMaximumHeight(800)

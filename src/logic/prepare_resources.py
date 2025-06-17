@@ -2,7 +2,7 @@ import sys, os, json
 import shutil
 
 from logic.logs import add_log
-from config.config import res_list, json_files
+from config.config import res_list, json_files, item_icons_root
 
 def get_resource_MEIPASS(relative_path: str) -> str:
     """
@@ -56,7 +56,7 @@ def reset_folder(folder_path: str):
     Resets the specified folder by removing it if it exists and creating a new one.
     This is used to ensure that the folder is clean and does not contain old files
     that are no longer needed.
-        :param folder_path: The path to the folder to reset (e.g., 'res/icons/items').
+        :param folder_path: The path to the folder to reset.
     """
     if os.path.exists(folder_path):
         # If the elixir icons folder already exists, remove it so it does not contain old icons
@@ -71,8 +71,7 @@ def startup_resources() -> bool:
     resources are available in the expected directory structure.
         :return: True if resources are prepared successfully, False otherwise.
     """
-    reset_folder('res/icons/items')  # Reset the item icons folder
-    reset_folder('res/icons/elixirs')  # Reset the elixir icons folder
+    reset_folder(item_icons_root)  # Reset the item icons folder
 
     is_dev_mode = not hasattr(sys, '_MEIPASS')
 
@@ -85,7 +84,7 @@ def startup_resources() -> bool:
     
     add_log("Running from executable — performing resource checks.", "info")
 
-    for res_path in res_list:
+    for _, res_path in res_list.items():
         meipass_src = get_resource_MEIPASS(res_path)
 
         if os.path.exists(res_path):

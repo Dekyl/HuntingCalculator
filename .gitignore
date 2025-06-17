@@ -7,7 +7,6 @@ settings.json
 *.tar.gz
 dist/
 logs/
-elixirs/
 items/
 designs/
 venv/

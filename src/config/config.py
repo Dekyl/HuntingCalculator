@@ -7,38 +7,41 @@ value_pack_multiplier = 0.315 # Value pack multiplier for the results calculatio
 extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
 log_level = logging.DEBUG # Logging level for the application
 threshold_delete_logs = 1024 * 1024  # 1 MB
-home_background_path = 'res/icons/home_page_background.png'
+home_background_path = 'res/icons/app_images/home_page_background.png'
 
-res_list = [
-    'res/data.json',
-    'res/settings.json',
-    'res/icons/matchlock.ico',
-    'res/icons/settings.ico',
-    'res/icons/new_session.ico',
-    'res/icons/home.ico',
-    'res/icons/clean_sessions.ico',
-    'res/icons/view_sessions.ico',
-    'res/icons/exit_app.ico',
-    'res/icons/not_found.ico',
-    'res/icons/artifacts.png',
-    'res/icons/breath_of_narcion.png',
-    'res/icons/cracked_horn.png',
-    'res/icons/cracked_tooth.png',
-    'res/icons/damaged_hide.png',
-    'res/icons/intact_horn.png',
-    'res/icons/intact_tooth.png',
-    'res/icons/sharp_horn.png',
-    'res/icons/sharp_tooth.png',
-    'res/icons/supreme_hide.png',
-    'res/icons/usable_hide.png',
-    'res/icons/wildspark.png',
-    'res/icons/home_page_background.png',
-    'res/icons/delete_elixir.png',
-    'res/icons/down_arrow.png',
-    'res/icons/up_arrow.png',
-    'res/icons/left_arrow.png',
-    'res/icons/right_arrow.png'
-]
+res_list = {
+    'data': 'res/data.json',
+    'settings': 'res/settings.json',
+    'matchlock_ico': 'res/icons/app_icons/matchlock.ico',
+    'settings_ico': 'res/icons/app_icons/settings.ico',
+    'new_session_ico': 'res/icons/app_icons/new_session.ico',
+    'home_ico': 'res/icons/app_icons/home.ico',
+    'clean_sessions_ico': 'res/icons/app_icons/clean_sessions.ico',
+    'view_sessions_ico': 'res/icons/app_icons/view_sessions.ico',
+    'exit_ico': 'res/icons/app_icons/exit_app.ico',
+    'not_found_ico': 'res/icons/app_icons/not_found.ico',
+    'artifacts': 'res/icons/no_market_items/artifacts.png',
+    'breath_of_narcion': 'res/icons/no_market_items/breath_of_narcion.png',
+    'cracked_horn': 'res/icons/no_market_items/cracked_horn.png',
+    'cracked_tooth': 'res/icons/no_market_items/cracked_tooth.png',
+    'damaged_hide': 'res/icons/no_market_items/damaged_hide.png',
+    'intact_horn': 'res/icons/no_market_items/intact_horn.png',
+    'intact_tooth': 'res/icons/no_market_items/intact_tooth.png',
+    'sharp_horn': 'res/icons/no_market_items/sharp_horn.png',
+    'sharp_tooth': 'res/icons/no_market_items/sharp_tooth.png',
+    'supreme_hide': 'res/icons/no_market_items/supreme_hide.png',
+    'usable_hide': 'res/icons/no_market_items/usable_hide.png',
+    'wildspark': 'res/icons/no_market_items/wildspark.png',
+    'home_background': 'res/icons/app_images/home_page_background.png',
+    'delete_elixir': 'res/icons/app_images/delete_elixir.png',
+    'down_arrow': 'res/icons/app_images/down_arrow.png',
+    'up_arrow': 'res/icons/app_images/up_arrow.png',
+    'left_arrow': 'res/icons/app_images/left_arrow.png',
+    'right_arrow': 'res/icons/app_images/right_arrow.png'
+}
+
+item_icons_root = 'res/icons/items/'  # Root directory for item icons
+no_market_items_root = 'res/icons/no_market_items/'  # Root directory for no market items icons
 
 json_files = {
     'res/data.json': 'data.json',

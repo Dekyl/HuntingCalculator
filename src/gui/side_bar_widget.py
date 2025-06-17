@@ -9,6 +9,7 @@ from gui.manage_widgets import ManagerWidgets
 from gui.aux_components import QHLine
 from controller.app_controller import AppController
 from interface.view_interface import ViewInterface
+from config.config import res_list
 
 class SideBarWidget(QWidget):
     """
@@ -41,14 +42,6 @@ class SideBarWidget(QWidget):
         
         self.controller = AppController.get_instance()
         self.button_icon_size = QSize(20, 20) # Default icon size for buttons
-        self.res_icons = {
-            "home": "res/icons/home.ico",
-            "new session": "res/icons/new_session.ico",
-            "view sessions": "res/icons/view_sessions.ico",
-            "clean sessions": "res/icons/clean_sessions.ico",
-            "settings": "res/icons/settings.ico",
-            "exit": "res/icons/exit_app.ico"
-        }
 
         left_layout = QVBoxLayout(self)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # As SideBarWidget is a customized QWidget, we need to set this attribute to apply styles
@@ -71,11 +64,13 @@ class SideBarWidget(QWidget):
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
         for i, (text, action, shortcut) in enumerate(self.buttons_side_bar):
             button_side_bar = QPushButton()
-            self.left_widget_buttons[text.lower().replace(' ', '_')] = button_side_bar
-            if not os.path.exists(self.res_icons[text.lower()]):
-                button_side_bar.setIcon(QIcon("res/icons/not_found.ico"))
+            text_low = text.lower().replace(' ', '_')
+            self.left_widget_buttons[text_low] = button_side_bar
+            
+            if not os.path.exists(res_list[f"{text_low}_ico"]):
+                button_side_bar.setIcon(QIcon(res_list["not_found_ico"]))
             else:
-                button_side_bar.setIcon(QIcon(self.res_icons[text.lower()])) # Set an icon based on the side bar button text
+                button_side_bar.setIcon(QIcon(res_list[f"{text_low}_ico"])) # Set an icon based on the side bar button text
 
             button_side_bar.setIconSize(self.button_icon_size) # Set a default icon size
             button_side_bar.setStyleSheet("""

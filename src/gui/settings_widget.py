@@ -19,6 +19,7 @@ from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint, QSize
 from controller.app_controller import AppController
 from gui.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
+from config.config import res_list
 
 class SettingsWidget(QWidget):
     """
@@ -274,7 +275,7 @@ class SettingsWidget(QWidget):
 
         button_delete_elixir = QPushButton()
         button_delete_elixir.setFont(self.elixirs_default_font)
-        button_delete_elixir.setIcon(QIcon('res/icons/delete_elixir.png') if os.path.exists('res/icons/delete_elixir.png') else QIcon("res/icons/not_found.ico"))
+        button_delete_elixir.setIcon(QIcon(res_list["delete_elixir"]) if os.path.exists(res_list["delete_elixir"]) else QIcon(res_list["not_found_ico"]))
         button_delete_elixir.setStyleSheet("""
             QPushButton {
                 background-color: transparent;

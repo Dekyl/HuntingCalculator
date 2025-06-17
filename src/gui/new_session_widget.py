@@ -10,6 +10,7 @@ from gui.manage_widgets import ManagerWidgets
 from gui.dialogs_user import show_dialog_type
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
+from config.config import res_list, item_icons_root, no_market_items_root
 
 class NewSessionWidget(QWidget):
     def __init__(self, name_spot: str, value_pack: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, items: dict[str, tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
@@ -120,7 +121,7 @@ class NewSessionWidget(QWidget):
         """)
 
         # Hunting zone title and icon
-        hunting_zone_icon = QIcon(f"res/icons/items/{id_icon}.png") if os.path.exists(f"res/icons/items/{id_icon}.png") else QIcon("res/icons/not_found.ico")
+        hunting_zone_icon = QIcon(f"{item_icons_root}{id_icon}.png") if os.path.exists(f"{item_icons_root}{id_icon}.png") else QIcon(res_list["not_found_ico"])
         hunting_zone_name = QLabel(self.name_spot)
         hunting_zone_name.setFont(QFont("Arial", 24))
         hunting_zone_name.setContentsMargins(0, 0, 50, 0) # Add right margin to title label so it stays in center of screen after adding icon and spacing it
@@ -146,7 +147,7 @@ class NewSessionWidget(QWidget):
         self.labels_icons_input: list[tuple[QIcon | None, QLabel, QLabel | None]] = []
 
         for i, (id, (item_name, price)) in enumerate(items.items()):
-            icon = QIcon(f"res/icons/items/{id}.png") if os.path.exists(f"res/icons/items/{id}.png") else QIcon("res/icons/not_found.ico")
+            icon = QIcon(f"{item_icons_root}{id}.png") if os.path.exists(f"{item_icons_root}{id}.png") else QIcon(res_list["not_found_ico"])
 
             label = SmartLabel(f"{item_name} (0.00%)")
             label.setFont(self.default_font)
@@ -170,10 +171,10 @@ class NewSessionWidget(QWidget):
             """)
 
             if "breath of narcion" in no_market_item.lower():
-                icon = QIcon(f"res/icons/breath_of_narcion.png") if os.path.exists(f"res/icons/breath_of_narcion.png") else QIcon("res/icons/not_found.ico")
+                icon = QIcon(f"{no_market_items_root}breath_of_narcion.png") if os.path.exists(f"{no_market_items_root}breath_of_narcion.png") else QIcon(res_list["not_found_ico"])
             else:
                 no_market_item_lower_replace = no_market_item.lower().replace(" ", "_")
-                icon = QIcon(f"res/icons/{no_market_item_lower_replace}.png") if os.path.exists(f"res/icons/{no_market_item_lower_replace}.png") else QIcon("res/icons/not_found.ico")
+                icon = QIcon(f"{no_market_items_root}{no_market_item_lower_replace}.png") if os.path.exists(f"{no_market_items_root}{no_market_item_lower_replace}.png") else QIcon(res_list["not_found_ico"])
 
             price_value = QLabel("0")
             price_value.setContentsMargins(15, 0, 0, 0)
