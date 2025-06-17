@@ -10,7 +10,8 @@ A tool to calculate and optimize your hunting activities. Simplify strategic dec
 
 ## 📸 Demo
 
-![hunting-calculator-preview](./preview.png)
+![hunting-calculator-preview](./preview_home.png)
+![hunting-calculator-preview](./preview_session.png)
 
 ---
 
