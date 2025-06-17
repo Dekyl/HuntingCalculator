@@ -54,7 +54,7 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
             connection.close()
             return -1
         
-        res_get_icon = get_item_icon(id, connection, f"res/icons/items/{id}.png", cancel_event, attempts=3)
+        res_get_icon = get_item_icon(id, connection, f"res/icons/items/{id}.png", cancel_event, 0)
         if cancel_event.is_set() or res_get_icon == -1:
             add_log(f"Failed to fetch icon for item ID {id}. Skipping...", "error")
             connection.close()

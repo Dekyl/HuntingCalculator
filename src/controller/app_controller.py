@@ -17,7 +17,8 @@ from logic.access_resources import (
     save_user_settings,
     get_data_value,
     get_match_elixirs,
-    sessions_root_folder_exists
+    sessions_root_folder_exists,
+    delete_saved_session
 )
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
@@ -49,6 +50,9 @@ class AppController:
             It cleans the sessions and shows a message box with the result of the action.
         """
         result = clean_sessions()
+        if self.view.get_current_page_name() == "view_sessions":
+            add_log("Changing to home page after cleaning sessions.", "info")
+            self.view.change_page("home")  # Change to home page after cleaning sessions
         if result == 1:
             add_log(f"Clean sessions dialog selection -> {result} (Success)", "info")
             self.view.show_dialog_results("Sessions have been successfully cleaned.", "clean_sessions", result)
@@ -254,9 +258,10 @@ class AppController:
         except:
             return
 
-    def save_session(self, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
+    def save_session(self, name_spot: str, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> int:
         """
         Save the results of a hunting session to an Excel file.
+            :param name_spot: The name of the hunting spot for the session.
             :param labels_input_text: List of labels for the input data.
             :param data_input: List of input data values.
             :param labels_res: List of labels for the results.
@@ -266,9 +271,9 @@ class AppController:
             :param results_tax_h: Results after tax per hour.
             :return: 0 if successful, -1 if an error occurs.
         """
-        return save_session(labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
+        return save_session(name_spot, labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
     
-    def get_session_results(self, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any]:
+    def get_session_results(self, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any] | int:
         """
         Get the results of a hunting session.
             :param value_pack: Whether the value pack is used or not.
@@ -276,7 +281,7 @@ class AppController:
             :param extra_profit: The extra profit percentage applied or not to session results.
             :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
             :param elixirs_cost: The cost of elixirs for the session.
-            :return: A dictionary containing the results of the session or empty dictionary if settings.json is not found or input data is invalid.
+            :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
         return calculate_results_session(value_pack, market_tax, extra_profit, data_input, elixirs_cost)
     
@@ -331,6 +336,23 @@ class AppController:
             :return: -1 if the folder does not exist and was created, -2 if it is not a directory, 0 if it exists and is a directory.
         """
         return sessions_root_folder_exists()
+    
+    def delete_session(self, file_path: str):
+        """
+        Delete a session file.
+            :param file_path: The path to the session file to delete.
+        """
+        res = delete_saved_session(file_path)
+        self.view.change_page("home")  # Change to home page after deleting session
+        if res == 0:
+            add_log(f"Session file '{file_path}' deleted successfully.", "info")
+            self.view.show_dialog_type(f"Session file deleted successfully.", "info")
+        elif res == -1:
+            add_log(f"Session file '{file_path}' does not exist.", "warning")
+            self.view.show_dialog_type(f"Session file '{file_path}' does not exist.", "warning")
+        elif res == -2:
+            add_log(f"Error deleting session file '{file_path}'.", "error")
+            self.view.show_dialog_type(f"Error deleting session file '{file_path}'.", "error")
 
     @staticmethod
     def get_instance() -> "AppController":

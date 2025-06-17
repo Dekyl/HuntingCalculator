@@ -45,9 +45,10 @@ class SettingsWidget(QWidget):
         layout_main.setContentsMargins(20, 20, 20, 20)
 
         settings_title_label = QLabel("Settings")
+        settings_title_label.setMinimumWidth(400)
         settings_title_label.setStyleSheet("""
             color: white;
-            background-color: rgb(30, 30, 30);
+            background-color: rgb(60, 60, 60);
             border: 2px solid rgb(80, 80, 80);
             padding: 10px;
             border-radius: 10px;
@@ -66,7 +67,7 @@ class SettingsWidget(QWidget):
         settings_title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
         settings_title_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        layout_main.addWidget(settings_title_label, 0, Qt.AlignmentFlag.AlignTop)
+        layout_main.addWidget(settings_title_label, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
         
         widget_settings_inputs = QWidget()
         layout_settings_inputs = QVBoxLayout(widget_settings_inputs)
@@ -277,7 +278,7 @@ class SettingsWidget(QWidget):
         button_delete_elixir.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                border-radius: 16px;
+                border-radius: 14px;
                 padding: 2px;
             }
             QPushButton:hover {
@@ -287,7 +288,7 @@ class SettingsWidget(QWidget):
                 background-color: rgb(160, 60, 60);
             }
         """)
-        button_delete_elixir.setIconSize(QSize(30, 30))
+        button_delete_elixir.setIconSize(QSize(25, 25))
 
         button_delete_elixir.clicked.connect(lambda _, widget=entry_elixir_widget, name=elixir_name: self.delete_elixir_entry(widget, name)) # type: ignore
 

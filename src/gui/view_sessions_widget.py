@@ -1,9 +1,18 @@
 import pandas as pd
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QTableView
+    QWidget, 
+    QVBoxLayout, 
+    QTableView, 
+    QPushButton, 
+    QSizePolicy, 
+    QLabel
 )
-from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
+from PySide6.QtCore import Qt
+
+from controller.app_controller import AppController
+
 class ViewSessionsWidget(QWidget):
     """
     Widget to view sessions in a table format.
@@ -15,37 +24,175 @@ class ViewSessionsWidget(QWidget):
             :param file_path: Path to the Excel file containing session data.
         """
         super().__init__()
-        self.setWindowTitle("Sessions Viewer")
+
+        controller = AppController.get_instance()
         
-        layout = QVBoxLayout()
-        self.table_view = QTableView()
+        session_layout = QVBoxLayout()
+        self.setLayout(session_layout)
+        session_layout.setSpacing(5)
+        session_layout.setContentsMargins(20, 20, 20, 20)
 
-        df: pd.DataFrame = pd.read_excel(file_path) # type: ignore
+        label_title = QLabel(file_path.split('/')[-1])
+        label_title.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        label_title.setStyleSheet("""
+            color: white;
+            background-color: rgb(50, 50, 50);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid rgb(80, 80, 80);
+        """)
+        label_title.setMinimumWidth(800)
+        label_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        session_layout.addWidget(label_title, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
 
-        layout.addWidget(self.table_view)
+        table_view = QTableView()
+        table_view.setFont(QFont("Arial", 12))
+        table_view.setStyleSheet("""
+            QTableView {
+                background-color: rgb(30, 30, 30);
+                border: 2px solid rgb(200, 200, 200);
+                border-radius: 5px;
+            }
+            
+            QScrollBar:vertical { /* Vertical background scroll bar */
+                background-color: rgb(50, 50, 50);
+                width: 12px;
+                margin: 25px 0 25px 0;
+                border-radius: 5px;
+            }
+            
+            QScrollBar::handle:vertical { /* Vertical thumb scroll bar */
+                background-color: rgb(150, 150, 150);
+                min-height: 20px;
+                border-radius: 5px;
+            }
 
-        self.setLayout(layout)
-        self.show_dataframe(df)
+            QScrollBar::sub-line:vertical { /* Up arrow */
+                background: rgb(150, 150, 150);
+                height: 25px;
+                width: 25px;
+                subcontrol-position: top;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url(res/icons/up_arrow.png);
+            }
 
-    def show_dataframe(self, df: pd.DataFrame):
+            QScrollBar::add-line:vertical { /* Down arrow */
+                background: rgb(150, 150, 150);
+                height: 25px;
+                width: 25px;
+                subcontrol-position: bottom;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url(res/icons/down_arrow.png);
+            }
+            
+            QScrollBar:horizontal { /* Horizontal background scroll bar */
+                background-color: rgb(50, 50, 50);
+                height: 12px;
+                margin: 0 25px 0 25px;
+                border-radius: 5px;
+            }
+            
+            QScrollBar::handle:horizontal { /* Horizontal thumb scroll bar */
+                background-color: rgb(150, 150, 150);
+                min-width: 20px;
+                border-radius: 5px;
+            }
+            
+            QScrollBar::sub-line:horizontal { /* Left arrow */
+                background: rgb(150, 150, 150);
+                height: 20px;
+                width: 18px;
+                subcontrol-position: left;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url(res/icons/left_arrow.png);
+            }
+            
+            QScrollBar::add-line:horizontal { /* Right arrow */
+                background: rgb(150, 150, 150);
+                height: 20px;
+                width: 18px;
+                subcontrol-position: right;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url(res/icons/right_arrow.png);
+            }
+
+            QScrollBar::sub-line:vertical:hover, 
+            QScrollBar::add-line:vertical:hover, 
+            QScrollBar::sub-line:horizontal:hover, 
+            QScrollBar::add-line:horizontal:hover {
+                background: rgb(200, 200, 200);
+            }
+        """)
+        table_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        table_view.setMaximumHeight(800)
+
+        delete_session_button = QPushButton("Delete Session")
+        delete_session_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(200, 60, 60);
+                color: white;
+                border-radius: 10px;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: rgb(220, 100, 100);
+            }
+            QPushButton:pressed {
+                background-color: rgb(255, 140, 140);
+            }
+        """)
+        
+        delete_session_button.setFont(QFont("Arial", 16))
+        delete_session_button.clicked.connect(lambda: controller.delete_session(file_path))
+        delete_session_button.setMaximumWidth(300)
+        delete_session_button.setMinimumHeight(50)
+
+        button_container = QWidget()
+        button_layout = QVBoxLayout()
+        button_layout.setContentsMargins(0, 30, 0, 0)
+        button_layout.addWidget(delete_session_button, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        button_container.setLayout(button_layout)
+
+        session_layout.addWidget(table_view, 0)
+        session_layout.addWidget(button_container, 0)
+
+        df: pd.DataFrame = pd.read_excel(file_path)  # type: ignore
+        self.show_dataframe(df, table_view)
+
+        table_view.resizeColumnsToContents() # Automatically resize columns to fit content
+
+    def show_dataframe(self, df: pd.DataFrame, table_view: QTableView):
         """
         Convert a DataFrame to a QStandardItemModel and set it to the table view.
             :param df: The DataFrame to display.
+            :param table_view: The QTableView to set the model on.
         """
         model = QStandardItemModel()
         model.setColumnCount(len(df.columns))
         model.setHorizontalHeaderLabels([str(column) for column in df.columns])
+
+        font_header = QFont("Arial", 12, QFont.Weight.Bold)
+        for col in range(model.columnCount()):
+            header_item = model.horizontalHeaderItem(col)
+            if header_item:
+                header_item.setFont(font_header)
 
         for row in df.itertuples(index=False):
             items: list[QStandardItem] = []
             for cell in row:
                 if pd.isna(cell):
                     item = QStandardItem("") # No text if cell is NaN
+                elif isinstance(cell, (int, float)):
+                    item = QStandardItem(f"{cell:,.2f}") # Set number format with thousands separator
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 else:
                     item = QStandardItem(str(cell))
+
                 items.append(item)
             model.appendRow(items)
 
-        self.table_view.setModel(model)
-
-        
+        table_view.setModel(model)

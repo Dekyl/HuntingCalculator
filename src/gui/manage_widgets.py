@@ -23,6 +23,7 @@ class ManagerWidgets:
             :param name: The name of the page to be added.
             :param page: The QWidget instance to be added as a page.
         """
+        page.setProperty("page_name", name)
         self.pages[name] = page
         self.stack.addWidget(page)
 
@@ -33,6 +34,13 @@ class ManagerWidgets:
         """
         if name in self.pages:
             self.stack.setCurrentWidget(self.pages[name])
+
+    def get_current_page_name(self) -> str | None:
+        """
+        Get the name of the current page in the QStackedWidget.
+            :return: The name of the current page or None if no page is set.
+        """
+        return self.stack.currentWidget().property("page_name")
 
     def get_stack(self) -> QStackedWidget:
         """

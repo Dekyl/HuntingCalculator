@@ -221,7 +221,7 @@ def sessions_root_folder_exists() -> int:
         add_log(f"Folder '{saved_sessions_folder}' not found, created.", "warning")
         return -1
 
-    if not os.path.isdir("./Hunting Sessions"):
+    if not os.path.isdir(saved_sessions_folder):
         add_log(f"Folder '{saved_sessions_folder}' is not a folder, check it before trying again.", "error")
         return -2
 
@@ -269,3 +269,20 @@ def get_data_value(data_name: str) -> Any:
     except json.JSONDecodeError:
         add_log("Error decoding JSON in data file: 'res/data.json'.", "error")
         return None
+    
+def delete_saved_session(file_path: str) -> int:
+    """
+    Delete a specific session file.
+        :param file_path: The path to the session file to delete.
+        :return: 0 if the deletion was successful, -1 if the file does not exist, -2 if an error occurred.
+    """
+    try:
+        if not os.path.exists(file_path):
+            add_log(f"Session file '{file_path}' does not exist.", "error")
+            return -1
+        os.remove(file_path)
+        add_log(f"Session file '{file_path}' deleted successfully.", "info")
+        return 0
+    except Exception as e:
+        add_log(f"Error deleting session file '{file_path}': {e}", "error")
+        return -2

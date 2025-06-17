@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
             :param msg: The message to display in the dialog.
             :param type: The type of message to display (e.g., "info", "warning", "error").
         """
-        show_dialog_type(msg, "error")
+        show_dialog_type(msg, type)
 
     def set_session_button_enabled(self, enabled: bool):
         """
@@ -180,10 +180,23 @@ class MainWindow(QMainWindow):
             :return: The instance of the QMainWindow.
         """
         return self
+    
+    def change_page(self, page: str):
+        """
+        Change the current page in the application.
+            :param page: The name of the page to switch to.
+        """
+        self.manager.set_page(page)
+
+    def get_current_page_name(self) -> str | None:
+        """
+        Get the name of the current page in the application (required by ViewInterface).
+            :return: The name of the current page.
+        """
+        return self.manager.get_current_page_name()
 
     def close_window(self):
         """
         Close the main window and exit the application.
         """
         self.close()
-        QGuiApplication.quit()

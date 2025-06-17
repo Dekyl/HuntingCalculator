@@ -32,6 +32,7 @@ class NewSessionWidget(QWidget):
         self.value_pack = value_pack
         self.market_tax = market_tax
         self.extra_profit = extra_profit
+        self.name_spot = name_spot
 
         # Main widget and layout for new session
         new_session_layout = QVBoxLayout(self)
@@ -78,7 +79,7 @@ class NewSessionWidget(QWidget):
         """
 
         # Set the hunting spot title and icon
-        title_widget = self.create_session_title_widget(name_spot, spot_id_icon)
+        title_widget = self.create_session_title_widget(spot_id_icon)
         # Create the input widget that contains the input fields for the new session
         inputs_widget = self.create_session_inputs_widget(items, no_market_items)
         # Create the widget that contains exchange hides widget and elixirs cost widget
@@ -100,10 +101,9 @@ class NewSessionWidget(QWidget):
 
         self.green_exchange_line_edit.setFocus() # Set focus on the green exchange line edit by default
 
-    def create_session_title_widget(self, name_spot: str, id_icon: str) -> QWidget:
+    def create_session_title_widget(self, id_icon: str) -> QWidget:
         """
         Create the title widget for the new session.
-            :param name_spot: The name of the hunting spot for the new session.
             :param id_icon: The ID of the icon associated with the hunting spot.
             :return: A QWidget containing the title and icon for the new session.
         """
@@ -121,7 +121,7 @@ class NewSessionWidget(QWidget):
 
         # Hunting zone title and icon
         hunting_zone_icon = QIcon(f"res/icons/items/{id_icon}.png") if os.path.exists(f"res/icons/items/{id_icon}.png") else QIcon("res/icons/not_found.ico")
-        hunting_zone_name = QLabel(name_spot)
+        hunting_zone_name = QLabel(self.name_spot)
         hunting_zone_name.setFont(QFont("Arial", 24))
         hunting_zone_name.setContentsMargins(0, 0, 50, 0) # Add right margin to title label so it stays in center of screen after adding icon and spacing it
         hunting_zone_icon_label = QLabel()
@@ -462,8 +462,8 @@ class NewSessionWidget(QWidget):
             res_lab.append(label)
             res_data.append(inp)
 
-        if self.controller.save_session(res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h) == -1:
-            show_dialog_type("Error saving data, wrong data", "error")
+        if self.controller.save_session(self.name_spot, res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h) == -1:
+            show_dialog_type("Error saving data, invalid data.", "error")
                 
     def update_session_results(self):
         """
@@ -482,6 +482,9 @@ class NewSessionWidget(QWidget):
                     self.save_button.setEnabled(False)
 
         res_data = self.controller.get_session_results(self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost)
+        if res_data == -1:
+            show_dialog_type("Error calculating results, please ensure all fields contain digits", "error")
+            return
         if not res_data:
             show_dialog_type("Error calculating results, please ensure that 'settings.json' exists in 'res' directory and there are no missing fields.", "error")
             return

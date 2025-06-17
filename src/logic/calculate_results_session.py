@@ -21,7 +21,24 @@ def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
 
     return str(f"{cost_elixirs:,}")
 
-def calculate_results_session(value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any]:
+def check_data_input(data_input: dict[str, tuple[str, str]]) -> bool:
+    """
+    Check if the input data is valid.
+        :return: True if the input data is valid, False otherwise.
+    """
+    for name, (price, amount) in data_input.items():
+        if name == 'Hours':
+            continue  # Skip hours as it is not an item
+
+        price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces for validation, default to '0' if empty
+        amount = amount.replace(',', '').replace(' ', '') if amount != '' else '0' # Remove commas and spaces for validation, default to '0' if empty
+        
+        if not price.isdigit() or not amount.isdigit():
+            add_log(f"Invalid input data for {name}: price '{price}' or amount '{amount}' is not a valid number.", "error")
+            return False
+    return True
+
+def calculate_results_session(value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str) -> dict[str, Any] | int:
     """
     Calculate the results of a hunting session based on the provided input data.
         :param value_pack: A boolean indicating whether the value pack is active.
@@ -30,27 +47,27 @@ def calculate_results_session(value_pack: bool, market_tax: float, extra_profit:
         :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
         :param elixirs_cost: The cost of elixirs for the session.
         :return: A dictionary containing the calculated results of the session, including total results, total per hour, taxed results, taxed per hour, 
-            and updated labels for input text. or an empty dictionary if there is an error in the input data.
+            and updated labels for input text. Or -1 if an error occurs.
     """
     hours = data_input.get('Hours', ("", "0"))[1] or "0" # If 'Hours' is not in data_input or if it is empty, default to "0"
     elixirs_cost = elixirs_cost.replace(',', '').replace(' ', '')  # Remove commas and spaces for validation
 
     if not elixirs_cost.isdigit():
         add_log(f"Invalid elixirs cost: {elixirs_cost}. Expected a number.", "error")
-        return {}
+        return -1
     
     if not hours.isdigit():
         add_log(f"Invalid hours: {hours}. Expected a number.", "error")
-        return {}
+        return -1
     
     hours = int(hours)
     elixirs_cost_h = int(elixirs_cost) if hours > 0 else 0  # Elixirs cost per hour, if hours is 0, set to 0
 
+    if not check_data_input(data_input):
+        return -1  # Check if the input data is valid
+
     extra_breath_of_narcion = get_extra_breath_of_narcions(data_input) # Get the total number of extra Breath of Narcions
     total = results_total(data_input, extra_breath_of_narcion) if hours > 0 else 0  # Calculate total results only if hours is greater than 0
-    if total is None:
-        add_log("Invalid input data for results_total calculation.", "error")
-        return {}
     
     value_pack_val = value_pack_multiplier if value_pack else 0  # Set value pack multiplier if value pack is active, otherwise set to 0
     value_pack_val += extra_profit_multiplier if extra_profit else 0  # Add extra profit multiplier if extra profit is active, otherwise add 0
@@ -83,27 +100,20 @@ def get_total_elixirs_cost(elixirs_cost: int, hours: int) -> int:
     """
     return elixirs_cost * hours
 
-def results_total(data_input: dict[str, tuple[str, str]], extra_breath_of_narcion: int) -> int | None:
+def results_total(data_input: dict[str, tuple[str, str]], extra_breath_of_narcion: int) -> int:
     """
     Calculate the total results from the session based on the input data.
         :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
         :param extra_breath_of_narcion: The total number of extra Breath of Narcions.
-        :return: The total results from the session or None if an error occurs.
+        :return: The total results from the session.
     """
     total = 0
     for name, (price, amount) in data_input.items():
         if name == 'Hours':
             continue  # Skip hours as it is not an item
 
-        price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces for validation
-        if not price.isdigit():
-            add_log(f"Invalid price for {name}: {price}. Expected a number.", "error")
-            return None
-
-        amount = amount.replace(',', '').replace(' ', '') if amount != '' else '0' # Remove commas and spaces for validation
-        if not amount.isdigit():
-            add_log(f"Invalid input for {name}: {amount}. Expected a number.", "error")
-            return None
+        price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces
+        amount = amount.replace(',', '').replace(' ', '') if amount != '' else '0' # Remove commas and spaces
         
         if 'Breath of Narcion (' in name:
             total += (int(amount) +  extra_breath_of_narcion) * int(price)

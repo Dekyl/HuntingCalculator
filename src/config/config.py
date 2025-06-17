@@ -34,6 +34,10 @@ res_list = [
     'res/icons/wildspark.png',
     'res/icons/home_page_background.png',
     'res/icons/delete_elixir.png',
+    'res/icons/down_arrow.png',
+    'res/icons/up_arrow.png',
+    'res/icons/left_arrow.png',
+    'res/icons/right_arrow.png'
 ]
 
 json_files = {
@@ -68,7 +72,7 @@ reduced_item_names = {
     "Master's Special Stuffed Shadow Wolf Head": "M. St. Sp. Shadow Wolf Head",
 }
 
-max_attempts = 5 # Maximum number of attempts to fetch one data from the API
+max_attempts = 2 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout for the connection in seconds
 
 settings_keys = [
