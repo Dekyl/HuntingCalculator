@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QGridLayout, QLineEdit
@@ -10,20 +11,24 @@ from gui.manage_widgets import ManagerWidgets
 from gui.dialogs_user import show_dialog_type
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
-from config.config import res_abs_paths, item_icons_root, settings_json
+from config.config import res_abs_paths, item_icons_root, settings_json, FlatDict
 
 class NewSessionWidget(QWidget):
-    def __init__(self, name_spot: str, value_pack: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, items: dict[str, tuple[str, int]], no_market_items: list[str], elixirs_cost: str):
+    def __init__(self, name_spot: str, value_pack: bool, auto_calculate_best_profit: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, items: FlatDict, no_market_items: list[str], elixirs_cost: str,
+                    lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict):
         """
         Initialize the NewSessionWidget with the provided parameters.
             :param name_spot: The name of the hunting spot for the new session.
             :param value_pack: A boolean indicating if the value pack is active.
+            :param auto_calculate_best_profit: A boolean indicating if the best profit should be calculated automatically.
             :param market_tax: The market tax percentage to apply to the session results.
             :param extra_profit: The extra profit percentage applied or not to the session results.
             :param spot_id_icon: The ID of the icon associated with the hunting spot.
             :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
             :param no_market_items: A list of items that are not available in the market.
             :param elixirs_cost: The cost of elixirs per hour for the new session (once the user specifies number of hours it will be multiplied by the number of hours).
+            :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
+            :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the hunting spot.
         """
         super().__init__()
         
@@ -31,9 +36,12 @@ class NewSessionWidget(QWidget):
         self.controller = AppController.get_instance()
         self.elixirs_cost = elixirs_cost
         self.value_pack = value_pack
+        self.auto_calculate_best_profit = auto_calculate_best_profit
         self.market_tax = market_tax
         self.extra_profit = extra_profit
         self.name_spot = name_spot
+        self.lightstone_costs = lightstone_costs
+        self.imperfect_lightstone_costs = imperfect_lightstone_costs
 
         # Main widget and layout for new session
         new_session_layout = QVBoxLayout(self)
@@ -133,7 +141,7 @@ class NewSessionWidget(QWidget):
 
         return title_widget
 
-    def create_session_inputs_widget(self, items: dict[str, tuple[str, int]], no_market_items: list[str]) -> QWidget:
+    def create_session_inputs_widget(self, items: FlatDict, no_market_items: list[str]) -> QWidget:
         """
         Create the input widget for the new session.
             :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item IDs and values are tuples of (item name, price).
@@ -192,18 +200,39 @@ class NewSessionWidget(QWidget):
         self.labels_icons_input.append((None, label, None))
 
         # Data input fields
-        self.line_edit_inputs: list[QLineEdit] = []
+        self.line_edit_inputs: dict[str, QLineEdit] = {}
         # Column where to place next element
         col = 0
 
         for i, (icon, label, price) in enumerate(self.labels_icons_input):
-            self.line_edit_inputs.append(QLineEdit())
-            self.line_edit_inputs[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.line_edit_inputs[i].setMinimumHeight(26)
-            self.line_edit_inputs[i].setFont(self.default_font)
-            self.line_edit_inputs[i].setStyleSheet(self.default_style)
-            # Connects each input with callback function that updates the results of the new session
-            self.line_edit_inputs[i].textChanged.connect(self.update_session_results)
+            new_data_input = QLineEdit()
+            name_without_percent = self.get_no_name_percent(label.text()) # Get the name without the percentage
+
+            if (self.auto_calculate_best_profit and 
+                (name_without_percent.startswith("M. Sp.") or 
+                 name_without_percent.startswith("M. St.") or 
+                 name_without_percent.startswith("BMB:"))):
+                
+                new_data_input.setReadOnly(True)
+                new_data_input.setStyleSheet("""
+                    QLineEdit {
+                        background-color: rgba(255, 255, 255, 0.05);
+                        border: 1px solid black; 
+                        border-radius: 4px;
+                        color: black;
+                        padding: 2px;
+                    }
+                """)
+            else:
+                new_data_input.setStyleSheet(self.default_style)
+                # Connects each input with callback function that updates the results of the new session
+                new_data_input.textChanged.connect(self.update_session_results)
+            
+            new_data_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            new_data_input.setMinimumHeight(26)
+            new_data_input.setFont(self.default_font)
+
+            self.line_edit_inputs[name_without_percent] = new_data_input
 
             row_offset = (i // 7) * 3  # Calculate the row offset based on the group of 7 (3 rows per group)
 
@@ -222,7 +251,7 @@ class NewSessionWidget(QWidget):
             inputs_layout.addWidget(icon_label_widget, row_offset, col, Qt.AlignmentFlag.AlignTop)
             if price is not None:
                 inputs_layout.addWidget(price, row_offset + 1, col, Qt.AlignmentFlag.AlignTop)
-            inputs_layout.addWidget(self.line_edit_inputs[i], row_offset + 2, col, Qt.AlignmentFlag.AlignTop)
+            inputs_layout.addWidget(new_data_input, row_offset + 2, col, Qt.AlignmentFlag.AlignTop)
             
             col +=1
             if col == 7:
@@ -450,25 +479,43 @@ class NewSessionWidget(QWidget):
             taxed_res = int(self.inputs_result[2].text().replace(",", ""))
             taxed_res_h = int(self.inputs_result[3].text().replace(",", ""))
         except ValueError:
-            show_dialog_type("Invalid data in results fields", "Invalid results data", "error", "others")
+            show_dialog_type("Invalid data in results fields", "Invalid results data", "error", "no_action")
             return
         
-        res_lab: list[str] = []
+        res_name: list[str] = []
         res_data: list[str] = []
         for i in range(len(self.labels_icons_input)):
-            label = self.labels_icons_input[i][1].text()
-            inp = self.line_edit_inputs[i].text()
-            if inp == "" or label == "":
+            name = self.labels_icons_input[i][1].text()
+            name_no_percent = self.get_no_name_percent(name)  # Get the name without the percentage
+            inp = self.line_edit_inputs[name_no_percent].text() if name_no_percent in self.line_edit_inputs else ""
+            if inp == "" or name == "":
                 return
-            res_lab.append(label)
+            res_name.append(name)
             res_data.append(inp)
 
-        if not self.controller.save_session(self.name_spot, res_lab, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h):
-            show_dialog_type("Error saving data, invalid data.", "Error saving", "error", "others")
+        if not self.controller.save_session(self.name_spot, res_name, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h):
+            show_dialog_type("Error saving data, invalid data.", "Error saving", "error", "no_action")
             return
         
-        show_dialog_type("Session saved successfully", "Success saving", "info", "others")
+        show_dialog_type("Session saved successfully", "Success saving", "info", "no_action")
         self.controller.change_page("home")  # Switch back to the home page after saving the session
+
+    def get_no_name_percent(self, name: str) -> str:
+        """
+        Get the name without the percentage from the given name.
+            :param name: The name to process.
+            :return: The name without the percentage.
+        """
+        return name[:name.index('(') - 1] if '(' in name else name
+    
+    def reupdate_item_amounts(self, res_data: dict[str, Any]):
+        """
+        Reupdate the item amounts in the input fields based on the provided results data.
+            :param res_data: A dictionary containing the results data, where keys are item names and values are their amounts.
+        """
+        for name,( _, amount) in res_data.items():
+            if name in self.line_edit_inputs and self.line_edit_inputs[name].text() != amount:
+                self.line_edit_inputs[name].setText(amount)
                 
     def update_session_results(self):
         """
@@ -476,27 +523,31 @@ class NewSessionWidget(QWidget):
         This method collects the input data, calculates the results, and updates the labels and input fields accordingly.
         """
         data_input: dict[str, tuple[str, str]] = {}
+        # Calculate the results based on the input data
         all_inputs_filled: bool = True
         for i, (_, label, price) in enumerate(self.labels_icons_input):
-            amount = self.line_edit_inputs[i].text()
-            data_input[label.text()] = (price.text() if price else "", amount)
+            name_no_percent = self.get_no_name_percent(label.text()) # Get the name without the percentage
+            amount = self.line_edit_inputs[name_no_percent].text()
+            data_input[name_no_percent] = (price.text() if price else "", amount)
 
             if amount == "":
                 all_inputs_filled = False
                 if self.save_button.isEnabled():
                     self.save_button.setEnabled(False)
 
-        res_data = self.controller.get_session_results(self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost)
+        res_data = self.controller.get_session_results(self.name_spot, self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost, self.auto_calculate_best_profit, self.lightstone_costs, self.imperfect_lightstone_costs)
         if res_data == -1:
-            show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "others")
+            show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "no_action")
             return
         if not res_data:
-            show_dialog_type(f"Error calculating results, please ensure that '{settings_json}' exists in 'res' directory and there are no missing fields.", "Calculate results", "error", "others")
+            show_dialog_type(f"Error calculating results, please ensure that '{settings_json}' exists in 'res' directory and there are no missing fields.", "Calculate results", "error", "no_action")
             return
         
         if isinstance(res_data, int):
-            show_dialog_type("Error calculating results, please ensure that all input data is valid.", "Calculate results", "error", "others")
+            show_dialog_type("Error calculating results, please ensure that all input data is valid.", "Calculate results", "error", "no_action")
             return
+        
+        self.reupdate_item_amounts(res_data["new_data_input"])
         
         results_tot = res_data["total"]
         results_tot_h = res_data["total_h"]

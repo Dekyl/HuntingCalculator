@@ -12,7 +12,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
 from PySide6.QtCore import Qt
 
 from controller.app_controller import AppController
-from config.config import res_abs_paths
+from config.config import scroll_bar_style, res_abs_paths
 
 class ViewSessionsWidget(QWidget):
     """
@@ -55,18 +55,7 @@ class ViewSessionsWidget(QWidget):
                 border-radius: 5px;
             }}
             
-            QScrollBar:vertical {{ /* Vertical background scroll bar */
-                background-color: rgb(50, 50, 50);
-                width: 12px;
-                margin: 25px 0 25px 0;
-                border-radius: 5px;
-            }}
-            
-            QScrollBar::handle:vertical {{ /* Vertical thumb scroll bar */
-                background-color: rgb(150, 150, 150);
-                min-height: 20px;
-                border-radius: 5px;
-            }}
+            {scroll_bar_style}
 
             QScrollBar::sub-line:vertical {{ /* Up arrow */
                 background: rgb(150, 150, 150);
@@ -87,20 +76,7 @@ class ViewSessionsWidget(QWidget):
                 border-radius: 5px;
                 image: url("{res_abs_paths['down_arrow']}");
             }}
-            
-            QScrollBar:horizontal {{ /* Horizontal background scroll bar */
-                background-color: rgb(50, 50, 50);
-                height: 12px;
-                margin: 0 25px 0 25px;
-                border-radius: 5px;
-            }}
-            
-            QScrollBar::handle:horizontal {{ /* Horizontal thumb scroll bar */
-                background-color: rgb(150, 150, 150);
-                min-width: 20px;
-                border-radius: 5px;
-            }}
-            
+
             QScrollBar::sub-line:horizontal {{ /* Left arrow */
                 background: rgb(150, 150, 150);
                 height: 20px;
@@ -119,13 +95,6 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-origin: margin;
                 border-radius: 5px;
                 image: url("{res_abs_paths['right_arrow']}");
-            }}
-
-            QScrollBar::sub-line:vertical:hover, 
-            QScrollBar::add-line:vertical:hover, 
-            QScrollBar::sub-line:horizontal:hover, 
-            QScrollBar::add-line:horizontal:hover {{
-                background: rgb(200, 200, 200);
             }}
         """)
         table_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)

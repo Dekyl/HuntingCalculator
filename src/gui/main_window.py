@@ -12,7 +12,7 @@ from gui.new_session_widget import NewSessionWidget
 from gui.view_sessions_widget import ViewSessionsWidget
 from gui.dialogs_user import show_dialog_type, show_dialog_confirmation, show_dialog_view_session
 from controller.app_controller import AppController
-from config.config import saved_sessions_folder, res_abs_paths
+from config.config import saved_sessions_folder, res_abs_paths, FlatDict
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -99,19 +99,24 @@ class MainWindow(QMainWindow):
         """
         self.actual_session.update_session_exchange_results(exchange_results)
 
-    def create_new_session_widget(self, name_spot: str, value_pack: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, no_market_items:list[str], items: dict[str, tuple[str, int]], elixirs_cost: str):
+    def create_new_session_widget(self, name_spot: str, value_pack: bool, auto_calculate_best_profit: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, 
+            no_market_items:list[str], items: FlatDict, elixirs_cost: str, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict):
         """
         Create a new session widget for the specified hunting spot.
             :param name_spot: The name of the hunting spot.
             :param value_pack: A boolean indicating whether the value pack is active.
+            :param auto_calculate_best_profit: A boolean indicating whether to automatically calculate the best profit.
             :param market_tax: The market tax rate for the hunting spot.
             :param extra_profit: Extra profit percentage applied or not.
             :param spot_id_icon: The ID of the icon associated with the hunting spot.
             :param no_market_items: A list of items that are not available on the market.
             :param items: A dictionary containing the prices of items for the hunting spot.
             :param elixirs_cost: The cost of elixirs for the hunting spot.
+            :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
+            :param imperfect_lightstone_cost: The costs of the imperfect lightstones for the hunting spot.
         """
-        self.actual_session = NewSessionWidget(name_spot, value_pack, market_tax, extra_profit, spot_id_icon, items, no_market_items, elixirs_cost)
+        self.actual_session = NewSessionWidget(name_spot, value_pack, auto_calculate_best_profit, market_tax, extra_profit, spot_id_icon, items, 
+                                               no_market_items, elixirs_cost, lightstone_costs, imperfect_lightstone_costs)
 
     def create_settings_widget(self):
         """
@@ -128,7 +133,7 @@ class MainWindow(QMainWindow):
         """
         self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
 
-    def show_dialog_type(self, msg: str, title: str, type: str, action: str = "others"):
+    def show_dialog_type(self, msg: str, title: str, type: str, action: str = "no_action"):
         """
         Show a dialog with a specific type of message.
             :param msg: The message to display in the dialog.
@@ -153,10 +158,10 @@ class MainWindow(QMainWindow):
         """
         res = self.controller.sessions_root_folder_exists()
         if res == -1:  # Sessions folder did not exist, created it
-            show_dialog_type(f"'{saved_sessions_folder}' was not found. It has been created.", "Saved sessions folder", "warning", "others")
+            show_dialog_type(f"'{saved_sessions_folder}' was not found. It has been created.", "Saved sessions folder", "warning", "no_action")
             return
         elif res == -2:
-            show_dialog_type(f"'{saved_sessions_folder}' is not a folder. Check it before trying again.", "Saved sessions folder", "warning", "others")
+            show_dialog_type(f"'{saved_sessions_folder}' is not a folder. Check it before trying again.", "Saved sessions folder", "warning", "no_action")
             return
         
         # Hunting sessions folder exists, proceed to show the dialog

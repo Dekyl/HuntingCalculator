@@ -1,8 +1,8 @@
 {
     "spots": {
-        "Shadow Lions": {
+        "Shadow Lion": {
             "spot_id_icon": "3544",
-            "name": "Shadow Lions",
+            "name": "Shadow Lion",
             "loot": [
                 "7923",
                 "6020",
@@ -15,7 +15,6 @@
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
-                "Breath of Narcion Bought",
                 "Breath of Narcion Previous",
                 "Damaged Hide",
                 "Usable Hide",
@@ -25,9 +24,9 @@
                 "Sharp Tooth"
             ]
         },
-        "Rhinos": {
+        "Grass Rhino": {
             "spot_id_icon": "3540",
-            "name": "Rhinos",
+            "name": "Grass Rhino",
             "loot": [
                 "7904",
                 "6204",
@@ -40,7 +39,6 @@
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
-                "Breath of Narcion Bought",
                 "Breath of Narcion Previous",
                 "Damaged Hide",
                 "Usable Hide",
@@ -50,9 +48,9 @@
                 "Sharp Tooth"
             ]
         },
-        "Verdure Buck/Doe": {
+        "Verdure Buck / Verdure Doe": {
             "spot_id_icon": "3542",
-            "name": "Verdure Buck/Doe",
+            "name": "Verdure Buck / Verdure Doe",
             "loot": [
                 "7901",
                 "6201",
@@ -68,7 +66,6 @@
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
-                "Breath of Narcion Bought",
                 "Breath of Narcion Previous",
                 "Damaged Hide",
                 "Usable Hide",
@@ -78,9 +75,9 @@
                 "Sharp Horn"
             ]
         },
-        "Shadow Wolves": {
+        "Shadow Wolf": {
             "spot_id_icon": "3543",
-            "name": "Shadow Wolves",
+            "name": "Shadow Wolf",
             "loot": [
                 "7913",
                 "6214",
@@ -93,7 +90,6 @@
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
-                "Breath of Narcion Bought",
                 "Breath of Narcion Previous",
                 "Damaged Hide",
                 "Usable Hide",
@@ -117,6 +113,19 @@
         "4998",
         "721003",
         "766107"
+    ],
+    "imperfect_lighstone_items": [
+        "766104",
+        "766105",
+        "766106",
+        "766107"
+    ],
+    "lighstone_items": [
+        "758001",
+        "758002",
+        "760001",
+        "760002",
+        "762001"
     ],
     "market_tax": 0.35,
     "elixir_perfume_ids": {

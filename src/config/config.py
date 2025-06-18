@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, TypeAlias
 
 # Global configuration settings for the application
 
@@ -50,6 +50,7 @@ default_settings: dict[str, Any] = {
     "show_confirm_exit_message": True,
     "value_pack": False,
     "extra_profit": False,
+    "auto_calculate_best_profit": False,
     "language": "en-US",
     "elixirs": {}
 }
@@ -66,21 +67,66 @@ reduced_item_names = {
     "Imperfect Lightstone of Flora": "Imp. Lightst. of Flora",
     "Stuffed Shadow Lion Head": "St. Shadow Lion Head",
     "Master's Stuffed Shadow Lion Head": "M. St. Shadow Lion Head",
-    "Master's Special Stuffed Shadow Lion Head": "M. St. Sp. Shadow Lion Head",
+    "Master's Special Stuffed Shadow Lion Head": "M. Sp. St. Shadow Lion Head",
     "Stuffed Grass Rhino Head": "St. Grass Rhino Head",
     "Master's Stuffed Grass Rhino Head": "M. St. Grass Rhino Head",
-    "Master's Special Stuffed Grass Rhino Head": "M. St. Sp. Grass Rhino Head",
+    "Master's Special Stuffed Grass Rhino Head": "M. Sp. St. Grass Rhino Head",
     "Stuffed Vedure Doe Head": "St. Vedure Doe Head",
     "Master's Stuffed Vedure Doe Head": "M. St. Vedure Doe Head",
-    "Master's Special Stuffed Vedure Doe Head": "M. St. Sp. Vedure Doe Head",
+    "Master's Special Stuffed Vedure Doe Head": "M. Sp. St. Vedure Doe Head",
     "Stuffed Verdure Buck Head": "St. Verdure Buck Head",
     "Master's Stuffed Verdure Buck Head": "M. St. Verdure Buck Head",
-    "Master's Special Stuffed Verdure Buck Head": "M. St. Sp. Verdure Buck Head",
+    "Master's Special Stuffed Verdure Buck Head": "M. Sp. St. Verdure Buck Head",
     "Stuffed Shadow Wolf Head": "St. Shadow Wolf Head",
     "Master's Stuffed Shadow Wolf Head": "M. St. Shadow Wolf Head",
-    "Master's Special Stuffed Shadow Wolf Head": "M. St. Sp. Shadow Wolf Head",
+    "Master's Special Stuffed Shadow Wolf Head": "M. Sp. St. Shadow Wolf Head",
 }
 
 max_attempts = 2 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout for the connection in seconds
 saved_sessions_folder = "Hunting Sessions"  # Folder where hunting sessions are saved
+
+scroll_bar_style = f"""
+    QScrollBar:vertical {{ /* Vertical background scroll bar */
+        background-color: rgb(50, 50, 50);
+        width: 12px;
+        margin: 25px 0 25px 0;
+        border-radius: 5px;
+    }}
+    
+    QScrollBar::handle:vertical {{ /* Vertical thumb scroll bar */
+        background-color: rgb(150, 150, 150);
+        min-height: 20px;
+        border-radius: 5px;
+    }}
+    
+    QScrollBar:horizontal {{ /* Horizontal background scroll bar */
+        background-color: rgb(50, 50, 50);
+        height: 12px;
+        margin: 0 25px 0 25px;
+        border-radius: 5px;
+    }}
+    
+    QScrollBar::handle:horizontal {{ /* Horizontal thumb scroll bar */
+        background-color: rgb(150, 150, 150);
+        min-width: 20px;
+        border-radius: 5px;
+    }}
+
+    QScrollBar::sub-line:vertical:hover, 
+    QScrollBar::add-line:vertical:hover, 
+    QScrollBar::sub-line:horizontal:hover, 
+    QScrollBar::add-line:horizontal:hover {{
+        background: rgb(200, 200, 200);
+    }}
+"""
+
+n_damaged_hide_exchange = 60
+n_usable_hide_exchange = 50
+n_magical_lightstone_exchange = 6 # Number of Magical Lightstones obtained via exchange
+n_magical_lightstones_scroll = 35 # Number of Magical Lightstones needed to craft one scroll
+n_remnants_of_mystic_beasts_exchange = 70 # Remnants of Mystic Beasts obtained via exchange with "Breath of Narcion/Omua"
+n_supreme_hide_scroll = 10 # Number of Supreme Hides needed to craft one scroll
+
+NestedDict: TypeAlias = dict[str, dict[str, tuple[str, int]]]
+FlatDict: TypeAlias = dict[str, tuple[str, int]]

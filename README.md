@@ -11,7 +11,8 @@ A tool to calculate and optimize your hunting activities. Simplify strategic dec
 ## 📸 Demo
 
 ![hunting-calculator-preview](./preview_home.png)
-![hunting-calculator-preview](./preview_session.png)
+![hunting-calculator-preview](./preview_session_normal.png)
+![hunting-calculator-preview](./preview_session_autocalculate.png)
 
 ---
 
@@ -36,8 +37,13 @@ A tool to calculate and optimize your hunting activities. Simplify strategic dec
 
 ## 📖 Settings
 
-- **Language**: Available languages: English.
-- **Region**: Available regions: EU, NA (Changed via settings section).
+### ⚙️ Settings
+
+- **Language**: Choose your preferred language. Available options: English.
+- **Region**: Select your region. Available options: EU, NA (modifiable via the settings section).
+- **Auto-Calculate**: Toggle auto-calculation of resources and earnings to maximize profits or manually input values based on your preference.
+- **Value-Pack**: Enable or disable value pack benefits to adjust calculations for increased earnings based on your current game status.
+- **Extra-Profit**: Activate or deactivate extra benefits from items like rings or old moon scrolls to gain an additional 5% profit when selling on the marketplace.
 
 ---
 

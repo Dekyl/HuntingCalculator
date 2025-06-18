@@ -53,7 +53,7 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
         action()
     return True
 
-def show_dialog_type(msg: str, title: str, type: str = "info", action: str = "others"):
+def show_dialog_type(msg: str, title: str, type: str = "info", action: str = "no_action"):
     """
     Show a dialog with a specific type of message.
         :param title: The title of the dialog.
@@ -77,7 +77,7 @@ def show_dialog_type(msg: str, title: str, type: str = "info", action: str = "ot
 
     actions: dict[str, Callable [[], None]] = {
         "clean_sessions": lambda: dialog.setWindowIcon(QIcon(res_abs_paths["clean_sessions_ico"])),
-        "others": lambda: dialog.setWindowIcon(QIcon(res_abs_paths["matchlock_ico"]))
+        "no_action": lambda: dialog.setWindowIcon(QIcon(res_abs_paths["matchlock_ico"]))
     }
     actions[action]() if action in actions else dialog.setWindowIcon(QIcon(res_abs_paths["not_found_ico"]))
 

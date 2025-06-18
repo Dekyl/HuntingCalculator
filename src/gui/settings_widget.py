@@ -19,12 +19,12 @@ from PySide6.QtCore import Qt, QTimer, QObject, QEvent, QPoint, QSize
 from controller.app_controller import AppController
 from gui.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
-from config.config import res_abs_paths
+from config.config import res_abs_paths, scroll_bar_style
 
 class SettingsWidget(QWidget):
     """
     A widget for managing application settings.
-    This widget allows users to view and modify various settings such as region, confirmation messages, value pack, extra profit, language, and elixirs.
+    This widget allows users to view and modify various settings such as region, confirmation messages, value pack, Extra Profit, language, and elixirs.
     It provides a user-friendly interface to change these settings and save them.
     """
     def __init__(self):
@@ -35,7 +35,7 @@ class SettingsWidget(QWidget):
 
         settings_data = self.controller.get_all_settings_data()
         if settings_data is None:
-            show_dialog_type("Failed to load settings data. Please check the settings file.", "Settings load", "error", "others")
+            show_dialog_type("Failed to load settings data. Please check the settings file.", "Settings load", "error", "no_action")
             QTimer.singleShot(0, lambda: ManagerWidgets.get_instance().set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
             return
         
@@ -83,7 +83,8 @@ class SettingsWidget(QWidget):
             'Show Confirm Clean Sessions Message': settings_data.get('show_confirm_clean_message', True),
             'Show Confirm Exit Message': settings_data.get('show_confirm_exit_message', True),
             'Value Pack': settings_data.get('value_pack', False),
-            'Extra profit (Ring, Old moon...)': settings_data.get('extra_profit', False),
+            'Auto Calculate Best Profit': settings_data.get('auto_calculate_best_profit', False),
+            'Extra Profit (Ring, Old moon...)': settings_data.get('extra_profit', False),
             'Language': settings_data.get('language', 'en-US'),
             'Elixirs': settings_data.get('elixirs', {})
         }
@@ -93,7 +94,8 @@ class SettingsWidget(QWidget):
             'Show Confirm Clean Sessions Message': ('show_confirm_clean_message', self.original_settings['Show Confirm Clean Sessions Message']),
             'Show Confirm Exit Message': ('show_confirm_exit_message', self.original_settings['Show Confirm Exit Message']),
             'Value Pack': ('value_pack', self.original_settings['Value Pack']),
-            'Extra profit (Ring, Old moon...)': ('extra_profit', self.original_settings['Extra profit (Ring, Old moon...)']),
+            'Auto Calculate Best Profit': ('auto_calculate_best_profit', self.original_settings['Auto Calculate Best Profit']),
+            'Extra Profit (Ring, Old moon...)': ('extra_profit', self.original_settings['Extra Profit (Ring, Old moon...)']),
             'Language': ('language', self.original_settings['Language']),
             'Elixirs': ('elixirs', self.original_settings['Elixirs'].copy()) # Copy to avoid modifying the original settings
         }
@@ -106,31 +108,31 @@ class SettingsWidget(QWidget):
             setting_label.setFont(QFont("Arial", 14))
             setting_layout.addWidget(setting_label, 0, Qt.AlignmentFlag.AlignLeft)
 
-            if setting_name in {'Show Confirm Clean Sessions Message', 'Show Confirm Exit Message', 'Value Pack', 'Extra profit (Ring, Old moon...)'}:
-                    check_box = QCheckBox()
-                    check_box.setFont(QFont("Arial", 14))
-                    check_box.setStyleSheet("""
-                        QCheckBox {
-                            color: white;
-                        }
-                        QCheckBox::indicator {
-                            width: 20px;
-                            height: 20px;
-                        }
-                        QCheckBox::indicator:unchecked {
-                            border: 1px solid rgb(80, 80, 80);
-                            background-color: rgb(30, 30, 30);
-                        }
-                        QCheckBox::indicator:checked {
-                            border: 1px solid rgb(80, 80, 80);
-                            background-color: rgb(150, 150, 150);
-                        }
-                    """)
-                    check_box.setChecked(setting_val)
-                    check_box.stateChanged.connect(lambda state, text=setting_name: self.on_settings_changed(text, state == Qt.CheckState.Checked.value)) # type: ignore
+            if setting_name in {'Show Confirm Clean Sessions Message', 'Show Confirm Exit Message', 'Value Pack', 'Extra Profit (Ring, Old moon...)', 'Auto Calculate Best Profit'}:
+                check_box = QCheckBox()
+                check_box.setFont(QFont("Arial", 14))
+                check_box.setStyleSheet("""
+                    QCheckBox {
+                        color: white;
+                    }
+                    QCheckBox::indicator {
+                        width: 20px;
+                        height: 20px;
+                    }
+                    QCheckBox::indicator:unchecked {
+                        border: 1px solid rgb(80, 80, 80);
+                        background-color: rgb(30, 30, 30);
+                    }
+                    QCheckBox::indicator:checked {
+                        border: 1px solid rgb(80, 80, 80);
+                        background-color: rgb(150, 150, 150);
+                    }
+                """)
+                check_box.setChecked(setting_val)
+                check_box.stateChanged.connect(lambda state, text=setting_name: self.on_settings_changed(text, state == Qt.CheckState.Checked.value)) # type: ignore
 
-                    setting_layout.addWidget(check_box, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                    layout_settings_inputs.addWidget(setting_widget) # Add the setting to the settings container widget
+                setting_layout.addWidget(check_box, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                layout_settings_inputs.addWidget(setting_widget) # Add the setting to the settings container widget
 
             elif setting_name in {'Region', 'Language'}:
                 combo_box = QComboBox()
@@ -157,7 +159,7 @@ class SettingsWidget(QWidget):
                     combo_box.addItems(['en-US'])
 
                 if combo_box.findText(setting_val) == -1:
-                    show_dialog_type(f"Invalid setting value for {setting_name}: {setting_val}.", "Setting value", "error", "others")
+                    show_dialog_type(f"Invalid setting value for {setting_name}: {setting_val}.", "Setting value", "error", "no_action")
                     manager_widgets = ManagerWidgets.get_instance()
                     QTimer.singleShot(0, lambda: manager_widgets.set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
                     return
@@ -169,21 +171,54 @@ class SettingsWidget(QWidget):
 
             else:
                 self.scroll_area_elixirs = QScrollArea()
-                self.scroll_area_elixirs.setStyleSheet("""
-                    QScrollArea { 
+                self.scroll_area_elixirs.setStyleSheet(f"""
+                    QScrollArea {{ 
                         background-color: rgb(30, 30, 30);
                         border: 2px solid rgb(80, 80, 80);
                         padding: 10px;
                         border-radius: 8px;
-                    }
-                    QScrollBar:vertical {
-                        width: 16px;
-                        background-color: rgb(30, 30, 30);
-                    }
-                    QScrollBar:horizontal {
-                        height: 16px;
-                        background-color: rgb(30, 30, 30);
-                    }
+                    }}
+                                                       
+                    {scroll_bar_style}
+
+                    QScrollBar::sub-line:vertical {{ /* Up arrow */
+                        background: rgb(150, 150, 150);
+                        height: 25px;
+                        width: 25px;
+                        subcontrol-position: top;
+                        subcontrol-origin: margin;
+                        border-radius: 5px;
+                        image: url("{res_abs_paths['up_arrow']}");
+                    }}
+
+                    QScrollBar::add-line:vertical {{ /* Down arrow */
+                        background: rgb(150, 150, 150);
+                        height: 25px;
+                        width: 25px;
+                        subcontrol-position: bottom;
+                        subcontrol-origin: margin;
+                        border-radius: 5px;
+                        image: url("{res_abs_paths['down_arrow']}");
+                    }}
+                    QScrollBar::sub-line:horizontal {{ /* Left arrow */
+                        background: rgb(150, 150, 150);
+                        height: 20px;
+                        width: 18px;
+                        subcontrol-position: left;
+                        subcontrol-origin: margin;
+                        border-radius: 5px;
+                        image: url("{res_abs_paths['left_arrow']}");
+                    }}
+                    
+                    QScrollBar::add-line:horizontal {{ /* Right arrow */
+                        background: rgb(150, 150, 150);
+                        height: 20px;
+                        width: 18px;
+                        subcontrol-position: right;
+                        subcontrol-origin: margin;
+                        border-radius: 5px;
+                        image: url("{res_abs_paths['right_arrow']}");
+                    }}
                 """)
                 self.scroll_area_elixirs.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
                 self.scroll_area_elixirs.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
@@ -376,14 +411,52 @@ class SettingsWidget(QWidget):
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("""
-            QScrollArea { 
+        scroll_area.setStyleSheet(f"""
+            QScrollArea {{ 
                 background-color: transparent;
-            }
-            QScrollBar:vertical {
-                width: 16px;
-                background-color: rgb(30, 30, 30);
-            }
+            }}
+            
+            {scroll_bar_style}
+
+            QScrollBar::sub-line:vertical {{ /* Up arrow */
+                background: rgb(150, 150, 150);
+                height: 25px;
+                width: 25px;
+                subcontrol-position: top;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url("{res_abs_paths['up_arrow']}");
+            }}
+
+            QScrollBar::add-line:vertical {{ /* Down arrow */
+                background: rgb(150, 150, 150);
+                height: 25px;
+                width: 25px;
+                subcontrol-position: bottom;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url("{res_abs_paths['down_arrow']}");
+            }}
+
+            QScrollBar::sub-line:horizontal {{ /* Left arrow */
+                background: rgb(150, 150, 150);
+                height: 20px;
+                width: 18px;
+                subcontrol-position: left;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url("{res_abs_paths['left_arrow']}");
+            }}
+            
+            QScrollBar::add-line:horizontal {{ /* Right arrow */
+                background: rgb(150, 150, 150);
+                height: 20px;
+                width: 18px;
+                subcontrol-position: right;
+                subcontrol-origin: margin;
+                border-radius: 5px;
+                image: url("{res_abs_paths['right_arrow']}");
+            }}
         """)
 
         content_widget = QWidget()
@@ -456,7 +529,7 @@ class SettingsWidget(QWidget):
         id_entry_json, elixirs_dict = self.settings_actual_data['Elixirs'] # Get the actual elixirs list
 
         if elixir_id in elixirs_dict.values():
-            show_dialog_type(f"Elixir {elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "info", "others")
+            show_dialog_type(f"Elixir {elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "info", "no_action")
             return # If the elixir ID is already in the dict, do nothing
 
         elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list
