@@ -48,19 +48,40 @@
                 "Sharp Tooth"
             ]
         },
-        "Verdure Buck / Verdure Doe": {
-            "spot_id_icon": "3542",
-            "name": "Verdure Buck / Verdure Doe",
+        "Verdure Buck": {
+            "spot_id_icon": "3541",
+            "name": "Verdure Buck",
             "loot": [
                 "7901",
                 "6201",
                 "6001",
                 "56221",
                 "3541",
-                "3542",
                 "3551",
+                "3561"
+            ],
+            "no_market_items": [
+                "Artifacts",
+                "Wildspark",
+                "Breath of Narcion Previous",
+                "Damaged Hide",
+                "Usable Hide",
+                "Supreme Hide",
+                "Cracked Horn",
+                "Intact Horn",
+                "Sharp Horn"
+            ]
+        },
+        "Verdure Doe": {
+            "spot_id_icon": "3542",
+            "name": "Verdure Doe",
+            "loot": [
+                "7901",
+                "6201",
+                "6001",
+                "56221",
+                "3542",
                 "3552",
-                "3561",
                 "3562"
             ],
             "no_market_items": [
@@ -127,7 +148,6 @@
         "760002",
         "762001"
     ],
-    "market_tax": 0.35,
     "elixir_perfume_ids": {
         "766": "[Mix] EXP-Reaper Elixir",
         "769": "[Mix] Manhunt-Rage Elixir",

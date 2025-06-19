@@ -4,8 +4,6 @@ from typing import Any, TypeAlias
 # Global configuration settings for the application
 
 max_threads = 12 # Maximum number of threads to use for concurrent requests
-value_pack_multiplier = 0.315 # Value pack multiplier for the results calculation
-extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
 log_level = logging.INFO # Logging level for the application
 threshold_delete_logs = 1024 * 1024  # 1 MB
 
@@ -127,6 +125,9 @@ n_magical_lightstone_exchange = 6 # Number of Magical Lightstones obtained via e
 n_magical_lightstones_scroll = 35 # Number of Magical Lightstones needed to craft one scroll
 n_remnants_of_mystic_beasts_exchange = 70 # Remnants of Mystic Beasts obtained via exchange with "Breath of Narcion/Omua"
 n_supreme_hide_scroll = 10 # Number of Supreme Hides needed to craft one scroll
+value_pack_multiplier = 0.315 # Value pack multiplier for the results calculation
+extra_profit_multiplier = 0.05 # Extra profit multiplier for the results calculation
+market_tax = 0.35 # Market tax percentage for the results calculation
 
 NestedDict: TypeAlias = dict[str, dict[str, tuple[str, int]]]
 FlatDict: TypeAlias = dict[str, tuple[str, int]]
