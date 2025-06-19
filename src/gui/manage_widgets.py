@@ -14,8 +14,9 @@ class ManagerWidgets:
         if ManagerWidgets._instance is not None:
             raise Exception("This class is a singleton!")
         ManagerWidgets._instance = self
+        
         self.stack = QStackedWidget()
-        self.pages:dict[str, QWidget] = {}  #  Dictionary to hold page names and their corresponding widgets
+        self.pages: dict[str, QWidget] = {}  #  Dictionary to hold page names and their corresponding widgets
 
     def add_page(self, name: str, page: QWidget):
         """

@@ -153,7 +153,7 @@ class SideBarWidget(QWidget):
             button_position = button_geometry.topLeft()
             parent_geometry = self.main_window.geometry() if self.main_window else self.geometry()
             dialog_width = 200
-            dialog_height = 280
+            dialog_height = 320
             x = button_position.x() + parent_geometry.x() + button_geometry.width() + 25  # Position to the right of the button
             y = button_position.y() + parent_geometry.y() + 5
             spots_dialog.setGeometry(x, y, dialog_width, dialog_height)
