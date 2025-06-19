@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PySide6.QtWidgets import QFrame, QLabel, QLineEdit
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtCore import Qt
@@ -41,7 +43,7 @@ class SmartLabel(QLabel):
         super().__init__(text)
         self.setToolTip(text)
     
-    def setText(self, a0: str | None):
+    def setText(self, a0: Optional[str]):
         """
         Set the text of the label and update the tooltip.
             :param text: The text to display in the label.

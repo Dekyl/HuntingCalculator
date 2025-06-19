@@ -1,6 +1,6 @@
 from PySide6.QtCore import QThread, QTimer
 
-from typing import Any
+from typing import Any, Optional
 
 from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
@@ -20,6 +20,7 @@ from logic.access_resources import (
     sessions_root_folder_exists,
     delete_saved_session
 )
+from logic.new_session_data import NewSessionData
 from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
 from gui.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_view_session
@@ -30,7 +31,9 @@ from config.config import (
     NestedDict, 
     FlatDict, 
     market_tax, 
-    saved_sessions_folder
+    saved_sessions_folder,
+    value_pack_multiplier,
+    extra_profit_multiplier
 )
 from interface.view_interface import ViewInterface
 
@@ -264,7 +267,17 @@ class AppController:
         if imperfect_lightstone_ids is None:
             self.show_error_and_enable_ui(f"'imperfect_lighstone_items' missing in '{res_abs_paths['data']}' file.", "Data file error", "no_action")
             return
-
+        
+        auto_calculate_best_profit = get_user_setting("auto_calculate_best_profit")
+        
+        new_session = NewSessionData(
+            spot_name, 
+            value_pack, 
+            auto_calculate_best_profit, 
+            market_tax, 
+            extra_profit
+        )
+        
         self.thread = QThread()
         self.worker = DataFetcher(
             loot_ids,
@@ -276,28 +289,24 @@ class AppController:
         )
 
         self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(lambda: self.on_data_retrieved(spot_name, value_pack, market_tax, extra_profit, self.worker.data_retrieved, self.worker.lightstone_costs, self.worker.imperfect_lightstone_costs))
+        self.worker.finished.connect(lambda: self.on_data_retrieved(new_session, self.worker.data_retrieved, self.worker.lightstone_costs, self.worker.imperfect_lightstone_costs))
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
 
-    def on_data_retrieved(self, spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_retrieved: NestedDict | None, 
-                          lightstone_costs: FlatDict | None, imperfect_lightstone_costs: FlatDict | None):
+    def on_data_retrieved(self, new_session: NewSessionData, data_retrieved: Optional[NestedDict], lightstone_costs: Optional[FlatDict], imperfect_lightstone_costs: Optional[FlatDict]):
         """
         Handle the data retrieval from the API.
-            :param spot_name: The name of the hunting spot.
-            :param value_pack: Whether the value pack is used or not.
-            :param market_tax: The market tax percentage.
-            :param extra_profit: If extra profit is enabled or not.
+            :param new_session: The NewSessionData object containing the session details.
             :param data_retrieved: The data retrieved from the API, or None if an error occurred.
             :param lightstone_costs: The costs of lightstones for the hunting spot, or None if an error occurred.
             :param imperfect_lightstone_cost: The costs of the imperfect lightstones for the hunting spot, or None if an error occurred.
         """
         self.view.set_ui_enabled(True) # Re-enable the UI
         if data_retrieved is None or lightstone_costs is None or imperfect_lightstone_costs is None:
-            add_log(f"Error retrieving data for spot '{spot_name}'", "error")
+            add_log(f"Error retrieving data for spot '{new_session.name_spot}'", "error")
             self.view.set_session_button_enabled(False) # Disable the new session button
             show_dialog_type(
                 "Error fetching data from API, too many requests, disabling new session button for 80 seconds.", 
@@ -308,33 +317,28 @@ class AppController:
             QTimer.singleShot(80000, lambda: self.view.set_session_button_enabled(True)) # Re-enable the button after 80 seconds
             return
         
-        spot_id_icon = get_spot_id_icon(spot_name)
+        spot_id_icon = get_spot_id_icon(new_session.name_spot)
         if not spot_id_icon:
-            add_log(f"No icon found for spot '{spot_name}'", "error")
+            add_log(f"No icon found for spot '{new_session.name_spot}'", "error")
             show_dialog_type(
-                f"Error fetching spot '{spot_name}' icon from JSON file.", 
+                f"Error fetching spot '{new_session.name_spot}' icon from JSON file.", 
                 "JSON data error", 
                 "error", 
                 "no_action"
             )
             return
         
-        auto_calculate_best_profit = get_user_setting("auto_calculate_best_profit")
-        
-        no_market_items = get_no_market_items(spot_name)
-        self.view.create_new_session_widget(
-            spot_name,
-            value_pack,
-            auto_calculate_best_profit,
-            market_tax,
-            extra_profit,
-            spot_id_icon,
+        no_market_items = get_no_market_items(new_session.name_spot)
+
+        new_session.set_extra_data(spot_id_icon,
             no_market_items,
             data_retrieved['items'],
             calculate_elixirs_cost_hour(data_retrieved['elixirs']),
             lightstone_costs, 
             imperfect_lightstone_costs
         )
+
+        self.view.create_new_session_widget(new_session)
 
     def on_exchange_hides(self, green_hides: str, blue_hides: str):
         """
@@ -380,11 +384,9 @@ class AppController:
             :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the session.
             :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
-        value_pack_multiplier = get_data_value("value_pack_multiplier")
-        extra_profit_multiplier = get_data_value("extra_profit_multiplier")
         return calculate_results_session(spot_name, value_pack, market_tax, extra_profit, data_input, elixirs_cost, auto_calculate_best_profit, lightstone_costs, imperfect_lightstone_costs, value_pack_multiplier, extra_profit_multiplier)
     
-    def get_all_settings_data(self) -> dict[str, Any] | None:
+    def get_all_settings_data(self) -> Optional[dict[str, Any]]:
         """
         Get the settings data from the setings file.
             :return: A dictionary containing the settings data or None if the settings file is not found or if any required keys are missing.

@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Optional
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QGridLayout, QLineEdit
@@ -7,41 +7,24 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt
 
+from logic.new_session_data import NewSessionData
 from gui.manage_widgets import ManagerWidgets
 from gui.dialogs_user import show_dialog_type
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
-from config.config import res_abs_paths, item_icons_root, settings_json, FlatDict
+from config.config import res_abs_paths, item_icons_root, settings_json
 
 class NewSessionWidget(QWidget):
-    def __init__(self, name_spot: str, value_pack: bool, auto_calculate_best_profit: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, items: FlatDict, no_market_items: list[str], elixirs_cost: str,
-                    lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict):
+    def __init__(self, new_session: NewSessionData):
         """
         Initialize the NewSessionWidget with the provided parameters.
-            :param name_spot: The name of the hunting spot for the new session.
-            :param value_pack: A boolean indicating if the value pack is active.
-            :param auto_calculate_best_profit: A boolean indicating if the best profit should be calculated automatically.
-            :param market_tax: The market tax percentage to apply to the session results.
-            :param extra_profit: The extra profit percentage applied or not to the session results.
-            :param spot_id_icon: The ID of the icon associated with the hunting spot.
-            :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item names and values are tuples of (item ID, price).
-            :param no_market_items: A list of items that are not available in the market.
-            :param elixirs_cost: The cost of elixirs per hour for the new session (once the user specifies number of hours it will be multiplied by the number of hours).
-            :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
-            :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the hunting spot.
+            :param new_session: An instance of NewSessionData containing the parameters for the new session.
         """
         super().__init__()
         
         # Controller instance to handle the logic of the new session
         self.controller = AppController.get_instance()
-        self.elixirs_cost = elixirs_cost
-        self.value_pack = value_pack
-        self.auto_calculate_best_profit = auto_calculate_best_profit
-        self.market_tax = market_tax
-        self.extra_profit = extra_profit
-        self.name_spot = name_spot
-        self.lightstone_costs = lightstone_costs
-        self.imperfect_lightstone_costs = imperfect_lightstone_costs
+        self.new_session = new_session
 
         # Main widget and layout for new session
         new_session_layout = QVBoxLayout(self)
@@ -88,9 +71,9 @@ class NewSessionWidget(QWidget):
         """
 
         # Set the hunting spot title and icon
-        title_widget = self.create_session_title_widget(spot_id_icon)
+        title_widget = self.create_session_title_widget()
         # Create the input widget that contains the input fields for the new session
-        inputs_widget = self.create_session_inputs_widget(items, no_market_items)
+        inputs_widget = self.create_session_inputs_widget()
         # Create the widget that contains exchange hides widget and elixirs cost widget
         exchange_elixirs_widget = self.create_session_exchange_elixirs_widget()
         # Create the widget that allows saving the results
@@ -110,10 +93,9 @@ class NewSessionWidget(QWidget):
 
         self.green_exchange_line_edit.setFocus() # Set focus on the green exchange line edit by default
 
-    def create_session_title_widget(self, id_icon: str) -> QWidget:
+    def create_session_title_widget(self) -> QWidget:
         """
         Create the title widget for the new session.
-            :param id_icon: The ID of the icon associated with the hunting spot.
             :return: A QWidget containing the title and icon for the new session.
         """
         # Session title widget and layout
@@ -129,8 +111,8 @@ class NewSessionWidget(QWidget):
         """)
 
         # Hunting zone title and icon
-        hunting_zone_icon = QIcon(f"{item_icons_root}{id_icon}.png") if os.path.exists(f"{item_icons_root}{id_icon}.png") else QIcon(res_abs_paths["not_found_ico"])
-        hunting_zone_name = QLabel(self.name_spot)
+        hunting_zone_icon = QIcon(f"{item_icons_root}{self.new_session.spot_id_icon}.png") if os.path.exists(f"{item_icons_root}{self.new_session.spot_id_icon}.png") else QIcon(res_abs_paths["not_found_ico"])
+        hunting_zone_name = QLabel(self.new_session.name_spot)
         hunting_zone_name.setFont(QFont("Arial", 24))
         hunting_zone_name.setContentsMargins(0, 0, 50, 0) # Add right margin to title label so it stays in center of screen after adding icon and spacing it
         hunting_zone_icon_label = QLabel()
@@ -141,20 +123,18 @@ class NewSessionWidget(QWidget):
 
         return title_widget
 
-    def create_session_inputs_widget(self, items: FlatDict, no_market_items: list[str]) -> QWidget:
+    def create_session_inputs_widget(self,) -> QWidget:
         """
         Create the input widget for the new session.
-            :param items: A dictionary containing the items available in the market for the hunting spot, where keys are item IDs and values are tuples of (item name, price).
-            :param font: The font to be used for the labels and input fields.
-            :param no_market_items: A list of items that are not available in the market.
             :return: A QWidget containing the input fields for the new session.
         """
         inputs_widget = QWidget()
         inputs_layout = QGridLayout(inputs_widget)
 
-        self.labels_icons_input: list[tuple[QIcon | None, QLabel, QLabel | None]] = []
+        self.labels_icons_input: list[tuple[Optional[QIcon], QLabel, Optional[QLabel]]] = []
 
-        for i, (id, (item_name, price)) in enumerate(items.items()):
+        assert self.new_session.items is not None, "Items must be provided in the new session data."
+        for i, (id, (item_name, price)) in enumerate(self.new_session.items.items()):
             icon = QIcon(f"{item_icons_root}{id}.png") if os.path.exists(f"{item_icons_root}{id}.png") else QIcon(res_abs_paths["not_found_ico"])
 
             label = SmartLabel(f"{item_name} (0.00%)")
@@ -170,7 +150,8 @@ class NewSessionWidget(QWidget):
 
             self.labels_icons_input.append((icon, label, price_value))
 
-        for no_market_item in no_market_items:
+        assert self.new_session.no_market_items is not None, "No market items must be provided in the new session data."
+        for no_market_item in self.new_session.no_market_items:
             label = SmartLabel(f"{no_market_item} (0.00%)")
             label.setMinimumHeight(50)
             label.setFont(self.default_font)
@@ -208,7 +189,7 @@ class NewSessionWidget(QWidget):
             new_data_input = QLineEdit()
             name_without_percent = self.get_no_name_percent(label.text()) # Get the name without the percentage
 
-            if (self.auto_calculate_best_profit and 
+            if (self.new_session.auto_calculate_best_profit and 
                 (name_without_percent.startswith("M. Sp.") or 
                  name_without_percent.startswith("M. St.") or 
                  name_without_percent.startswith("BMB:"))):
@@ -493,7 +474,7 @@ class NewSessionWidget(QWidget):
             res_name.append(name)
             res_data.append(inp)
 
-        if not self.controller.save_session(self.name_spot, res_name, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h):
+        if not self.controller.save_session(self.new_session.name_spot, res_name, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h):
             show_dialog_type("Error saving data, invalid data.", "Error saving", "error", "no_action")
             return
         
@@ -535,7 +516,9 @@ class NewSessionWidget(QWidget):
                 if self.save_button.isEnabled():
                     self.save_button.setEnabled(False)
 
-        res_data = self.controller.get_session_results(self.name_spot, self.value_pack, self.market_tax, self.extra_profit, data_input, self.elixirs_cost, self.auto_calculate_best_profit, self.lightstone_costs, self.imperfect_lightstone_costs)
+        assert self.new_session.lightstone_costs is not None, "Lightstone costs must be provided in the new session data."
+        assert self.new_session.imperfect_lightstone_costs is not None, "Imperfect lightstone costs must be provided in the new session data."
+        res_data = self.controller.get_session_results(self.new_session.name_spot, self.new_session.value_pack, self.new_session.market_tax, self.new_session.extra_profit, data_input, self.new_session.elixirs_cost, self.new_session.auto_calculate_best_profit, self.new_session.lightstone_costs, self.new_session.imperfect_lightstone_costs)
         if res_data == -1:
             show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "no_action")
             return

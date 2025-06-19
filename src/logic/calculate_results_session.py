@@ -49,7 +49,7 @@ def check_data_input(data_input: dict[str, tuple[str, str]]) -> bool:
     return True
 
 def calculate_results_session(spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str,
-                              auto_calculate_best_profit: bool, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict, value_pack_multiplier: int, extra_profit_multiplier: int) -> dict[str, Any] | int:
+                              auto_calculate_best_profit: bool, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict, value_pack_multiplier: float, extra_profit_multiplier: float) -> dict[str, Any] | int:
     """
     Calculate the results of a hunting session based on the provided input data.
         :param spot_name: The name of the hunting spot.

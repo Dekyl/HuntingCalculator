@@ -1,4 +1,6 @@
 import pycurl
+from typing import Optional
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock, Event
 
@@ -8,7 +10,7 @@ from logic.get_data_api_requests import (
 )
 from config.config import max_threads, item_icons_root, NestedDict, FlatDict
 
-def make_api_requests_items(item_ids: list[str], region: str, language: str = "en-US") -> FlatDict | None:
+def make_api_requests_items(item_ids: list[str], region: str, language: str = "en-US") -> Optional[FlatDict]:
     """
     Make API requests to fetch item prices from the Black Desert Market API.
         :param item_ids: List of item IDs to fetch prices for.
@@ -16,7 +18,7 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
         :param language: The language for which to fetch the data (default is "en-US").
         :return: A dictionary containing item prices, or None if the API request fails.
     """
-    item_prices_ids: dict[str, tuple[str, int] | None] = {}
+    item_prices_ids: dict[str, Optional[tuple[str, int]]] = {}
     for id in item_ids:
         item_prices_ids[id] = None # Initialize with None to handle cases where the item is not found
     lock_items = Lock()  # Lock to ensure thread-safe access to items
@@ -88,7 +90,7 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
 
     return item_prices_ids_final
 
-def process_buy_item(id: str, cancel_event: Event, lock_buy_item: Lock, region: str, buy_item_ids: dict[str, tuple[str, int] | None], language: str = "en-US") -> int:
+def process_buy_item(id: str, cancel_event: Event, lock_buy_item: Lock, region: str, buy_item_ids: dict[str, Optional[tuple[str, int]]], language: str = "en-US") -> int:
     """
     Process a single buy item ID to fetch its name and cost from the Black Desert Market API.
         :param id: The buy item ID to process.
@@ -132,7 +134,7 @@ def process_buy_item(id: str, cancel_event: Event, lock_buy_item: Lock, region: 
 
     return 0  # Return 0 on success, -1 on failure
 
-def make_api_requests_buy_items(buy_items_ids: list[str], region: str, language: str = "en-US") -> FlatDict | None:
+def make_api_requests_buy_items(buy_items_ids: list[str], region: str, language: str = "en-US") -> Optional[FlatDict]:
     """
     Make API requests to fetch costs of items from the Black Desert Market API.
         :param buy_items_ids: List of items IDs to fetch costs for.
@@ -140,7 +142,7 @@ def make_api_requests_buy_items(buy_items_ids: list[str], region: str, language:
         :param language: The language for which to fetch the data (default is "en-US").
         :return: A dictionary containing items costs, or None if the API requests fail.
     """
-    buy_items_costs_ids: dict[str, tuple[str, int] | None] = {}
+    buy_items_costs_ids: dict[str, Optional[tuple[str, int]]] = {}
     for id in buy_items_ids:
         buy_items_costs_ids[id] = None # Initialize with None to handle cases where the item is not found
     
@@ -171,7 +173,7 @@ def make_api_requests_buy_items(buy_items_ids: list[str], region: str, language:
 
     return item_costs_ids_final
 
-def connect_api(item_ids: list[str], elixir_ids: list[str], lightstones_ids: list[str], imperfect_lightstones_ids: list[str], region: str = "eu", language: str = "en-US") -> tuple[NestedDict | None, FlatDict | None, FlatDict | None]:
+def connect_api(item_ids: list[str], elixir_ids: list[str], lightstones_ids: list[str], imperfect_lightstones_ids: list[str], region: str = "eu", language: str = "en-US") -> tuple[Optional[NestedDict], Optional[FlatDict], Optional[FlatDict]]:
     """
     Search for the current prices of items and elixirs from the Black Desert Market API and save them in a JSON file.
         :param item_ids: List of item IDs to fetch prices for.

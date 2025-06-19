@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PySide6.QtWidgets import QStackedWidget, QWidget, QMainWindow
 
 class ManagerWidgets:
@@ -36,7 +38,7 @@ class ManagerWidgets:
         if name in self.pages:
             self.stack.setCurrentWidget(self.pages[name])
 
-    def get_current_page_name(self) -> str | None:
+    def get_current_page_name(self) -> Optional[str]:
         """
         Get the name of the current page in the QStackedWidget.
             :return: The name of the current page or None if no page is set.

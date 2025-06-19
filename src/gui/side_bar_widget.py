@@ -1,5 +1,5 @@
 import os
-from typing import Callable
+from typing import Callable, Optional
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDialog, QMainWindow
 from PySide6.QtGui import QFont, QIcon, QShortcut
@@ -19,7 +19,7 @@ class SideBarWidget(QWidget):
     """
     _instance = None  # Singleton instance of SideBarWidget
 
-    def __init__(self, view: ViewInterface | None = None):
+    def __init__(self, view: Optional[ViewInterface] = None):
         """
         Initialize the SideBarWidget with a reference to the main application window.
             :param view: Implement of ViewInterface.
@@ -55,7 +55,7 @@ class SideBarWidget(QWidget):
         self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None,], str]] = [
             ("Home", lambda _: self.manager_widgets.set_page("home"), "Ctrl+H"),
             ("New session", lambda btn: self.show_spots_list_widget(btn), "Ctrl+N"),
-            ("View sessions", lambda _: self.view.show_dialog_select_session(), "Ctrl+A"),
+            ("View sessions", lambda _: self.controller.show_dialog_select_session(), "Ctrl+A"),
             ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None, "Ctrl+L"),
             ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None, "Ctrl+G"),
             ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None, "Ctrl+Q")
@@ -201,7 +201,7 @@ class SideBarWidget(QWidget):
 
         spots_dialog.exec()
 
-    def get_left_widget_button(self, button_name: str) -> QPushButton | None:
+    def get_left_widget_button(self, button_name: str) -> Optional[QPushButton]:
         """
         Get a button from the left-side menu by its name.
             :param button_name: The name of the button to retrieve.
