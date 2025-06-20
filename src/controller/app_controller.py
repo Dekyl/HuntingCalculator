@@ -1,11 +1,11 @@
 from PySide6.QtCore import QThread, QTimer
 
-from typing import Any
+from typing import Any, Optional
 
 from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
-from logic.access_resources import (
+from logic.manage_resources.access_resources import (
     update_confirm_dialog, 
     get_show_confirm_clean, 
     get_show_confirm_exit, 
@@ -14,15 +14,25 @@ from logic.access_resources import (
     get_spot_id_icon, 
     get_no_market_items,
     get_user_settings,
-    save_user_settings,
+    apply_user_settings,
     get_data_value,
     get_match_elixirs,
     sessions_root_folder_exists,
     delete_saved_session
 )
-from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
+from logic.data_classes.new_session_data import NewSessionData
+from logic.results_session.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
-from config.config import default_settings, settings_json, res_abs_paths, NestedDict, FlatDict
+from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_view_session
+from config.config import (
+    default_settings, 
+    settings_json, 
+    res_abs_paths, 
+    NestedDict, 
+    FlatDict, 
+    market_tax, 
+    saved_sessions_folder
+)
 from interface.view_interface import ViewInterface
 
 class AppController:
@@ -62,16 +72,36 @@ class AppController:
             self.change_page("home")  # Change to home page after cleaning sessions
         if result == 1:
             add_log(f"Clean sessions dialog selection -> {result} (Success)", "info")
-            self.view.show_dialog_type("Sessions have been successfully cleaned.", "Clean results", "info", "clean_sessions")
+            show_dialog_type(
+                "Sessions have been successfully cleaned.", 
+                "Clean results", 
+                "info", 
+                "clean_sessions"
+            )
         elif result == 0:
             add_log(f"Clean sessions dialog selection -> {result}  (No elements found to delete)", "info")
-            self.view.show_dialog_type("No saved sessions found. Nothing to clean.", "Clean results", "info", "clean_sessions")
+            show_dialog_type(
+                "No saved sessions found. Nothing to clean.", 
+                "Clean results", 
+                "info", 
+                "clean_sessions"
+            )
         elif result == -1:
             add_log(f"Clean sessions dialog selection -> {result}  (Folder not found, created)", "warning")
-            self.view.show_dialog_type("Folder not found, created. No sessions were deleted.", "Clean results", "warning", "clean_sessions")
+            show_dialog_type(
+                "Folder not found, created. No sessions were deleted.", 
+                "Clean results", 
+                "warning", 
+                "clean_sessions"
+            )
         else:
             add_log(f"Clean sessions dialog selection -> {result}  (Error)", "error")
-            self.view.show_dialog_type("An error occurred while cleaning sessions.", "Clean results", "error", "clean_sessions")
+            show_dialog_type(
+                "An error occurred while cleaning sessions.", 
+                "Clean results", 
+                "error", 
+                "clean_sessions"
+            )
 
     def on_clean_sessions_button(self):
         """
@@ -83,14 +113,28 @@ class AppController:
 
         if not res:
             add_log(f"Error retrieving data from '{settings_json}', check if the file exists and is writable", "error")
-            self.view.show_dialog_type(f"Error retrieving data from '{settings_json}', check if the file exists and is writable.", "Settings file error", "error", "no_action")
+            show_dialog_type(
+                f"Error retrieving data from '{settings_json}', check if the file exists and is writable.", 
+                "Settings file error", 
+                "error", 
+                "no_action"
+            )
             return
 
         if show_confirm_clean:
             add_log("Showing confirmation dialog for cleaning sessions.", "info")
-            enable_confirm_message = self.view.show_dialog_confirmation("Are you sure you want to clean the sessions?", self.on_clean_sessions_clicked, "clean_sessions")
+            enable_confirm_message = show_dialog_confirmation(
+                "Are you sure you want to clean the sessions?", 
+                self.on_clean_sessions_clicked, 
+                "clean_sessions"
+            )
             if not update_confirm_dialog(enable_confirm_message, "clean_sessions"):
-                self.view.show_dialog_type(f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", "Settings file error", "error", "no_action")
+                show_dialog_type(
+                    f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", 
+                    "Settings file error", 
+                    "error", 
+                    "no_action"
+                )
         else:
             self.on_clean_sessions_clicked()
         
@@ -110,18 +154,28 @@ class AppController:
 
         if not res:
             add_log(f"Error retrieving data from '{settings_json}', check if the file exists and is writable", "error")
-            self.view.show_dialog_type(f"Error retrieving data from '{settings_json}', check if the file exists and is writable.", "Settings file error", "error", "no_action")
+            show_dialog_type(
+                f"Error retrieving data from '{settings_json}', check if the file exists and is writable.", 
+                "Settings file error", 
+                "error", 
+                "no_action"
+            )
             return
 
         if show_confirm_exit:
             add_log("Showing confirmation dialog for exiting app.", "info")
-            enable_confirm_message = self.view.show_dialog_confirmation(
+            enable_confirm_message = show_dialog_confirmation(
                 "Are you sure you want to exit?", 
                 lambda: self.exit_application(), 
                 "exit"
             )
             if not update_confirm_dialog(enable_confirm_message, "exit"):
-                self.view.show_dialog_type(f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", "Settings file error", "error", "no_action")
+                show_dialog_type(
+                    f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", 
+                    "Settings file error", 
+                    "error", 
+                    "no_action"
+                )
         else:
             add_log("Exiting app without confirmation dialog.", "info")
             self.exit_application()
@@ -155,7 +209,12 @@ class AppController:
             :param action: The action that triggered the error, used to set the icon.
         """
         add_log(message, "error")
-        self.view.show_dialog_type(message, title, "error", action)
+        show_dialog_type(
+            message, 
+            title, 
+            "error", 
+            action
+        )
         self.view.set_ui_enabled(True)
 
     def start_data_retrieval(self, spot_name: str):
@@ -178,11 +237,6 @@ class AppController:
         language = get_user_setting("language")
         if not language:
             self.show_error_and_enable_ui("Language setting not found, add it in settings section.", "Settings file error", "no_action")
-            return
-        
-        market_tax = get_data_value("market_tax")
-        if market_tax is None:
-            self.show_error_and_enable_ui(f"Missing data in '{res_abs_paths['data']} file.", "Data file error", "no_action")
             return
         
         extra_profit = get_user_setting("extra_profit")
@@ -211,7 +265,17 @@ class AppController:
         if imperfect_lightstone_ids is None:
             self.show_error_and_enable_ui(f"'imperfect_lighstone_items' missing in '{res_abs_paths['data']}' file.", "Data file error", "no_action")
             return
-
+        
+        auto_calculate_best_profit = get_user_setting("auto_calculate_best_profit")
+        
+        new_session = NewSessionData(
+            spot_name, 
+            value_pack, 
+            auto_calculate_best_profit, 
+            market_tax, 
+            extra_profit
+        )
+        
         self.thread = QThread()
         self.worker = DataFetcher(
             loot_ids,
@@ -223,55 +287,56 @@ class AppController:
         )
 
         self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(lambda: self.on_data_retrieved(spot_name, value_pack, market_tax, extra_profit, self.worker.data_retrieved, self.worker.lightstone_costs, self.worker.imperfect_lightstone_costs))
+        self.worker.finished.connect(lambda: self.on_data_retrieved(new_session, self.worker.data_retrieved, self.worker.lightstone_costs, self.worker.imperfect_lightstone_costs))
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
 
-    def on_data_retrieved(self, spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_retrieved: NestedDict | None, 
-                          lightstone_costs: FlatDict | None, imperfect_lightstone_costs: FlatDict | None):
+    def on_data_retrieved(self, new_session: NewSessionData, data_retrieved: Optional[NestedDict], lightstone_costs: Optional[FlatDict], imperfect_lightstone_costs: Optional[FlatDict]):
         """
         Handle the data retrieval from the API.
-            :param spot_name: The name of the hunting spot.
-            :param value_pack: Whether the value pack is used or not.
-            :param market_tax: The market tax percentage.
-            :param extra_profit: If extra profit is enabled or not.
+            :param new_session: The NewSessionData object containing the session details.
             :param data_retrieved: The data retrieved from the API, or None if an error occurred.
             :param lightstone_costs: The costs of lightstones for the hunting spot, or None if an error occurred.
             :param imperfect_lightstone_cost: The costs of the imperfect lightstones for the hunting spot, or None if an error occurred.
         """
         self.view.set_ui_enabled(True) # Re-enable the UI
         if data_retrieved is None or lightstone_costs is None or imperfect_lightstone_costs is None:
-            add_log(f"Error retrieving data for spot '{spot_name}'", "error")
+            add_log(f"Error retrieving data for spot '{new_session.name_spot}'", "error")
             self.view.set_session_button_enabled(False) # Disable the new session button
-            self.view.show_dialog_type("Error fetching data from API, too many requests, disabling new session button for 80 seconds.", "API timeout", "error", "no_action")
+            show_dialog_type(
+                "Error fetching data from API, too many requests, disabling new session button for 80 seconds.", 
+                "API timeout", 
+                "error", 
+                "no_action"
+            )
             QTimer.singleShot(80000, lambda: self.view.set_session_button_enabled(True)) # Re-enable the button after 80 seconds
             return
         
-        spot_id_icon = get_spot_id_icon(spot_name)
+        spot_id_icon = get_spot_id_icon(new_session.name_spot)
         if not spot_id_icon:
-            add_log(f"No icon found for spot '{spot_name}'", "error")
-            self.view.show_dialog_type(f"Error fetching spot '{spot_name}' icon from JSON file.", "JSON data error", "error", "no_action")
+            add_log(f"No icon found for spot '{new_session.name_spot}'", "error")
+            show_dialog_type(
+                f"Error fetching spot '{new_session.name_spot}' icon from JSON file.", 
+                "JSON data error", 
+                "error", 
+                "no_action"
+            )
             return
         
-        auto_calculate_best_profit = get_user_setting("auto_calculate_best_profit")
-        
-        no_market_items = get_no_market_items(spot_name)
-        self.view.create_new_session_widget(
-            spot_name,
-            value_pack,
-            auto_calculate_best_profit,
-            market_tax,
-            extra_profit,
-            spot_id_icon,
+        no_market_items = get_no_market_items(new_session.name_spot)
+
+        new_session.set_extra_data(spot_id_icon,
             no_market_items,
             data_retrieved['items'],
             calculate_elixirs_cost_hour(data_retrieved['elixirs']),
             lightstone_costs, 
             imperfect_lightstone_costs
         )
+
+        self.view.create_new_session_widget(new_session)
 
     def on_exchange_hides(self, green_hides: str, blue_hides: str):
         """
@@ -319,7 +384,7 @@ class AppController:
         """
         return calculate_results_session(spot_name, value_pack, market_tax, extra_profit, data_input, elixirs_cost, auto_calculate_best_profit, lightstone_costs, imperfect_lightstone_costs)
     
-    def get_all_settings_data(self) -> dict[str, Any] | None:
+    def get_all_settings_data(self) -> Optional[dict[str, Any]]:
         """
         Get the settings data from the setings file.
             :return: A dictionary containing the settings data or None if the settings file is not found or if any required keys are missing.
@@ -334,20 +399,30 @@ class AppController:
 
         return all_settings
     
-    def save_user_settings(self, new_settings: dict[str, tuple[str, Any]]) -> int:
+    def apply_user_settings(self, new_settings: dict[str, tuple[str, Any]]) -> int:
         """
         Save the new settings to the settings file.
             :param new_settings: A dictionary containing the new settings to save.
         """
-        result = save_user_settings(new_settings)
+        result = apply_user_settings(new_settings)
         if result == 0:
             add_log("Settings saved successfully.", "info")
         elif result == -1:
             add_log(f"Error saving settings: '{settings_json}' file not found.", "error")
-            self.view.show_dialog_type(f"Error saving user settings in '{settings_json}' file.", "Save setting error", "error", "no_action")
+            show_dialog_type(
+                f"Error saving user settings in '{settings_json}' file.", 
+                "Save setting error", 
+                "error", 
+                "no_action"
+            )
         else:
             add_log(f"Unexpected result when saving settings: {result}", "error")
-            self.view.show_dialog_type(f"Unexpected error occurred while saving user settings in '{settings_json}' file.", "Save setting error", "error", "no_action")
+            show_dialog_type(
+                f"Unexpected error occurred while saving user settings in '{settings_json}' file.", 
+                "Save setting error", 
+                "error", 
+                "no_action"
+            )
             
         return result
     
@@ -364,13 +439,6 @@ class AppController:
         matches = get_match_elixirs(elixir_name_id)
         return matches if matches else "No matches."
     
-    def sessions_root_folder_exists(self) -> int:
-        """
-        Check if the sessions root folder exists.
-            :return: -1 if the folder does not exist and was created, -2 if it is not a directory, 0 if it exists and is a directory.
-        """
-        return sessions_root_folder_exists()
-    
     def delete_session(self, file_path: str):
         """
         Delete a session file.
@@ -380,13 +448,58 @@ class AppController:
         self.change_page("home")  # Change to home page after deleting session
         if res == 0:
             add_log(f"Session file '{file_path}' deleted successfully.", "info")
-            self.view.show_dialog_type(f"Session file deleted successfully.", "Delete session", "info", "no_action")
+            show_dialog_type(
+                f"Session file deleted successfully.", 
+                "Delete session", 
+                "info", 
+                "no_action"
+            )
         elif res == -1:
             add_log(f"Session file '{file_path}' does not exist.", "warning")
-            self.view.show_dialog_type(f"Session file '{file_path}' does not exist.", "Delete session", "warning", "no_action")
+            show_dialog_type(
+                f"Session file '{file_path}' does not exist.", 
+                "Delete session", 
+                "warning", 
+                "no_action"
+            )
         elif res == -2:
             add_log(f"Error deleting session file '{file_path}'.", "error")
-            self.view.show_dialog_type(f"Error deleting session file '{file_path}'.", "Delete session", "error", "no_action")
+            show_dialog_type(
+                f"Error deleting session file '{file_path}'.", 
+                "Delete session", 
+                "error", 
+                "no_action"
+            )
+
+    def show_dialog_select_session(self):
+        """
+        Show a dialog to view existing hunting sessions.
+            This function checks if the sessions root folder exists and then opens a dialog to view sessions.
+            If the folder does not exist, it shows an error dialog.
+        """
+        res = sessions_root_folder_exists()
+        if res == -1:  # Sessions folder did not exist, created it
+            show_dialog_type(
+                f"'{saved_sessions_folder}' was not found. It has been created.", 
+                "Saved sessions folder", 
+                "warning", 
+                "no_action"
+            )
+            return
+        elif res == -2:
+            show_dialog_type(
+                f"'{saved_sessions_folder}' is not a folder. Check it before trying again.", 
+                "Saved sessions folder", 
+                "warning", 
+                "no_action"
+            )
+            return
+        
+        session_file_selected = show_dialog_view_session()
+        if not session_file_selected:
+            return # Empty string means no file was selected
+        
+        self.view.process_view_session(session_file_selected) # Call the view method to open the view session dialog
 
     @staticmethod
     def get_instance() -> "AppController":

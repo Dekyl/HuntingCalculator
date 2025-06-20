@@ -1,5 +1,5 @@
 from logic.logs import setup_logs, add_log
-from logic.prepare_resources import startup_resources
+from logic.manage_resources.prepare_resources import startup_resources
 
 def setup_all() -> bool:
     """

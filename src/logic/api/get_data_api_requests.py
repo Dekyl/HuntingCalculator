@@ -94,7 +94,7 @@ def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_
     connection.setopt(connection.WRITEDATA, buffer) # type: ignore
 
     start_time = time.time()
-    while response_code != 200:
+    while response_code != 200 and attempts < max_attempts:
         if cancel_event.is_set():
             return -1
         
@@ -108,7 +108,7 @@ def get_item_icon(id_item: str, connection: pycurl.Curl, save_path: str, cancel_
         if time.time() - start_time > timeout_connection:
             if attempts < max_attempts:
                 add_log(f"Connection timeout reached, retrying... (Attempt {attempts + 1}/{max_attempts})", "warning")
-                return get_item_icon(id_item, connection, save_path, cancel_event, attempts + 1)
+                attempts += 1
             else:
                 add_log("Connection timeout reached", "error")
                 return -1

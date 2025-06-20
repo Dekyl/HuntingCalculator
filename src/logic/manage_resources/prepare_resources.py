@@ -3,7 +3,7 @@ import shutil
 
 from logic.logs import add_log
 from config.config import res_list, item_icons_root, settings_json, default_settings, res_abs_paths
-from logic.access_resources import get_app_resource
+from logic.manage_resources.access_resources import get_app_resource
 
 def check_all_fields_exist_data(target_file: str, meipass_src: str, label: str):
     """
@@ -48,18 +48,21 @@ def check_all_fields_exist_settings() -> bool:
         :return: True if all fields exist or were added successfully, False otherwise.
     """
     f_name = os.path.basename(settings_json)
+    missing_fields = False
     try:
         with open(settings_json, 'r', encoding='utf-8') as file:
             settings_data = json.load(file)
 
         for field, val in default_settings.items():
             if field not in settings_data:
+                missing_fields = True
                 add_log(f"Adding missing field '{field}' to '{f_name}'", "warning")
                 settings_data[field] = val
 
-        with open(settings_json, 'w', encoding='utf-8') as outfile:
-            json.dump(settings_data, outfile, indent=4)
-            add_log(f"Added missing fields to '{f_name}'", "warning")
+        if missing_fields:
+            with open(settings_json, 'w', encoding='utf-8') as outfile:
+                json.dump(settings_data, outfile, indent=4)
+                add_log(f"Added missing fields to '{f_name}'", "warning")
 
     except Exception as e:
         add_log(f"Error checking fields in '{f_name}': {e}", "error")

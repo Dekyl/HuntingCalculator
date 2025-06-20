@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Optional
 
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 from PySide6.QtGui import QIcon, QGuiApplication, QShortcut
@@ -6,15 +6,15 @@ from PySide6.QtCore import QSize
 
 from gui.manage_widgets import ManagerWidgets
 from gui.side_bar_widget import SideBarWidget
-from gui.settings_widget import SettingsWidget
-from gui.home_widget import HomeWidget
-from gui.new_session_widget import NewSessionWidget
-from gui.view_sessions_widget import ViewSessionsWidget
-from gui.dialogs_user import show_dialog_type, show_dialog_confirmation, show_dialog_view_session
+from gui.stack_compo.settings.settings_widget import SettingsWidget
+from gui.stack_compo.home_widget import HomeWidget
+from gui.stack_compo.new_session_widget import NewSessionWidget
+from gui.stack_compo.view_sessions_widget import ViewSessionsWidget
 from controller.app_controller import AppController
-from config.config import saved_sessions_folder, res_abs_paths, FlatDict
+from config.config import res_abs_paths
+from logic.data_classes.new_session_data import NewSessionData
 
-class MainWindow(QMainWindow):
+class GuiEntryPoint(QMainWindow):
     def __init__(self):
         """
         Initializes the main window of the Hunting Calculator application.
@@ -42,11 +42,9 @@ class MainWindow(QMainWindow):
 
         # Create the ManagerWidgets instance to manage different widgets in the application
         self.manager = ManagerWidgets()
-
         # Create the AppController instance to manage the application logic
         # This controller will handle interactions between the view and the model
         self.controller = AppController(self)
-
         # Create the left-side menu and add it to the main layout
         self.side_bar_widget = SideBarWidget(self)
 
@@ -56,41 +54,38 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.side_bar_widget)
         main_layout.addWidget(stack, stretch=1)
 
-        self.manager.add_page("home", HomeWidget())
-
+        self.manager.add_page("home", HomeWidget()) # Add the home widget to the manager
+        self.manager.set_page("home")  # Set the home page as the current page
         self.create_shortcuts()
 
     def create_shortcuts(self):
         """
         Create keyboard shortcuts for various actions in the application.
         """
+        # Home page shortcut
         shortcut_home = QShortcut("Ctrl+H", self)
         shortcut_home.activated.connect(lambda: self.manager.set_page("home"))
 
+        # New session shortcut
         shortcut_new_session = QShortcut("Ctrl+N", self)
         new_session_button = self.side_bar_widget.get_left_widget_button("new_session")
         shortcut_new_session.activated.connect(new_session_button.click if new_session_button else None)
 
+        # View sessions shortcut
         shortcut_view_sessions = QShortcut("Ctrl+A", self)
-        shortcut_view_sessions.activated.connect(self.show_dialog_select_session)
+        shortcut_view_sessions.activated.connect(lambda: self.controller.show_dialog_select_session() if self.controller else None)
 
+        # Clean sessions shortcut
         shortcut_clean_sessions = QShortcut("Ctrl+L", self)
         shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button() if self.controller else None)
 
+        # Settings shortcut
         shortcut_settings = QShortcut("Ctrl+G", self)
         shortcut_settings.activated.connect(lambda: self.create_settings_widget())
 
+        # Exit application shortcut
         shortcut_exit = QShortcut("Ctrl+Q", self)
         shortcut_exit.activated.connect(self.controller.on_exit_button if self.controller else None)
-
-    def show_dialog_confirmation(self, message: str, action: Any, confirm_action: str = "exit") -> bool:
-        """
-        Show a confirmation dialog before executing an action.
-            :param message: The confirmation message to display.
-            :param action: The action to execute if confirmed.
-            :param confirm_action: The action that was confirmed, used to set the icon.
-        """
-        return show_dialog_confirmation(message, action, confirm_action)
 
     def update_exchange_hides_results(self, exchange_results: tuple[int, int, int]):
         """
@@ -99,24 +94,12 @@ class MainWindow(QMainWindow):
         """
         self.actual_session.update_session_exchange_results(exchange_results)
 
-    def create_new_session_widget(self, name_spot: str, value_pack: bool, auto_calculate_best_profit: bool, market_tax: float, extra_profit: bool, spot_id_icon: str, 
-            no_market_items:list[str], items: FlatDict, elixirs_cost: str, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict):
+    def create_new_session_widget(self, new_session: NewSessionData):
         """
         Create a new session widget for the specified hunting spot.
-            :param name_spot: The name of the hunting spot.
-            :param value_pack: A boolean indicating whether the value pack is active.
-            :param auto_calculate_best_profit: A boolean indicating whether to automatically calculate the best profit.
-            :param market_tax: The market tax rate for the hunting spot.
-            :param extra_profit: Extra profit percentage applied or not.
-            :param spot_id_icon: The ID of the icon associated with the hunting spot.
-            :param no_market_items: A list of items that are not available on the market.
-            :param items: A dictionary containing the prices of items for the hunting spot.
-            :param elixirs_cost: The cost of elixirs for the hunting spot.
-            :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
-            :param imperfect_lightstone_cost: The costs of the imperfect lightstones for the hunting spot.
+            :param new_session: An instance of NewSessionData containing the details of the new session.
         """
-        self.actual_session = NewSessionWidget(name_spot, value_pack, auto_calculate_best_profit, market_tax, extra_profit, spot_id_icon, items, 
-                                               no_market_items, elixirs_cost, lightstone_costs, imperfect_lightstone_costs)
+        self.actual_session = NewSessionWidget(new_session)
 
     def create_settings_widget(self):
         """
@@ -133,44 +116,12 @@ class MainWindow(QMainWindow):
         """
         self.side_bar_widget.set_left_widget_buttons_enabled(enabled)
 
-    def show_dialog_type(self, msg: str, title: str, type: str, action: str = "no_action"):
-        """
-        Show a dialog with a specific type of message.
-            :param msg: The message to display in the dialog.
-            :param title: The title of the dialog.
-            :param type: The type of message to display (e.g., "info", "warning", "error").
-            :param action: The action that triggered the dialog, used to set the icon.
-        """
-        show_dialog_type(msg, title, type, action)
-
     def set_session_button_enabled(self, enabled: bool):
         """
         Enable or disable the session button in the left-side menu.
             :param enabled: A boolean indicating whether to enable or disable the new session button.
         """
         self.side_bar_widget.set_left_widget_button_enabled("new_session", enabled)
-
-    def show_dialog_select_session(self):
-        """
-        Show a dialog to view existing hunting sessions.
-            This function checks if the sessions root folder exists and then opens a dialog to view sessions.
-            If the folder does not exist, it shows an error dialog.
-        """
-        res = self.controller.sessions_root_folder_exists()
-        if res == -1:  # Sessions folder did not exist, created it
-            show_dialog_type(f"'{saved_sessions_folder}' was not found. It has been created.", "Saved sessions folder", "warning", "no_action")
-            return
-        elif res == -2:
-            show_dialog_type(f"'{saved_sessions_folder}' is not a folder. Check it before trying again.", "Saved sessions folder", "warning", "no_action")
-            return
-        
-        # Hunting sessions folder exists, proceed to show the dialog
-        session_file_selected = show_dialog_view_session()
-        if not session_file_selected:
-            return # Empty string means no file was selected
-        
-        self.manager.add_page("view_sessions", ViewSessionsWidget(session_file_selected)) # Add the view_sessions widget to the manager
-        self.manager.set_page("view_sessions")  # Switch to the view sessions page
 
     def get_main_window_instance(self) -> QMainWindow:
         """
@@ -186,12 +137,21 @@ class MainWindow(QMainWindow):
         """
         self.manager.set_page(page)
 
-    def get_current_page_name(self) -> str | None:
+    def get_current_page_name(self) -> Optional[str]:
         """
         Get the name of the current page in the application (required by ViewInterface).
             :return: The name of the current page.
         """
         return self.manager.get_current_page_name()
+    
+    def process_view_session(self, session_file_selected: str):
+        """ Open the view sessions widget to display existing sessions.
+        This method prompts the user to select a session file and then opens the ViewSessionsWidget
+        to display the selected session.
+            :param session_file_selected: The path to the session file selected by the user.
+        """
+        self.manager.add_page("view_sessions", ViewSessionsWidget(session_file_selected)) # Add the view_sessions widget to the manager
+        self.manager.set_page("view_sessions") # Switch to the view sessions page
 
     def close_window(self):
         """
