@@ -10,7 +10,9 @@ from config.config import (
     n_magical_lightstone_exchange,
     n_magical_lightstones_scroll,
     n_remnants_of_mystic_beasts_exchange,
-    n_supreme_hide_scroll
+    n_supreme_hide_scroll,
+    value_pack_multiplier,
+    extra_profit_multiplier
 )
 
 def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
@@ -49,7 +51,7 @@ def check_data_input(data_input: dict[str, tuple[str, str]]) -> bool:
     return True
 
 def calculate_results_session(spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str,
-                              auto_calculate_best_profit: bool, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict, value_pack_multiplier: float, extra_profit_multiplier: float) -> dict[str, Any] | int:
+                              auto_calculate_best_profit: bool, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict) -> dict[str, Any] | int:
     """
     Calculate the results of a hunting session based on the provided input data.
         :param spot_name: The name of the hunting spot.
@@ -61,8 +63,6 @@ def calculate_results_session(spot_name: str, value_pack: bool, market_tax: floa
         :param auto_calculate_best_profit: A boolean indicating whether to automatically calculate the best profit.
         :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
         :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the hunting spot.
-        :param value_pack_multiplier: The multiplier for the value pack.
-        :param extra_profit_multiplier: The multiplier for the extra profit.
         :return: A dictionary containing the calculated results of the session, including total results, total per hour, taxed results, taxed per hour, 
             and updated labels for input text. Or -1 if an error occurs.
     """

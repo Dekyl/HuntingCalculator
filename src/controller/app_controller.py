@@ -31,9 +31,7 @@ from config.config import (
     NestedDict, 
     FlatDict, 
     market_tax, 
-    saved_sessions_folder,
-    value_pack_multiplier,
-    extra_profit_multiplier
+    saved_sessions_folder
 )
 from interface.view_interface import ViewInterface
 
@@ -384,7 +382,7 @@ class AppController:
             :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the session.
             :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
-        return calculate_results_session(spot_name, value_pack, market_tax, extra_profit, data_input, elixirs_cost, auto_calculate_best_profit, lightstone_costs, imperfect_lightstone_costs, value_pack_multiplier, extra_profit_multiplier)
+        return calculate_results_session(spot_name, value_pack, market_tax, extra_profit, data_input, elixirs_cost, auto_calculate_best_profit, lightstone_costs, imperfect_lightstone_costs)
     
     def get_all_settings_data(self) -> Optional[dict[str, Any]]:
         """
