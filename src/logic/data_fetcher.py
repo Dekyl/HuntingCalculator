@@ -1,6 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 
-from logic.api_connection import connect_api
+from logic.api.api_connection import connect_api
 
 class DataFetcher(QObject):
     """

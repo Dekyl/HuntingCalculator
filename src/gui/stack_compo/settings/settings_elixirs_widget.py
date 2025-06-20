@@ -1,13 +1,35 @@
 import os
 from typing import Any, Callable
 
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QVBoxLayout, QScrollArea, QDialog, QLineEdit, QApplication
-from PySide6.QtCore import Qt, QSize, QPoint, QEvent, QObject
-from PySide6.QtGui import QIcon, QFont, QShortcut, QKeySequence, QMouseEvent
+from PySide6.QtWidgets import (
+    QWidget, 
+    QHBoxLayout, 
+    QPushButton, 
+    QLabel, 
+    QVBoxLayout, 
+    QScrollArea, 
+    QDialog, 
+    QLineEdit, 
+    QApplication
+)
+from PySide6.QtCore import (
+    Qt, 
+    QSize, 
+    QPoint, 
+    QEvent, 
+    QObject
+)
+from PySide6.QtGui import (
+    QIcon, 
+    QFont, 
+    QShortcut, 
+    QKeySequence, 
+    QMouseEvent
+)
 
 from config.config import res_abs_paths, scroll_bar_style
 from controller.app_controller import AppController
-from gui.dialogs_user import show_dialog_type
+from gui.dialogs.dialogs_user import show_dialog_type
 
 class SettingsElixirsWidget(QWidget):
     def __init__(self, setting_val: dict[str, Any], settings_actual_data: dict[str, tuple[str, Any]], on_settings_changed: Callable[[str, Any], None]):

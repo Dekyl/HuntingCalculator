@@ -3,7 +3,7 @@ import shutil
 
 from logic.logs import add_log
 from config.config import res_list, item_icons_root, settings_json, default_settings, res_abs_paths
-from logic.access_resources import get_app_resource
+from logic.manage_resources.access_resources import get_app_resource
 
 def check_all_fields_exist_data(target_file: str, meipass_src: str, label: str):
     """

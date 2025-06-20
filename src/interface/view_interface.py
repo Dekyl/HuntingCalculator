@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMainWindow
 from typing import Protocol, Optional
 
-from logic.new_session_data import NewSessionData
+from logic.data_classes.new_session_data import NewSessionData
 
 class ViewInterface(Protocol):
     def close_window(self) -> None: ...

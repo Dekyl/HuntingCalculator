@@ -7,9 +7,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt
 
-from logic.new_session_data import NewSessionData
+from logic.data_classes.new_session_data import NewSessionData
 from gui.manage_widgets import ManagerWidgets
-from gui.dialogs_user import show_dialog_type
+from gui.dialogs.dialogs_user import show_dialog_type
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
 from config.config import res_abs_paths, item_icons_root, settings_json

@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock, Event
 
 from logic.logs import add_log
-from logic.get_data_api_requests import (
+from logic.api.get_data_api_requests import (
     get_item_name, get_item_data, get_item_icon, get_sell_price, get_buy_price
 )
 from config.config import max_threads, item_icons_root, NestedDict, FlatDict

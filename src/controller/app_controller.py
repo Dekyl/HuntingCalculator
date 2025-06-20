@@ -5,7 +5,7 @@ from typing import Any, Optional
 from logic.manage_excels import clean_sessions, save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
-from logic.access_resources import (
+from logic.manage_resources.access_resources import (
     update_confirm_dialog, 
     get_show_confirm_clean, 
     get_show_confirm_exit, 
@@ -20,10 +20,10 @@ from logic.access_resources import (
     sessions_root_folder_exists,
     delete_saved_session
 )
-from logic.new_session_data import NewSessionData
-from logic.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
+from logic.data_classes.new_session_data import NewSessionData
+from logic.results_session.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
-from gui.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_view_session
+from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_view_session
 from config.config import (
     default_settings, 
     settings_json, 

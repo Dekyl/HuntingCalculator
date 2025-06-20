@@ -14,9 +14,9 @@ from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt, QTimer
 
 from controller.app_controller import AppController
-from gui.dialogs_user import show_dialog_type
+from gui.dialogs.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
-from gui.settings.settings_elixirs_widget import SettingsElixirsWidget
+from gui.stack_compo.settings.settings_elixirs_widget import SettingsElixirsWidget
 from config.config import res_abs_paths, scroll_bar_style
 
 class SettingsWidget(QWidget):

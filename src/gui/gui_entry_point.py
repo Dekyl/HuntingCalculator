@@ -6,13 +6,13 @@ from PySide6.QtCore import QSize
 
 from gui.manage_widgets import ManagerWidgets
 from gui.side_bar_widget import SideBarWidget
-from gui.settings.settings_widget import SettingsWidget
-from gui.home_widget import HomeWidget
-from gui.new_session_widget import NewSessionWidget
-from gui.view_sessions_widget import ViewSessionsWidget
+from gui.stack_compo.settings.settings_widget import SettingsWidget
+from gui.stack_compo.home_widget import HomeWidget
+from gui.stack_compo.new_session_widget import NewSessionWidget
+from gui.stack_compo.view_sessions_widget import ViewSessionsWidget
 from controller.app_controller import AppController
 from config.config import res_abs_paths
-from logic.new_session_data import NewSessionData
+from logic.data_classes.new_session_data import NewSessionData
 
 class GuiEntryPoint(QMainWindow):
     def __init__(self):
