@@ -1,4 +1,3 @@
-import pycurl
 from typing import Optional
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,37 +28,27 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
     def process_item(id: str) -> int:
         if cancel_event.is_set(): # Check if the cancel event is set before proceeding
             return -1
-    
-        connection = pycurl.Curl()
-        headers: list[str] = ['accept: */*']
-        connection.setopt(connection.HTTPHEADER, headers) # type: ignore
-        connection.setopt(connection.CONNECTTIMEOUT, 1) # type: ignore
 
-        item_name = get_item_name(id, connection, cancel_event, region, language)
+        item_name = get_item_name(id, cancel_event, region, language)
         if cancel_event.is_set() or not item_name:
             add_log(f"Failed to fetch item name for ID {id}. Skipping...", "error")
-            connection.close()
             return -1
 
-        body_sell_price = get_item_data(id, connection, cancel_event, region)
+        body_sell_price = get_item_data(id, cancel_event, region, 0)
         if cancel_event.is_set() or not body_sell_price:
             add_log(f"Failed to fetch data for item ID {id}. Skipping...", "error")
-            connection.close()
             return -1
 
         sell_price = get_sell_price(body_sell_price, cancel_event)
         if cancel_event.is_set() or not sell_price:
             add_log(f"Failed to fetch sell price for item ID {id}. Skipping...", "error")
-            connection.close()
             return -1
         
-        res_get_icon = get_item_icon(id, connection, f"{item_icons_root}{id}.png", cancel_event, 0)
+        res_get_icon = get_item_icon(id, f"{item_icons_root}{id}.png", cancel_event, 0)
         if cancel_event.is_set() or res_get_icon == -1:
             add_log(f"Failed to fetch icon for item ID {id}. Skipping...", "error")
-            connection.close()
             return -1
         
-        connection.close()  # Close the connection after fetching data
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
         if not cancel_event.is_set():
             with lock_items:
@@ -77,6 +66,7 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
                 break
 
     item_prices_ids_final: dict[str, tuple[str, int]] = {}
+
     items_log = "Items: {\n"
     for id, value in item_prices_ids.items():
         if value is None:
@@ -86,6 +76,7 @@ def make_api_requests_items(item_ids: list[str], region: str, language: str = "e
         items_log += f"\tItem {id} ({item_name}): Price {price:,}\n"
         item_prices_ids_final[id] = (item_name, price)
     items_log += "}"
+    
     add_log(items_log, "debug")
 
     return item_prices_ids_final
@@ -103,31 +94,22 @@ def process_buy_item(id: str, cancel_event: Event, lock_buy_item: Lock, region: 
     """
     if cancel_event.is_set(): # Check if the cancel event is set before proceeding
         return -1
-    
-    connection = pycurl.Curl()
-    headers: list[str] = ['accept: */*']
-    connection.setopt(connection.HTTPHEADER, headers) # type: ignore
-    connection.setopt(connection.CONNECTTIMEOUT, 1) # type: ignore
 
-    item_name = get_item_name(id, connection, cancel_event, region, language)
+    item_name = get_item_name(id, cancel_event, region, language)
     if cancel_event.is_set() or not item_name:
         add_log(f"Failed to fetch item name for ID {id}. Skipping...", "error")
-        connection.close()
         return -1
 
-    body_buy_price = get_item_data(id, connection, cancel_event, region)
+    body_buy_price = get_item_data(id, cancel_event, region)
     if cancel_event.is_set() or not body_buy_price:
         add_log(f"Failed to fetch data for ID {id}. Skipping...", "error")
-        connection.close()
         return -1
     
     buy_item_cost = get_buy_price(body_buy_price, cancel_event)
     if cancel_event.is_set() or not buy_item_cost:
         add_log(f"Failed to fetch buy price for ID {id}. Skipping...", "error")
-        connection.close()
         return -1
     
-    connection.close()  # Close the connection after fetching data
     if not cancel_event.is_set():
         with lock_buy_item:
             buy_item_ids[id] = (item_name, int(buy_item_cost))
@@ -160,6 +142,7 @@ def make_api_requests_buy_items(buy_items_ids: list[str], region: str, language:
                 break
 
     item_costs_ids_final: dict[str, tuple[str, int]] = {}
+
     items_log = "Items: {\n"
     for id, value in buy_items_costs_ids.items():
         if value is None:
@@ -169,6 +152,7 @@ def make_api_requests_buy_items(buy_items_ids: list[str], region: str, language:
         items_log += f"\tItem {id}: (Name: {item_name}, Cost {cost:,})\n"
         item_costs_ids_final[id] = (item_name, cost)
     items_log += "}"
+
     add_log(items_log, "debug")
 
     return item_costs_ids_final

@@ -80,9 +80,11 @@ reduced_item_names = {
     "Master's Special Stuffed Shadow Wolf Head": "M. Sp. St. Shadow Wolf Head",
 }
 
-max_attempts = 2 # Maximum number of attempts to fetch one data from the API
-timeout_connection = 1 # Timeout for the connection in seconds
+max_attempts = 3 # Maximum number of attempts to fetch one data from the API
+timeout_connection = 1 # Timeout in seconds to establish a connection to the API
+timeout_retrieve = 5 # Timeout in seconds to retrieve data from the API
 saved_sessions_folder = "Hunting Sessions"  # Folder where hunting sessions are saved
+backoff_time = 0.5 # Time in seconds to wait before retrying a request
 
 scroll_bar_style = f"""
     QScrollBar:vertical {{ /* Vertical background scroll bar */
