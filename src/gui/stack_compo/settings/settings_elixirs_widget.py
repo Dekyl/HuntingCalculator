@@ -32,7 +32,17 @@ from controller.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 
 class SettingsElixirsWidget(QWidget):
+    """
+    A widget for managing elixir settings in the application.
+    This widget allows users to add, search, and delete elixirs from their settings.
+    """
     def __init__(self, setting_val: dict[str, Any], settings_actual_data: dict[str, tuple[str, Any]], on_settings_changed: Callable[[str, Any], None]):
+        """
+        Initialize the SettingsElixirsWidget with the provided parameters.
+            :param setting_val: A dictionary containing the elixir settings (id: name).
+            :param settings_actual_data: A dictionary containing the actual data of the settings.
+            :param on_settings_changed: A callback function to notify when settings change.
+        """
         super().__init__()
         app_instance = QApplication.instance()
         if app_instance:

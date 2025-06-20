@@ -120,7 +120,7 @@ def process_buy_item(id: str, cancel_event: Event, lock_buy_item: Lock, region: 
         add_log(f"Failed to fetch data for ID {id}. Skipping...", "error")
         connection.close()
         return -1
-
+    
     buy_item_cost = get_buy_price(body_buy_price, cancel_event)
     if cancel_event.is_set() or not buy_item_cost:
         add_log(f"Failed to fetch buy price for ID {id}. Skipping...", "error")

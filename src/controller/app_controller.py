@@ -338,19 +338,19 @@ class AppController:
 
         self.view.create_new_session_widget(new_session)
 
-    def on_exchange_hides(self, green_hides: str, blue_hides: str):
+    def on_exchange_hides(self, green_hides: str, blue_hides: str) -> Optional[tuple[int, int, int]]:
         """
         Handle the exchange of hides when the button is clicked.
             :param green_hides: The number of green hides to exchange.
             :param blue_hides: The number of blue hides to exchange.
+            :return: A tuple containing the results of the exchange hides or None if an error occurs.
         """
         if len(green_hides) == 0 or len(blue_hides) == 0:
-            return
+            return None
         try:
-            res_exchange = exchange_results(int(green_hides), int(blue_hides))
-            self.view.update_exchange_hides_results(res_exchange)
+            return exchange_results(int(green_hides), int(blue_hides))
         except:
-            return
+            return None
 
     def save_session(self, name_spot: str, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> bool:
         """
