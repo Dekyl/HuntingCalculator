@@ -6,7 +6,7 @@ from PySide6.QtCore import QSize
 
 from gui.manage_widgets import ManagerWidgets
 from gui.side_bar_widget import SideBarWidget
-from gui.settings_widget import SettingsWidget
+from gui.settings.settings_widget import SettingsWidget
 from gui.home_widget import HomeWidget
 from gui.new_session_widget import NewSessionWidget
 from gui.view_sessions_widget import ViewSessionsWidget
@@ -14,7 +14,7 @@ from controller.app_controller import AppController
 from config.config import res_abs_paths
 from logic.new_session_data import NewSessionData
 
-class MainWindow(QMainWindow):
+class GuiEntryPoint(QMainWindow):
     def __init__(self):
         """
         Initializes the main window of the Hunting Calculator application.
@@ -149,7 +149,6 @@ class MainWindow(QMainWindow):
         This method prompts the user to select a session file and then opens the ViewSessionsWidget
         to display the selected session.
             :param session_file_selected: The path to the session file selected by the user.
-            :raises FileNotFoundError: If the session file does not exist.
         """
         self.manager.add_page("view_sessions", ViewSessionsWidget(session_file_selected)) # Add the view_sessions widget to the manager
         self.manager.set_page("view_sessions") # Switch to the view sessions page

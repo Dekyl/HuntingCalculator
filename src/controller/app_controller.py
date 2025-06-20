@@ -14,7 +14,7 @@ from logic.access_resources import (
     get_spot_id_icon, 
     get_no_market_items,
     get_user_settings,
-    save_user_settings,
+    apply_user_settings,
     get_data_value,
     get_match_elixirs,
     sessions_root_folder_exists,
@@ -401,12 +401,12 @@ class AppController:
 
         return all_settings
     
-    def save_user_settings(self, new_settings: dict[str, tuple[str, Any]]) -> int:
+    def apply_user_settings(self, new_settings: dict[str, tuple[str, Any]]) -> int:
         """
         Save the new settings to the settings file.
             :param new_settings: A dictionary containing the new settings to save.
         """
-        result = save_user_settings(new_settings)
+        result = apply_user_settings(new_settings)
         if result == 0:
             add_log("Settings saved successfully.", "info")
         elif result == -1:

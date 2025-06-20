@@ -193,7 +193,7 @@ def get_user_settings() -> dict[str, Any]:
         add_log(f"Error decoding JSON in settings file: '{settings_json}'.", "error")
         return {}
     
-def save_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
+def apply_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
     """
     Save the new user settings to the settings file.
         :param new_settings: A dictionary containing the new settings to save.

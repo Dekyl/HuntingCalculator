@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication
 
-from gui.main_window import MainWindow
+from gui.gui_entry_point import GuiEntryPoint
 from logic.startup import setup_all
 
 import sys
@@ -12,7 +12,7 @@ def main():
     if not setup_all():
         sys.exit(1)  # Exit if setup fails
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = GuiEntryPoint()
     window.show()
     app.exec()
 
