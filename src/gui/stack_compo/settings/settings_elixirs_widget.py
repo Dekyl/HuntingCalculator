@@ -147,7 +147,7 @@ class SettingsElixirsWidget(QWidget):
         """)
         button_delete_elixir.setIconSize(QSize(25, 25))
 
-        button_delete_elixir.clicked.connect(lambda _, widget=entry_elixir_widget, name=elixir_name: self.delete_elixir_entry(widget, name)) # type: ignore
+        button_delete_elixir.clicked.connect(lambda _, widget=entry_elixir_widget, id=elixir_id: self.delete_elixir_entry(widget, id)) # type: ignore
 
         label_elixir = QLabel(f"{elixir_name} ({elixir_id})")
         label_elixir.setFont(elixirs_default_font)
@@ -328,12 +328,12 @@ class SettingsElixirsWidget(QWidget):
         """
         id_entry_json, elixirs_dict = self.settings_actual_data['Elixirs'] # Get the actual elixirs list
 
-        if elixir_id in elixirs_dict.values():
+        if elixir_id in elixirs_dict:
             self.close_matches_dialog()  # Close previous dialog if exists
-            show_dialog_type(f"Elixir {elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "info", "no_action")
+            show_dialog_type(f"{elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "info", "no_action")
             return # If the elixir ID is already in the dict, do nothing
 
-        elixirs_dict[elixir_name] = elixir_id # Add the new elixir to the list
+        elixirs_dict[elixir_id] = elixir_name # Add the new elixir to the list
         self.settings_actual_data['Elixirs'] = (id_entry_json, elixirs_dict)
 
         self.add_elixir_entry(elixir_id, elixir_name) # Add the new elixir entry to the UI
