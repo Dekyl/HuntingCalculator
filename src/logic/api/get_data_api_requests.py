@@ -17,11 +17,14 @@ def get_price(item_data: str, cancel_event: Event, sell_or_buy: str) -> str:
     try:
         data = json.loads(item_data)
         availability = data["data"]["availability"]
+        print(availability)
         price = None
 
         for entry in availability:
             if cancel_event.is_set():
                 return ""
+            
+            print(entry)
 
             if entry[sell_or_buy] != 0:
                 if price is None:
@@ -54,6 +57,35 @@ def get_buy_price(item_data: str, cancel_event: Event) -> str:
     """
     return get_price(item_data, cancel_event, "buyCount")
 
+def get_item_data(id_item: str, cancel_event: Event, region: str = "eu", attempts: int = 0) -> str:
+    """
+    Connect to the Black Desert Market API to fetch item or elixir data.
+        :param id_item: The ID of the item or elixir to fetch.
+        :param region: The region for which to fetch the data (default is "eu").
+        :param cancel_event: An event to signal cancellation of the operation.
+        :param attempts: The number of attempts made to fetch the data (default is 0).
+        :return: The raw data string containing response information from API, or an empty string if the request fails.
+    """
+    if cancel_event.is_set():
+        return ""
+    
+    url = f"https://api.blackdesertmarket.com/item/{id_item}/0?region={region}"
+    buffer, response_code = perform_api_request(url, cancel_event)
+
+    if response_code == 200:
+        return buffer.getvalue().decode("utf-8")
+    elif response_code == 500:
+        add_log(f"Server returned 500 for item {id_item} data. Attempt {attempts + 1}", "warning")
+    else:
+        add_log(f"Unexpected response code {response_code} for item {id_item} data", "warning")
+
+    if attempts < max_attempts:
+        time.sleep(backoff_time)  # backoff before retrying
+        return get_item_data(id_item, cancel_event, region, attempts + 1)
+
+    add_log(f"Max attempts reached for item {id_item} data", "error")
+    return ""
+
 def perform_api_request(url: str, cancel_event: Event) -> tuple[BytesIO, int]:
     """
     Perform an API request using pycurl to fetch data from the specified URL.
@@ -84,32 +116,3 @@ def perform_api_request(url: str, cancel_event: Event) -> tuple[BytesIO, int]:
         c.close()
 
     return buffer, response_code
-
-def get_item_data(id_item: str, cancel_event: Event, region: str = "eu", attempts: int = 0) -> str:
-    """
-    Connect to the Black Desert Market API to fetch item or elixir data.
-        :param id_item: The ID of the item or elixir to fetch.
-        :param region: The region for which to fetch the data (default is "eu").
-        :param cancel_event: An event to signal cancellation of the operation.
-        :param attempts: The number of attempts made to fetch the data (default is 0).
-        :return: The raw data string containing response information from API, or an empty string if the request fails.
-    """
-    if cancel_event.is_set():
-        return ""
-    
-    url = f"https://api.blackdesertmarket.com/item/{id_item}/0?region={region}"
-    buffer, response_code = perform_api_request(url, cancel_event)
-
-    if response_code == 200:
-        return buffer.getvalue().decode("utf-8")
-    elif response_code == 500:
-        add_log(f"Server returned 500 for item {id_item} data. Attempt {attempts + 1}", "warning")
-    else:
-        add_log(f"Unexpected response code {response_code} for item {id_item} data", "warning")
-
-    if attempts < max_attempts:
-        time.sleep(backoff_time)  # backoff before retrying
-        return get_item_data(id_item, cancel_event, region, attempts + 1)
-
-    add_log(f"Max attempts reached for item {id_item} data", "error")
-    return ""
