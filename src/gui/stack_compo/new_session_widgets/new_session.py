@@ -108,7 +108,7 @@ class NewSession(QWidget):
         ManagerWidgets.get_instance().add_page("new_session", self)
         ManagerWidgets.get_instance().set_page("new_session")
 
-        self.exchange_hides_elixirs_widget.focus_green_exchange_line_edit()
+        #self.exchange_hides_elixirs_widget.focus_green_exchange_line_edit()
 
     def get_no_name_percent(self, name: str) -> str:
         """

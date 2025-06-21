@@ -31,8 +31,7 @@ class SessionInputs(QWidget):
         """
         super().__init__()
 
-        inputs_widget = QWidget()
-        inputs_layout = QGridLayout(inputs_widget)
+        inputs_layout = QGridLayout(self)
 
         self.labels_icons_input: list[tuple[Optional[QIcon], QLabel, Optional[QLabel]]] = []
         self.controller = AppController.get_instance()  # Get the instance of the AppController
@@ -143,8 +142,6 @@ class SessionInputs(QWidget):
             col +=1
             if col == 7:
                 col = 0
-
-        return inputs_widget
 
     def update_session_results(self):
         """

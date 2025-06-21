@@ -13,9 +13,8 @@ class SessionResults(QWidget):
         """
         super().__init__()
 
-        results_widget = QWidget()
-        results_layout = QGridLayout(results_widget)
-        results_widget.setMaximumHeight(150)
+        results_layout = QGridLayout(self)
+        self.setMaximumHeight(150)
         
         self.labels_result = [
             QLabel("Total"), 

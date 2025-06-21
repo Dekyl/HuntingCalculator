@@ -23,8 +23,7 @@ class ExchangeHidesElixirs(QWidget):
         self.results_default_style = results_default_style
 
         # Create widget that contains exchange hides and elixirs cost widgets
-        exchange_elixirs_widget = QWidget()
-        exchange_elixirs_layout = QHBoxLayout(exchange_elixirs_widget)
+        exchange_elixirs_layout = QHBoxLayout(self)
         exchange_elixirs_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Create exchange hides widget

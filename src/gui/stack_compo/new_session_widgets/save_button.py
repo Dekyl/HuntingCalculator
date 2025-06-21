@@ -19,8 +19,8 @@ class SaveSessionButton(QWidget):
             :param qtooltip_style: The style for tooltips in the application.
             :param callbacks: An instance of SaveSessionCallbacks containing methods to get labels and inputs.
         """
-        save_button_widget = QWidget()
-        save_button_layout = QHBoxLayout(save_button_widget)
+        super().__init__()
+        save_button_layout = QHBoxLayout(self)
 
         # Button to save data in an excel file
         self.save_button = QPushButton("Save")
@@ -56,8 +56,6 @@ class SaveSessionButton(QWidget):
         self.save_button.clicked.connect(self.save_session_excel)
 
         save_button_layout.addWidget(self.save_button, alignment= Qt.AlignmentFlag.AlignCenter)
-
-        return save_button_widget
 
     def save_session_excel(self):
         """
