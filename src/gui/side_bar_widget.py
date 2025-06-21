@@ -55,10 +55,10 @@ class SideBarWidget(QWidget):
         self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None,], str]] = [
             ("Home", lambda _: self.manager_widgets.set_page("home"), "Ctrl+H"),
             ("New session", lambda btn: self.show_spots_list_widget(btn), "Ctrl+N"),
-            ("View sessions", lambda _: self.controller.show_dialog_select_session(), "Ctrl+A"),
-            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None, "Ctrl+L"),
-            ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None, "Ctrl+G"),
-            ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None, "Ctrl+Q")
+            ("View sessions", lambda _: self.controller.show_dialog_select_session_controller(), "Ctrl+A"),
+            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button_controller() if self.controller else None, "Ctrl+L"),
+            ("Settings", lambda _: self.controller.create_settings_widget_controller() if self.controller else None, "Ctrl+G"),
+            ("Exit", lambda _: self.controller.on_exit_button_controller() if self.controller else None, "Ctrl+Q")
         ]
 
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
@@ -132,7 +132,7 @@ class SideBarWidget(QWidget):
         the new_session widget is opened for the selected spot.
             :param button: The button that triggered the dialog to show the spots list.
         """
-        spots = self.controller.get_spots_list() if self.controller else [] # Assume this method retrieves the list of spots
+        spots = self.controller.get_spots_list_controller() if self.controller else [] # Assume this method retrieves the list of spots
 
         if not spots:
             return # Exit if there is no 'spots' field
@@ -191,7 +191,7 @@ class SideBarWidget(QWidget):
             # This is necessary to avoid late binding issues in lambda functions
             # Calls open_new_session_for_spot with the selected spot when the button is clicked
             # Closes the dialog after opening the new session
-            button.clicked.connect(lambda _, s=spot: (self.controller.select_new_session(s), spots_dialog.accept())) # type: ignore
+            button.clicked.connect(lambda _, s=spot: (self.controller.select_new_session_controller(s), spots_dialog.accept())) # type: ignore
 
             # Create a keyboard shortcut for each button spot
             shortcut_view_sessions = QShortcut(f"Ctrl+{i+1}", spots_dialog)

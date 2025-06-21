@@ -107,7 +107,7 @@ class ExchangeHidesElixirs(QWidget):
             :param green_hides: The number of green hides to exchange.
             :param blue_hides: The number of blue hides to exchange.
         """
-        exchange_results = self.controller.on_exchange_hides(green_hides, blue_hides)
+        exchange_results = self.controller.on_exchange_hides_controller(green_hides, blue_hides)
         if exchange_results:
             self.update_session_exchange_hides(exchange_results)
 

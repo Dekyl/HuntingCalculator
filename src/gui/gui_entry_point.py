@@ -73,11 +73,11 @@ class GuiEntryPoint(QMainWindow):
 
         # View sessions shortcut
         shortcut_view_sessions = QShortcut("Ctrl+A", self)
-        shortcut_view_sessions.activated.connect(lambda: self.controller.show_dialog_select_session() if self.controller else None)
+        shortcut_view_sessions.activated.connect(lambda: self.controller.show_dialog_select_session_controller() if self.controller else None)
 
         # Clean sessions shortcut
         shortcut_clean_sessions = QShortcut("Ctrl+L", self)
-        shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button() if self.controller else None)
+        shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button_controller() if self.controller else None)
 
         # Settings shortcut
         shortcut_settings = QShortcut("Ctrl+G", self)
@@ -85,7 +85,7 @@ class GuiEntryPoint(QMainWindow):
 
         # Exit application shortcut
         shortcut_exit = QShortcut("Ctrl+Q", self)
-        shortcut_exit.activated.connect(self.controller.on_exit_button if self.controller else None)
+        shortcut_exit.activated.connect(self.controller.on_exit_button_controller if self.controller else None)
 
     def create_new_session_widget(self, new_session: NewSessionData):
         """

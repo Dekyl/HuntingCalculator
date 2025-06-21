@@ -117,7 +117,7 @@ class ViewSessionsWidget(QWidget):
         """)
         
         delete_session_button.setFont(QFont("Arial", 16))
-        delete_session_button.clicked.connect(lambda: controller.delete_session(file_path))
+        delete_session_button.clicked.connect(lambda: controller.delete_session_controller(file_path))
         delete_session_button.setMaximumWidth(300)
         delete_session_button.setMinimumHeight(50)
 

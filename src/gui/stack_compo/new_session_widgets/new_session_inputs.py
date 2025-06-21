@@ -179,7 +179,7 @@ class SessionInputs(QWidget):
             imperfect_lightstone_costs=self.new_session.imperfect_lightstone_costs
         )
 
-        res_data = self.controller.get_session_results(session_results)
+        res_data = self.controller.get_session_results_controller(session_results)
         if res_data == -1:
             show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "no_action")
             return

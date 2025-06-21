@@ -29,7 +29,7 @@ class SettingsWidget(QWidget):
         super().__init__()
         self.controller = AppController.get_instance()
 
-        settings_data = self.controller.get_all_settings_data()
+        settings_data = self.controller.get_all_settings_data_controller()
         if settings_data is None:
             show_dialog_type("Failed to load settings data. Please check the settings file.", "Settings load", "error", "no_action")
             QTimer.singleShot(0, lambda: ManagerWidgets.get_instance().set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
@@ -275,7 +275,7 @@ class SettingsWidget(QWidget):
             If the settings are saved successfully, it updates the original settings to match the current actual data.
         """
         self.setEnabled(False) # Disable the widget while saving settings
-        result = self.controller.apply_user_settings(self.settings_actual_data)
+        result = self.controller.apply_user_settings_controller(self.settings_actual_data)
 
         if result == 0: # If the settings were saved successfully
             self.update_original_settings() # Update the original settings to match the current actual data
