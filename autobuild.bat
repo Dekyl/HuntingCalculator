@@ -19,10 +19,7 @@ if exist dist (
 pyinstaller --noconfirm --onefile --windowed ^
 --icon "res\icons\app_icons\matchlock.ico" ^
 --name "Hunting Calculator" ^
---add-data "res\icons\app_icons;res/icons/app_icons" ^
---add-data "res\icons\app_images;res/icons/app_images" ^
---add-data "res\icons\no_market_items;res/icons/no_market_items" ^
---add-data "res\data.json;res/" ^
+--add-data "res\;res/" ^
 "src\main.py"
 
 echo Cleaning temp files...
