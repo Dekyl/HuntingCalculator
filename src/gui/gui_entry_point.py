@@ -8,7 +8,7 @@ from gui.manage_widgets import ManagerWidgets
 from gui.side_bar_widget import SideBarWidget
 from gui.stack_compo.settings.settings_widget import SettingsWidget
 from gui.stack_compo.home_widget import HomeWidget
-from gui.stack_compo.new_session_widget import NewSessionWidget
+from gui.stack_compo.new_session_widgets.new_session import NewSession
 from gui.stack_compo.view_sessions_widget import ViewSessionsWidget
 from controller.app_controller import AppController
 from config.config import res_abs_paths
@@ -87,19 +87,12 @@ class GuiEntryPoint(QMainWindow):
         shortcut_exit = QShortcut("Ctrl+Q", self)
         shortcut_exit.activated.connect(self.controller.on_exit_button if self.controller else None)
 
-    def update_exchange_hides_results(self, exchange_results: tuple[int, int, int]):
-        """
-        Update the results of the exchange hides operation.
-            :param exchange_results: A tuple containing the results of the exchange operation.
-        """
-        self.actual_session.update_session_exchange_results(exchange_results)
-
     def create_new_session_widget(self, new_session: NewSessionData):
         """
         Create a new session widget for the specified hunting spot.
             :param new_session: An instance of NewSessionData containing the details of the new session.
         """
-        self.actual_session = NewSessionWidget(new_session)
+        self.actual_session = NewSession(new_session)
 
     def create_settings_widget(self):
         """

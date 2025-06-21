@@ -3,15 +3,15 @@
         "Shadow Lion": {
             "spot_id_icon": "3544",
             "name": "Shadow Lion",
-            "loot": [
-                "7923",
-                "6020",
-                "6223",
-                "56221",
-                "3544",
-                "3554",
-                "3564"
-            ],
+            "loot": {
+                "7923": "Lion Meat",
+                "6020": "Lion Hide",
+                "6223": "Lion Blood",
+                "56221": "Breath of Narcion",
+                "3544": "Stuffed Shadow Lion Head",
+                "3554": "Master's Stuffed Shadow Lion Head",
+                "3564": "Master's Special Stuffed Shadow Lion Head"
+            },
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
@@ -27,15 +27,15 @@
         "Grass Rhino": {
             "spot_id_icon": "3540",
             "name": "Grass Rhino",
-            "loot": [
-                "7904",
-                "6204",
-                "6004",
-                "56221",
-                "3540",
-                "3550",
-                "3560"
-            ],
+            "loot": {
+                "7904": "Rhino Meat",
+                "6204": "Rhino Blood",
+                "6004": "Rhino Hide",
+                "56221": "Breath of Narcion",
+                "3540": "Stuffed Grass Rhino Head",
+                "3550": "Master's Stuffed Grass Rhino Head",
+                "3560": "Master's Special Stuffed Grass Rhino Head"
+            },
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
@@ -51,15 +51,15 @@
         "Verdure Buck": {
             "spot_id_icon": "3541",
             "name": "Verdure Buck",
-            "loot": [
-                "7901",
-                "6201",
-                "6001",
-                "56221",
-                "3541",
-                "3551",
-                "3561"
-            ],
+            "loot": {
+                "7901": "Deer Meat",
+                "6201": "Deer Blood",
+                "6001": "Deer Hide",
+                "56221": "Breath of Narcion",
+                "3541": "Stuffed Verdure Buck",
+                "3551": "Master's Stuffed Verdure Buck",
+                "3561": "Master's Special Stuffed Verdure Buck"
+            },
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
@@ -75,15 +75,15 @@
         "Verdure Doe": {
             "spot_id_icon": "3542",
             "name": "Verdure Doe",
-            "loot": [
-                "7901",
-                "6201",
-                "6001",
-                "56221",
-                "3542",
-                "3552",
-                "3562"
-            ],
+            "loot": {
+                "7901": "Deer Meat",
+                "6201": "Deer Blood",
+                "6001": "Deer Hide",
+                "56221": "Breath of Narcion",
+                "3542": "Verdure Doe",
+                "3552": "Master's Stuffed Verdure Doe",
+                "3562": "Master's Special Stuffed Verdure Doe"
+            },
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
@@ -99,15 +99,15 @@
         "Shadow Wolf": {
             "spot_id_icon": "3543",
             "name": "Shadow Wolf",
-            "loot": [
-                "7913",
-                "6214",
-                "6014",
-                "56221",
-                "3543",
-                "3553",
-                "3563"
-            ],
+            "loot": {
+                "7913": "Wolf Meat",
+                "6214": "Wolf Blood",
+                "6014": "Wolf Hide",
+                "56221": "Breath of Narcion",
+                "3543": "Stuffed Shadow Wolf Head",
+                "3553": "Master's Stuffed Shadow Wolf Head",
+                "3563": "Master's Special Stuffed Shadow Wolf Head"
+            },
             "no_market_items": [
                 "Artifacts",
                 "Wildspark",
@@ -121,34 +121,34 @@
             ]
         }
     },
-    "common_items": [
-        "767969",
-        "767970",
-        "767971",
-        "767972",
-        "767973",
-        "6185",
-        "4999",
-        "5000",
-        "4987",
-        "4998",
-        "721003",
-        "766107"
-    ],
-    "imperfect_lighstone_items": [
-        "766104",
-        "766105",
-        "766106",
-        "766107"
-    ],
-    "lighstone_items": [
-        "758001",
-        "758002",
-        "760001",
-        "760002",
-        "762001"
-    ],
-    "elixir_perfume_ids": {
+    "common_items": {
+        "767969": "Blessing of Mystic Beasts - All AP",
+        "767970": "Blessing of Mystic Beasts - Accuracy",
+        "767971": "Blessing of Mystic Beasts - Damage Reduction",
+        "767972": "Blessing of Mystic Beasts - Evasion",
+        "767973": "Blessing of Mystic Beasts - Max HP",
+        "6185": "Fire Horn",
+        "4999": "Black Gem Fragment",
+        "5000": "Black Gem",
+        "4987": "Concentrated Magical Black Gem",
+        "4998": "Sharp Black Crystal Shard",
+        "721003": "Caphras Stone",
+        "766107": "Imperfect Lightstone of Flora"
+    },
+    "imperfect_lighstone_items": {
+        "766104": "Imperfect Lightstone of Fire",
+        "766105": "Imperfect Lightstone of Earth",
+        "766106": "Imperfect Lightstone of Wind",
+        "766107": "Imperfect Lightstone of Flora"
+    },
+    "lighstone_items": {
+        "758001": "Lightstone of Fire: Rage",
+        "758002": "Lightstone of Fire: Marked",
+        "760001": "Lightstone of Earth: Iron Wall",
+        "760002": "Lightstone of Earth: Waves",
+        "762001": "Lightstone of Wind: Heart"
+    },
+    "elixir_perfume_names_ids": {
         "766": "[Mix] EXP-Reaper Elixir",
         "769": "[Mix] Manhunt-Rage Elixir",
         "768": "[Mix] Swiftness-Wind-Spell Elixir",
@@ -308,5 +308,31 @@
         "794": "Savage Draught",
         "793": "Giant's Draught",
         "791": "Verdure Draught"
+    },
+    "reduced_item_names": {
+        "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",
+        "Blessing of Mystic Beasts - All AP": "BMB: All AP",
+        "Blessing of Mystic Beasts - Accuracy": "BMB: Accuracy",
+        "Blessing of Mystic Beasts - Damage Reduction": "BMB: Damage Reduction",
+        "Blessing of Mystic Beasts - Evasion": "BMB: Evasion",
+        "Blessing of Mystic Beasts - Max HP": "BMB: Max HP",
+        "Black Gem Fragment": "Black Gem Frag.",
+        "Sharp Black Crystal Shard": "S. Black Crystal Shard",
+        "Imperfect Lightstone of Flora": "Imp. Lightst. of Flora",
+        "Stuffed Shadow Lion Head": "St. Shadow Lion Head",
+        "Master's Stuffed Shadow Lion Head": "M. St. Shadow Lion Head",
+        "Master's Special Stuffed Shadow Lion Head": "M. Sp. St. Shadow Lion Head",
+        "Stuffed Grass Rhino Head": "St. Grass Rhino Head",
+        "Master's Stuffed Grass Rhino Head": "M. St. Grass Rhino Head",
+        "Master's Special Stuffed Grass Rhino Head": "M. Sp. St. Grass Rhino Head",
+        "Stuffed Vedure Doe Head": "St. Vedure Doe Head",
+        "Master's Stuffed Vedure Doe Head": "M. St. Vedure Doe Head",
+        "Master's Special Stuffed Vedure Doe Head": "M. Sp. St. Vedure Doe Head",
+        "Stuffed Verdure Buck Head": "St. Verdure Buck Head",
+        "Master's Stuffed Verdure Buck Head": "M. St. Verdure Buck Head",
+        "Master's Special Stuffed Verdure Buck Head": "M. Sp. St. Verdure Buck Head",
+        "Stuffed Shadow Wolf Head": "St. Shadow Wolf Head",
+        "Master's Stuffed Shadow Wolf Head": "M. St. Shadow Wolf Head",
+        "Master's Special Stuffed Shadow Wolf Head": "M. Sp. St. Shadow Wolf Head"
     }
 }

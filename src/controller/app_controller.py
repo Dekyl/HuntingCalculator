@@ -27,11 +27,11 @@ from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type,
 from config.config import (
     default_settings, 
     settings_json, 
-    res_abs_paths, 
-    NestedDict, 
+    res_abs_paths,
     FlatDict, 
     market_tax, 
-    saved_sessions_folder
+    saved_sessions_folder,
+    NestedDict
 )
 from interface.view_interface import ViewInterface
 
@@ -223,9 +223,9 @@ class AppController:
             :param spot_name: The name of the hunting spot selected by the user.
         """
         add_log(f"Session selected: {spot_name}, retrieving data", "info")
-        loot_ids = get_spot_loot(spot_name)
+        loot_items = get_spot_loot(spot_name)
 
-        if not loot_ids:
+        if not loot_items:
             self.show_error_and_enable_ui(f"Error fetching loot for spot '{spot_name}'.", "Data error", "no_action")
             return
         
@@ -249,20 +249,18 @@ class AppController:
             self.show_error_and_enable_ui("Value pack usage or not was not found, add it in settings section.", "Settings file error", "no_action")
             return
         
-        elixirs = get_user_setting("elixirs")
+        elixirs: dict[str, str] | None = get_user_setting("elixirs")
         if elixirs is None:
             self.show_error_and_enable_ui("Elixirs setting not found, add it in settings section.", "Settings file error", "no_action")
             return
         
-        elixirs_ids = list(elixirs.values()) # Get the list of elixir IDs from user settings
-        
-        lighstones_ids = get_data_value("lighstone_items")
-        if lighstones_ids is None:
+        lightstones: dict[str, str] | None = get_data_value("lighstone_items")
+        if lightstones is None:
             self.show_error_and_enable_ui(f"'lighstone_items' missing in '{res_abs_paths['data']}' file.", "Data file error", "no_action")
             return
         
-        imperfect_lightstone_ids = get_data_value("imperfect_lighstone_items")
-        if imperfect_lightstone_ids is None:
+        imperfect_lightstones: dict[str, str] | None = get_data_value("imperfect_lighstone_items")
+        if imperfect_lightstones is None:
             self.show_error_and_enable_ui(f"'imperfect_lighstone_items' missing in '{res_abs_paths['data']}' file.", "Data file error", "no_action")
             return
         
@@ -278,23 +276,22 @@ class AppController:
         
         self.thread = QThread()
         self.worker = DataFetcher(
-            loot_ids,
-            elixirs_ids,
+            loot_items,
+            elixirs,
             region,
-            language,
-            lighstones_ids,
-            imperfect_lightstone_ids
+            lightstones,
+            imperfect_lightstones
         )
 
         self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(lambda: self.on_data_retrieved(new_session, self.worker.data_retrieved, self.worker.lightstone_costs, self.worker.imperfect_lightstone_costs))
+        self.worker.finished.connect(lambda: self.on_data_retrieved(new_session, self.worker.data_retrieved))
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
 
-    def on_data_retrieved(self, new_session: NewSessionData, data_retrieved: Optional[NestedDict], lightstone_costs: Optional[FlatDict], imperfect_lightstone_costs: Optional[FlatDict]):
+    def on_data_retrieved(self, new_session: NewSessionData, data_retrieved: Optional[NestedDict]):
         """
         Handle the data retrieval from the API.
             :param new_session: The NewSessionData object containing the session details.
@@ -303,7 +300,7 @@ class AppController:
             :param imperfect_lightstone_cost: The costs of the imperfect lightstones for the hunting spot, or None if an error occurred.
         """
         self.view.set_ui_enabled(True) # Re-enable the UI
-        if data_retrieved is None or lightstone_costs is None or imperfect_lightstone_costs is None:
+        if data_retrieved is None:
             add_log(f"Error retrieving data for spot '{new_session.name_spot}'", "error")
             self.view.set_session_button_enabled(False) # Disable the new session button
             show_dialog_type(
@@ -327,30 +324,30 @@ class AppController:
             return
         
         no_market_items = get_no_market_items(new_session.name_spot)
-
+        
         new_session.set_extra_data(spot_id_icon,
             no_market_items,
             data_retrieved['items'],
             calculate_elixirs_cost_hour(data_retrieved['elixirs']),
-            lightstone_costs, 
-            imperfect_lightstone_costs
+            data_retrieved['lightstones'], 
+            data_retrieved['imperfect_lightstones']
         )
 
         self.view.create_new_session_widget(new_session)
 
-    def on_exchange_hides(self, green_hides: str, blue_hides: str):
+    def on_exchange_hides(self, green_hides: str, blue_hides: str) -> Optional[tuple[int, int, int]]:
         """
         Handle the exchange of hides when the button is clicked.
             :param green_hides: The number of green hides to exchange.
             :param blue_hides: The number of blue hides to exchange.
+            :return: A tuple containing the results of the exchange hides or None if an error occurs.
         """
         if len(green_hides) == 0 or len(blue_hides) == 0:
-            return
+            return None
         try:
-            res_exchange = exchange_results(int(green_hides), int(blue_hides))
-            self.view.update_exchange_hides_results(res_exchange)
+            return exchange_results(int(green_hides), int(blue_hides))
         except:
-            return
+            return None
 
     def save_session(self, name_spot: str, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> bool:
         """
