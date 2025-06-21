@@ -77,7 +77,7 @@ res_list = {
 }
 
 res_abs_paths: dict[str, str] = {}
-settings_json = 'usr/settings.json'  # Path to the settings JSON file
+settings_json = 'settings/settings.json'  # Path to the settings JSON file
 default_settings: dict[str, Any] = {
     "region": "eu",
     "show_confirm_clean_message": True,

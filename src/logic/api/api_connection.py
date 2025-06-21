@@ -21,8 +21,12 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
 
     cancel_event = Event()
     def process_item(id: str) -> int:
-        prices_ids[id] = 0
-        return 0
+        """
+        Process a single item ID to fetch its price from the API.
+            :param id: The ID of the item to fetch.
+            :return: 0 on success, -1 on failure.
+        """
+        add_log(f"Processing {item_type} ID {id}...", "debug")
         if cancel_event.is_set(): # Check if the cancel event is set before proceeding
             return -1
         
@@ -42,12 +46,12 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
                 add_log(f"Failed to fetch buy price for {item_type} ID {id}. Skipping...", "error")
                 return -1
             
-        add_log(f"Fetched {item_type} ID {id} with price {price:,}", "debug")
-        
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
         if not cancel_event.is_set():
             with lock:
-                prices_ids[id] = int(price) # id, sell_price
+                price_int = int(price) if price.isdigit() else -1 # Convert price to int, handle non-digit cases
+                prices_ids[id] = price_int # id, sell_price
+                add_log(f"Fetched {item_type} ID {id} with price {price_int:,}", "info")
 
         return 0  # Return 0 on success, -1 on failure
 

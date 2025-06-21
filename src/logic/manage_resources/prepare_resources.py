@@ -87,8 +87,8 @@ def startup_resources() -> bool:
     if not os.path.exists(saved_sessions_folder):
         os.mkdir(saved_sessions_folder)
 
-    if not os.path.exists('usr'):
-        os.mkdir('usr')
+    if not os.path.exists('settings'):
+        os.mkdir('settings')
 
     if not os.path.exists(settings_json): #  Check if the settings JSON file exists
         add_log(f"Settings file {settings_json} not found, creating a new one.", "info")
