@@ -21,6 +21,8 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
 
     cancel_event = Event()
     def process_item(id: str) -> int:
+        prices_ids[id] = 0
+        return 0
         if cancel_event.is_set(): # Check if the cancel event is set before proceeding
             return -1
         
@@ -39,6 +41,8 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
             if cancel_event.is_set() or not price:
                 add_log(f"Failed to fetch buy price for {item_type} ID {id}. Skipping...", "error")
                 return -1
+            
+        add_log(f"Fetched {item_type} ID {id} with price {price:,}", "debug")
         
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
         if not cancel_event.is_set():
