@@ -28,7 +28,7 @@ from PySide6.QtGui import (
 )
 
 from config.config import res_abs_paths, scroll_bar_style
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 
 class SettingsElixirsWidget(QWidget):
@@ -163,7 +163,7 @@ class SettingsElixirsWidget(QWidget):
         Search for elixirs by name or ID and update the elixir settings.
             :param text: The text to search for in the elixirs.
         """
-        matches = self.controller.get_match_elixirs(text)
+        matches = self.controller.get_match_elixirs_controller(text)
         if matches is None:
             self.close_matches_dialog()  # Close previous dialog if exists
             return # Empty matches, do nothing

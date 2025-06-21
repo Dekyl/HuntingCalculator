@@ -8,7 +8,7 @@ from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.save_session_callbacks import SaveSessionCallbacks
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
 from gui.manage_widgets import ManagerWidgets
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from . import *
 
 class NewSession(QWidget):

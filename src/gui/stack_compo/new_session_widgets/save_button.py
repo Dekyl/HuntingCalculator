@@ -5,7 +5,7 @@ from PySide6.QtGui import QFont
 from logic.data_classes.save_session_callbacks import SaveSessionCallbacks
 from logic.data_classes.save_session_data import SaveSessionData
 from gui.dialogs.dialogs_user import show_dialog_type
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 
 class SaveSessionButton(QWidget):
     """
@@ -97,12 +97,12 @@ class SaveSessionButton(QWidget):
             res_data.append(inp)
 
         session_data = SaveSessionData(self.name_spot, res_name, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h)
-        if not self.controller.save_session(session_data):
+        if not self.controller.save_session_controller(session_data):
             show_dialog_type("Error saving data, invalid data.", "Error saving", "error", "no_action")
             return
         
         show_dialog_type("Session saved successfully", "Success saving", "info", "no_action")
-        self.controller.change_page("home")  # Switch back to the home page after saving the session
+        self.controller.change_page_controller("home")  # Switch back to the home page after saving the session
 
     def get_save_button(self) -> QPushButton:
         """
