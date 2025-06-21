@@ -15,7 +15,7 @@ from config.config import (
     extra_profit_multiplier
 )
 
-def calculate_elixirs_cost_hour(elixirs: dict[str, tuple[str, int]]) -> str:
+def calculate_elixirs_cost_hour(elixirs: FlatDict) -> str:
     """
     Calculate the cost of elixirs per hour based on the provided elixirs data.
         :param elixirs: A dictionary containing elixir id: (name and cost).

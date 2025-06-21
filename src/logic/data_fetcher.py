@@ -8,25 +8,23 @@ class DataFetcher(QObject):
     It retrieves data for specified loot and elixir IDs, region, and language.
     It emits a signal when the data fetching is complete or fails.
     """
-    finished = Signal(object, object, object) # Signal to emit when data fetching is complete or fails (type of data sent)
+    finished = Signal(object) # Signal to emit when data fetching is complete or fails (type of data sent)
 
-    def __init__(self, loot_ids: list[str], elixir_ids: list[str], region: str, language: str, lightstones_ids: list[str], imperfect_lightstone_ids: list[str]):
+    def __init__(self, loot_items: dict[str, str], elixirs: dict[str, str], region: str, lightstones: dict[str, str], imperfect_lightstones: dict[str, str]):
         """
         Initialize the DataFetcher with the necessary parameters.
-            :param loot_ids: List of item IDs to fetch data for.
-            :param elixir_ids: List of elixir IDs to fetch data for.
+            :param loot_items: Dictionary of loot item IDs and their names.
+            :param elixir: Dictionary of elixir IDs and their names.
             :param region: The region for which to fetch data.
-            :param language: The language for which to fetch data.
-            :param lightstones_ids: List of lightstone IDs.
-            :param imperfect_lightstone_ids: List of imperfect lightstone IDs.
+            :param lightstones: Dictionary of lightstone IDs and their names.
+            :param imperfect_lightstone: Dictionary of imperfect lightstone IDs and their names.
         """
         super().__init__()
-        self.loot_ids = loot_ids
-        self.elixir_ids = elixir_ids
+        self.loot_items = loot_items
+        self.elixirs = elixirs
         self.region = region
-        self.language = language
-        self.lightstones_ids = lightstones_ids
-        self.imperfect_lightstone_ids = imperfect_lightstone_ids
+        self.lightstones = lightstones
+        self.imperfect_lightstones = imperfect_lightstones
 
     def run(self):
         """
@@ -34,9 +32,9 @@ class DataFetcher(QObject):
         This method connects to the API and retrieves the data for the specified hunting spot.
         It emits a signal with the results or None if an error occurs.
         """
-        self.data_retrieved, self.lightstone_costs, self.imperfect_lightstone_costs = connect_api(self.loot_ids, self.elixir_ids, self.lightstones_ids, self.imperfect_lightstone_ids, self.region, self.language)
+        self.data_retrieved = connect_api(self.loot_items, self.elixirs, self.lightstones, self.imperfect_lightstones, self.region)
         
-        if self.data_retrieved and self.lightstone_costs and self.imperfect_lightstone_costs:
-            self.finished.emit(self.data_retrieved, self.lightstone_costs, self.imperfect_lightstone_costs)  # Emit the retrieved data and costs
+        if self.data_retrieved:
+            self.finished.emit(self.data_retrieved)  # Emit the retrieved data and costs
         else:
-            self.finished.emit(None, None, None)  # Emit None if data retrieval fails
+            self.finished.emit(None)  # Emit None if data retrieval fails
