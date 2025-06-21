@@ -1,15 +1,14 @@
-from typing import Any, Callable
+from typing import Callable
 
 from PySide6.QtWidgets import QMessageBox, QCheckBox, QFileDialog
 from PySide6.QtGui import QIcon
 
 from config.config import saved_sessions_folder, res_abs_paths
 
-def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "exit") -> bool:
+def show_dialog_confirmation(message: str, confirm_action: str = "exit") -> tuple[bool, bool]:
     """
     Show a confirmation dialog before executing an action.
         :param message: The confirmation message to display.
-        :param action: The action to execute if confirmed.
         :param confirm_action: The action that was confirmed, used to set the icon.
     """
     msg_box = QMessageBox()
@@ -46,12 +45,9 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     msg_box.setCheckBox(checkbox)
 
     reply = msg_box.exec()
-    if reply == QMessageBox.StandardButton.Yes:
-        if checkbox.isChecked():
-            action()
-            return False # Do not show the confirmation dialog again
-        action()
-    return True
+    close = reply == QMessageBox.StandardButton.Yes
+    show_again = not checkbox.isChecked()
+    return close, show_again
 
 def show_dialog_type(msg: str, title: str, type: str = "info", action: str = "no_action"):
     """

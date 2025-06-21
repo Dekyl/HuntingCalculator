@@ -60,7 +60,7 @@ class SettingsElixirsWidget(QWidget):
         self.matches_dialog = None  # Initialize matches_dialog attribute
 
         for id, name in setting_val.items():
-            self.add_elixir_entry(name, id)
+            self.add_elixir_entry(id, name)
 
         self.create_search_elixir_line_edit() # Create the search line edit for elixirs
         self.create_esc_shortcut() # Create the ESC shortcut to close the dialog
