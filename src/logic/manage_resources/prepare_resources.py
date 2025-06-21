@@ -1,8 +1,13 @@
 import sys, os, json
-import shutil
 
 from logic.logs import add_log
-from config.config import res_list, item_icons_root, settings_json, default_settings, res_abs_paths
+from config.config import (
+    res_list, 
+    settings_json, 
+    default_settings, 
+    res_abs_paths, 
+    saved_sessions_folder
+)
 from logic.manage_resources.access_resources import get_app_resource
 
 def check_all_fields_exist_data(target_file: str, meipass_src: str, label: str):
@@ -70,19 +75,6 @@ def check_all_fields_exist_settings() -> bool:
 
     return True
 
-def reset_folder(folder_path: str):
-    """
-    Resets the specified folder by removing it if it exists and creating a new one.
-    This is used to ensure that the folder is clean and does not contain old files
-    that are no longer needed.
-        :param folder_path: The path to the folder to reset.
-    """
-    if os.path.exists(folder_path):
-        # If the elixir icons folder already exists, remove it so it does not contain old icons
-        # This is necessary to avoid keeping old icons that are no longer used in current session
-        shutil.rmtree(folder_path)
-    os.makedirs(folder_path, exist_ok=True)
-
 def startup_resources() -> bool:
     """
     Prepare the resources for the application by copying necessary files
@@ -92,10 +84,11 @@ def startup_resources() -> bool:
     """
     global res_abs_paths
 
-    reset_folder(item_icons_root)  # Reset the item icons folder
+    if not os.path.exists(saved_sessions_folder):
+        os.mkdir(saved_sessions_folder)
 
-    if not os.path.exists('./Hunting Sessions'):
-        os.mkdir('Hunting Sessions')
+    if not os.path.exists('usr'):
+        os.mkdir('usr')
 
     if not os.path.exists(settings_json): #  Check if the settings JSON file exists
         add_log(f"Settings file {settings_json} not found, creating a new one.", "info")

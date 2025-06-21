@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PySide6.QtGui import QIcon, QFont
 from PySide6.QtCore import Qt
 
-from config.config import res_abs_paths, item_icons_root
+from config.config import res_abs_paths
 
 def create_session_title_widget(name_spot: str, spot_id_icon: str) -> QWidget:
     """
@@ -26,7 +26,7 @@ def create_session_title_widget(name_spot: str, spot_id_icon: str) -> QWidget:
     """)
 
     # Hunting zone title and icon
-    hunting_zone_icon = QIcon(f"{item_icons_root}{spot_id_icon}.png") if os.path.exists(f"{item_icons_root}{spot_id_icon}.png") else QIcon(res_abs_paths["not_found_ico"])
+    hunting_zone_icon = QIcon(res_abs_paths[spot_id_icon]) if os.path.exists(res_abs_paths[spot_id_icon]) else QIcon(res_abs_paths["not_found_ico"])
     hunting_zone_name = QLabel(name_spot)
     hunting_zone_name.setFont(QFont("Arial", 24))
     hunting_zone_name.setContentsMargins(0, 0, 50, 0) # Add right margin to title label so it stays in center of screen after adding icon and spacing it

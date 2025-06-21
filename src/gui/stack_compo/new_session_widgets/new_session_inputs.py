@@ -14,7 +14,7 @@ from PySide6.QtCore import Qt
 from gui.aux_components import SmartLabel
 from controller.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
-from config.config import res_abs_paths, item_icons_root
+from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
 from config.config import settings_json
@@ -40,7 +40,7 @@ class SessionInputs(QWidget):
 
         assert self.new_session.items is not None, "Items must be provided in the new session data."
         for i, (id, (item_name, price)) in enumerate(self.new_session.items.items()):
-            icon = QIcon(f"{item_icons_root}{id}.png") if os.path.exists(f"{item_icons_root}{id}.png") else QIcon(res_abs_paths["not_found_ico"])
+            icon = QIcon(res_abs_paths[id]) if os.path.exists(res_abs_paths[id]) else QIcon(res_abs_paths["not_found_ico"])
 
             label = SmartLabel(f"{item_name} (0.00%)")
             label.setFont(default_font)
@@ -65,7 +65,7 @@ class SessionInputs(QWidget):
             """)
 
             if "breath of narcion" in no_market_item.lower():
-                icon = QIcon(res_abs_paths["breath_of_narcion"]) if os.path.exists(res_abs_paths["breath_of_narcion"]) else QIcon(res_abs_paths["not_found_ico"])
+                icon = QIcon(res_abs_paths["56221"]) if os.path.exists(res_abs_paths["56221"]) else QIcon(res_abs_paths["not_found_ico"]) # 56221 is the ID for Breath of Narcion
             else:
                 no_market_item_lower_replace = no_market_item.lower().replace(" ", "_")
                 icon = QIcon(res_abs_paths[no_market_item_lower_replace]) if os.path.exists(res_abs_paths[no_market_item_lower_replace]) else QIcon(res_abs_paths["not_found_ico"])

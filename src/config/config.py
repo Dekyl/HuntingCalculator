@@ -4,7 +4,7 @@ from typing import Any, TypeAlias
 # Global configuration settings for the application
 
 max_threads = 12 # Maximum number of threads to use for concurrent requests
-log_level = logging.INFO # Logging level for the application
+log_level = logging.DEBUG # Logging level for the application
 threshold_delete_logs = 1024 * 1024  # 1 MB
 
 res_list = {
@@ -18,7 +18,6 @@ res_list = {
     'exit_ico': 'res/icons/app_icons/exit_app.ico',
     'not_found_ico': 'res/icons/app_icons/not_found.ico',
     'artifacts': 'res/icons/no_market_items/artifacts.png',
-    'breath_of_narcion': 'res/icons/no_market_items/breath_of_narcion.png',
     'cracked_horn': 'res/icons/no_market_items/cracked_horn.png',
     'cracked_tooth': 'res/icons/no_market_items/cracked_tooth.png',
     'damaged_hide': 'res/icons/no_market_items/damaged_hide.png',
@@ -34,14 +33,51 @@ res_list = {
     'down_arrow': 'res/icons/app_images/down_arrow.png',
     'up_arrow': 'res/icons/app_images/up_arrow.png',
     'left_arrow': 'res/icons/app_images/left_arrow.png',
-    'right_arrow': 'res/icons/app_images/right_arrow.png'
+    'right_arrow': 'res/icons/app_images/right_arrow.png',
+    '56221': 'res/icons/no_market_items/breath_of_narcion.png',
+    "7923": "res/icons/items/7923.png",
+    "6020": "res/icons/items/6020.png",
+    "6223": "res/icons/items/6223.png",
+    "3544": "res/icons/items/3544.png",
+    "3554": "res/icons/items/3554.png",
+    "3564": "res/icons/items/3564.png",
+    "7904": "res/icons/items/7904.png",
+    "6204": "res/icons/items/6204.png",
+    "6004": "res/icons/items/6004.png",
+    "3540": "res/icons/items/3540.png",
+    "3550": "res/icons/items/3550.png",
+    "3560": "res/icons/items/3560.png",
+    "7901": "res/icons/items/7901.png",
+    "6201": "res/icons/items/6201.png",
+    "3541": "res/icons/items/3541.png",
+    "3551": "res/icons/items/3551.png",
+    "3561": "res/icons/items/3561.png",
+    "6001": "res/icons/items/6001.png",
+    "3542": "res/icons/items/3542.png",
+    "3552": "res/icons/items/3552.png",
+    "3562": "res/icons/items/3562.png",
+    "7913": "res/icons/items/7913.png",
+    "6214": "res/icons/items/6214.png",
+    "6014": "res/icons/items/6014.png",
+    "3543": "res/icons/items/3543.png",
+    "3553": "res/icons/items/3553.png",
+    "3563": "res/icons/items/3563.png",
+    "767969": "res/icons/items/767969.png",
+    "767970": "res/icons/items/767970.png",
+    "767971": "res/icons/items/767971.png",
+    "767972": "res/icons/items/767972.png",
+    "767973": "res/icons/items/767973.png",
+    "6185": "res/icons/items/6185.png",
+    "4999": "res/icons/items/4999.png",
+    "5000": "res/icons/items/5000.png",
+    "4987": "res/icons/items/4987.png",
+    "4998": "res/icons/items/4998.png",
+    "721003": "res/icons/items/721003.png",
+    "766107": "res/icons/items/766107.png"
 }
 
 res_abs_paths: dict[str, str] = {}
-
-item_icons_root = 'res/icons/items/'  # Root directory for item icons
-settings_json = 'res/settings.json'  # Path to the settings JSON file
-
+settings_json = 'usr/settings.json'  # Path to the settings JSON file
 default_settings: dict[str, Any] = {
     "region": "eu",
     "show_confirm_clean_message": True,

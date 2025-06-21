@@ -7,8 +7,8 @@ settings.json
 *.tar.gz
 dist/
 logs/
-items/
 designs/
 venv/
 *.spec
 build
+usr/
