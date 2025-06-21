@@ -5,7 +5,7 @@ from PySide6.QtGui import QFont
 from logic.data_classes.save_session_callbacks import SaveSessionCallbacks
 from logic.data_classes.save_session_data import SaveSessionData
 from gui.dialogs.dialogs_user import show_dialog_type
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 
 class SaveSessionButton(QWidget):
     """

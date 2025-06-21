@@ -28,7 +28,7 @@ from PySide6.QtGui import (
 )
 
 from config.config import res_abs_paths, scroll_bar_style
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 
 class SettingsElixirsWidget(QWidget):

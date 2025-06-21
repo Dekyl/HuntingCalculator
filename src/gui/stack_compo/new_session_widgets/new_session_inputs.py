@@ -12,7 +12,7 @@ from PySide6.QtGui import QIcon, QFont
 from PySide6.QtCore import Qt
 
 from gui.aux_components import SmartLabel
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData

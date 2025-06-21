@@ -2,12 +2,11 @@ from PySide6.QtCore import QThread, QTimer
 
 from typing import Any, Optional
 
-from logic.manage_excels import clean_sessions, save_session
+from logic.manage_excels import save_session
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
 from logic.manage_resources.access_resources import (
     update_confirm_dialog, 
-    get_show_confirm_clean, 
     get_show_confirm_exit, 
     get_spot_loot, 
     get_user_setting, 
@@ -35,6 +34,7 @@ from config.config import (
     NestedDict
 )
 from interface.view_interface import ViewInterface
+from controllers.clean_sessions_controller import on_clean_sessions_clicked
 
 class AppController:
     """
@@ -62,82 +62,12 @@ class AppController:
         add_log(f"Changing page to {page_name}.", "info")
         self.view.change_page(page_name)
 
-    def on_clean_sessions_clicked(self):
-        """
-        Handle the clean sessions action.
-            This method is called when the clean sessions button is clicked.
-            It cleans the sessions and shows a message box with the result of the action.
-        """
-        result = clean_sessions()
-        if self.view.get_current_page_name() == "view_sessions":
-            self.change_page("home")  # Change to home page after cleaning sessions
-        if result == 1:
-            add_log(f"Clean sessions dialog selection -> {result} (Success)", "info")
-            show_dialog_type(
-                "Sessions have been successfully cleaned.", 
-                "Clean results", 
-                "info", 
-                "clean_sessions"
-            )
-        elif result == 0:
-            add_log(f"Clean sessions dialog selection -> {result}  (No elements found to delete)", "info")
-            show_dialog_type(
-                "No saved sessions found. Nothing to clean.", 
-                "Clean results", 
-                "info", 
-                "clean_sessions"
-            )
-        elif result == -1:
-            add_log(f"Clean sessions dialog selection -> {result}  (Folder not found, created)", "warning")
-            show_dialog_type(
-                "Folder not found, created. No sessions were deleted.", 
-                "Clean results", 
-                "warning", 
-                "clean_sessions"
-            )
-        else:
-            add_log(f"Clean sessions dialog selection -> {result}  (Error)", "error")
-            show_dialog_type(
-                "An error occurred while cleaning sessions.", 
-                "Clean results", 
-                "error", 
-                "clean_sessions"
-            )
-
     def on_clean_sessions_button(self):
         """
         Handle the clean sessions button click event.
             This method is called when the clean sessions button is clicked.
         """
-        add_log("Clean sessions button clicked.", "info")
-        (res, show_confirm_clean) = get_show_confirm_clean()
-
-        if not res:
-            add_log(f"Error retrieving data from '{settings_json}', check if the file exists and is writable", "error")
-            show_dialog_type(
-                f"Error retrieving data from '{settings_json}', check if the file exists and is writable.", 
-                "Settings file error", 
-                "error", 
-                "no_action"
-            )
-            return
-
-        if show_confirm_clean:
-            add_log("Showing confirmation dialog for cleaning sessions.", "info")
-            enable_confirm_message = show_dialog_confirmation(
-                "Are you sure you want to clean the sessions?", 
-                self.on_clean_sessions_clicked, 
-                "clean_sessions"
-            )
-            if not update_confirm_dialog(enable_confirm_message, "clean_sessions"):
-                show_dialog_type(
-                    f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", 
-                    "Settings file error", 
-                    "error", 
-                    "no_action"
-                )
-        else:
-            self.on_clean_sessions_clicked()
+        on_clean_sessions_clicked(self.view.get_current_page_name, self.change_page)
         
     def exit_application(self):
         """

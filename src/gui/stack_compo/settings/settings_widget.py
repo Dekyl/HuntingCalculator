@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt, QTimer
 
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
 from gui.stack_compo.settings.settings_elixirs_widget import SettingsElixirsWidget

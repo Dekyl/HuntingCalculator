@@ -7,7 +7,7 @@ from PySide6.QtCore import QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
 from gui.aux_components import QHLine
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from interface.view_interface import ViewInterface
 from config.config import res_abs_paths
 

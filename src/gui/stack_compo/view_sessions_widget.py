@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
 from PySide6.QtCore import Qt
 
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from config.config import scroll_bar_style, res_abs_paths
 
 class ViewSessionsWidget(QWidget):

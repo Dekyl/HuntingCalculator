@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QL
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 
 class ExchangeHidesElixirs(QWidget):
     """ 

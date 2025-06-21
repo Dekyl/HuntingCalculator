@@ -10,7 +10,7 @@ from gui.stack_compo.settings.settings_widget import SettingsWidget
 from gui.stack_compo.home_widget import HomeWidget
 from gui.stack_compo.new_session_widgets.new_session import NewSession
 from gui.stack_compo.view_sessions_widget import ViewSessionsWidget
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 
