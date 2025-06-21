@@ -4,6 +4,7 @@ from openpyxl.utils import get_column_letter
 from logic.logs import add_log
 
 from config.config import saved_sessions_folder
+from logic.data_classes.save_session_data import SaveSessionData
 
 def clean_sessions() -> int:
     """
@@ -38,29 +39,22 @@ def clean_sessions() -> int:
     add_log(f"Clean sessions dialog selection -> 0 (No elements found to delete)", "info")
     return 0
 
-def save_session(name_spot: str, labels_input: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> bool:
+def save_session(session_data: SaveSessionData) -> bool:
     """
     Save the results of a hunting session to an Excel file.
-        :param name_spot: Name of the hunting spot.
-        :param labels_input: List of labels for the input data.
-        :param data_input: List of input data values.
-        :param labels_res: List of labels for the results.
-        :param results_tot: Total results.
-        :param results_tot_h: Total results per hour.
-        :param results_tax: Total results after tax.
-        :param results_tax_h: Total results after tax per hour.
+        :param session_data: An instance of SaveSessionData containing the results and metadata of the hunting session.
         :return: False if an error occurs, otherwise True.
     """
     try:
-        int(data_input[-1])
+        int(session_data.res_data[-1])
     except:
         return False
     
     now = datetime.now()
     now_str = now.strftime("%d-%m-%Y_%H-%M-%S")
-    name_spot = name_spot.lower().replace(" ", "_").replace("/", "_").replace("\\", "_")  # Sanitize the name_spot for file naming
+    name_spot = session_data.name_spot.lower().replace(" ", "_").replace("/", "_").replace("\\", "_")  # Sanitize the name_spot for file naming
 
-    results_hour = str(results_tax_h / 1000000000)[:5]
+    results_hour = str(session_data.taxed_res_h / 1000000000)[:5]
 
     path = f"{saved_sessions_folder}/{now_str}_({results_hour}b).xlsx"
 
@@ -71,16 +65,16 @@ def save_session(name_spot: str, labels_input: list[str], data_input: list[str],
     worksheet["B1"] = "Number of Items"
 
     max_label_width = len("Item Name")  # Initialize with the width of the header
-    for i, label in enumerate(labels_input[:-1]):
+    for i, label in enumerate(session_data.res_name[:-1]):
         try:
-            int(data_input[i])
+            int(session_data.res_data[i])
         except:
             return False
         
         row = i + 2  # Start from row 2 for labels and data
         worksheet[f"A{row}"] = label
         cell_val = worksheet[f"B{row}"]
-        cell_val.value = data_input[i]
+        cell_val.value = session_data.res_data[i]
         cell_val.number_format = '#,##0' # Format as number with thousands separator
 
         if len(label) > max_label_width:
@@ -89,19 +83,19 @@ def save_session(name_spot: str, labels_input: list[str], data_input: list[str],
     worksheet.column_dimensions['A'].width = max_label_width + 2
 
     dic_results = {
-        0: results_tot,
-        1: results_tot_h,
-        2: results_tax,
-        3: results_tax_h
+        0: session_data.total_res,
+        1: session_data.total_res_h,
+        2: session_data.taxed_res,
+        3: session_data.taxed_res_h
     }
 
     start_column = 3
-    worksheet[f"{get_column_letter(start_column)}1"] = labels_input[-1]  # Last label is "Hours"
-    worksheet[f"{get_column_letter(start_column)}2"] = data_input[-1]  # Last data input is the number of hours
+    worksheet[f"{get_column_letter(start_column)}1"] = session_data.res_name[-1]  # Last label is "Hours"
+    worksheet[f"{get_column_letter(start_column)}2"] = session_data.res_data[-1]  # Last data input is the number of hours
 
     start_column += 1
 
-    for i, label in enumerate(labels_res):
+    for i, label in enumerate(session_data.labels_res):
         cell_val = worksheet[get_column_letter(start_column + i) + "2"]
         worksheet[get_column_letter(start_column + i) + "1"] = label
         cell_val.value = dic_results[i]
@@ -111,17 +105,23 @@ def save_session(name_spot: str, labels_input: list[str], data_input: list[str],
 
     log_message = (
         f"\tResults saved in '{path}'\n"
-        f"\tInput Labels: {labels_input}\n"
-        f"\tInput Data: {data_input}\n"
-        f"\tResult Labels: {labels_res}\n"
-        f"\tTotal Results: {results_tot:,}\n"
-        f"\tResults per Hour: {results_tot_h:,}\n"
-        f"\tResults after Tax: {results_tax:,}\n"
-        f"\tResults after Tax per Hour: {results_tax_h:,}"
+        f"\tInput Labels: {session_data.res_name}\n"
+        f"\tInput Data: {session_data.res_data}\n"
+        f"\tResult Labels: {session_data.labels_res}\n"
+        f"\tTotal Results: {session_data.total_res:,}\n"
+        f"\tResults per Hour: {session_data.total_res_h:,}\n"
+        f"\tResults after Tax: {session_data.taxed_res:,}\n"
+        f"\tResults after Tax per Hour: {session_data.taxed_res_h:,}"
     )
     add_log(log_message, "info")
 
-    return save_average(name_spot, results_tax_h, int(data_input[-1]), labels_input, data_input)
+    return save_average(
+        name_spot, 
+        session_data.taxed_res_h, 
+        int(session_data.res_data[-1]), 
+        session_data.res_name, 
+        session_data.res_data
+    )
 
 def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_input: list[str], data_input: list[str]) -> bool:
     """

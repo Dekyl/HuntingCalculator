@@ -17,6 +17,7 @@ from gui.dialogs.dialogs_user import show_dialog_type
 from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
+from logic.data_classes.session_results import SessionResultsData
 from config.config import settings_json
 
 class SessionInputs(QWidget):
@@ -165,7 +166,20 @@ class SessionInputs(QWidget):
 
         assert self.new_session.lightstone_costs is not None, "Lightstone costs must be provided in the new session data."
         assert self.new_session.imperfect_lightstone_costs is not None, "Imperfect lightstone costs must be provided in the new session data."
-        res_data = self.controller.get_session_results(self.new_session.name_spot, self.new_session.value_pack, self.new_session.market_tax, self.new_session.extra_profit, data_input, self.new_session.elixirs_cost, self.new_session.auto_calculate_best_profit, self.new_session.lightstone_costs, self.new_session.imperfect_lightstone_costs)
+
+        session_results = SessionResultsData(
+            self.new_session.name_spot,
+            value_pack=self.new_session.value_pack,
+            market_tax=self.new_session.market_tax,
+            extra_profit=self.new_session.extra_profit,
+            data_input=data_input,
+            elixirs_cost=self.new_session.elixirs_cost,
+            auto_calculate_best_profit=self.new_session.auto_calculate_best_profit,
+            lightstone_costs=self.new_session.lightstone_costs,
+            imperfect_lightstone_costs=self.new_session.imperfect_lightstone_costs
+        )
+
+        res_data = self.controller.get_session_results(session_results)
         if res_data == -1:
             show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "no_action")
             return

@@ -21,6 +21,8 @@ from logic.manage_resources.access_resources import (
     delete_saved_session
 )
 from logic.data_classes.new_session_data import NewSessionData
+from logic.data_classes.save_session_data import SaveSessionData
+from logic.data_classes.session_results import SessionResultsData
 from logic.results_session.calculate_results_session import calculate_elixirs_cost_hour, calculate_results_session
 from logic.data_fetcher import DataFetcher
 from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_view_session
@@ -28,7 +30,6 @@ from config.config import (
     default_settings, 
     settings_json, 
     res_abs_paths,
-    FlatDict, 
     market_tax, 
     saved_sessions_folder,
     NestedDict
@@ -349,37 +350,21 @@ class AppController:
         except:
             return None
 
-    def save_session(self, name_spot: str, labels_input_text: list[str], data_input: list[str], labels_res: list[str], results_tot: int, results_tot_h: int, results_tax: int, results_tax_h: int) -> bool:
+    def save_session(self, session_data: SaveSessionData) -> bool:
         """
         Save the results of a hunting session to an Excel file.
-            :param name_spot: The name of the hunting spot for the session.
-            :param labels_input_text: List of labels for the input data.
-            :param data_input: List of input data values.
-            :param labels_res: List of labels for the results.
-            :param results_tot: Total results.
-            :param results_tot_h: Total results per hour.
-            :param results_tax: Results after tax.
-            :param results_tax_h: Results after tax per hour.
+            :param session_data: An instance of SaveSessionData containing the session details.
             :return: True if successful, False if an error occurs.
         """
-        return save_session(name_spot, labels_input_text, data_input, labels_res, results_tot, results_tot_h, results_tax, results_tax_h)
+        return save_session(session_data)
     
-    def get_session_results(self, spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], 
-                            elixirs_cost: str, auto_calculate_best_profit: bool, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict) -> dict[str, Any] | int:
+    def get_session_results(self, session_results: SessionResultsData) -> dict[str, Any] | int:
         """
         Get the results of a hunting session.
-            :param spot_name: The name of the hunting spot for the session.
-            :param value_pack: Whether the value pack is used or not.
-            :param market_tax: The market tax percentage.
-            :param extra_profit: The extra profit percentage applied or not to session results.
-            :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
-            :param elixirs_cost: The cost of elixirs for the session.
-            :param auto_calculate_best_profit: Whether to automatically calculate the best profit or not.
-            :param lightstone_costs: A dictionary containing the costs of lightstones for the session.
-            :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the session.
+            :param session_results: An instance of SessionResultsData containing the results of the session.
             :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
-        return calculate_results_session(spot_name, value_pack, market_tax, extra_profit, data_input, elixirs_cost, auto_calculate_best_profit, lightstone_costs, imperfect_lightstone_costs)
+        return calculate_results_session(session_results)
     
     def get_all_settings_data(self) -> Optional[dict[str, Any]]:
         """
