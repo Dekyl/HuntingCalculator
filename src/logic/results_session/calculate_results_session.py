@@ -3,6 +3,7 @@ import math
 
 from logic.logs import add_log
 from logic.exchange_calculator import exchange_results
+from logic.data_classes.session_results import SessionResultsData
 from config.config import (
     FlatDict, 
     n_damaged_hide_exchange, 
@@ -50,24 +51,15 @@ def check_data_input(data_input: dict[str, tuple[str, str]]) -> bool:
             return False
     return True
 
-def calculate_results_session(spot_name: str, value_pack: bool, market_tax: float, extra_profit: bool, data_input: dict[str, tuple[str, str]], elixirs_cost: str,
-                              auto_calculate_best_profit: bool, lightstone_costs: FlatDict, imperfect_lightstone_costs: FlatDict) -> dict[str, Any] | int:
+def calculate_results_session(session_results: SessionResultsData) -> dict[str, Any] | int:
     """
     Calculate the results of a hunting session based on the provided input data.
-        :param spot_name: The name of the hunting spot.
-        :param value_pack: A boolean indicating whether the value pack is active.
-        :param market_tax: The market tax percentage to apply.
-        :param extra_profit: The extra profit to apply or not to results
-        :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
-        :param elixirs_cost: The cost of elixirs for the session.
-        :param auto_calculate_best_profit: A boolean indicating whether to automatically calculate the best profit.
-        :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
-        :param imperfect_lightstone_costs: A dictionary containing the costs of imperfect lightstones for the hunting spot.
+        :param session_results: An instance of SessionResultsData containing the necessary data for the session.
         :return: A dictionary containing the calculated results of the session, including total results, total per hour, taxed results, taxed per hour, 
             and updated labels for input text. Or -1 if an error occurs.
     """
-    hours = data_input.get('Hours', ("", "0"))[1] or "0" # If 'Hours' is not in data_input or if it is empty, default to "0"
-    elixirs_cost = elixirs_cost.replace(',', '').replace(' ', '')  # Remove commas and spaces for validation
+    hours = session_results.data_input.get('Hours', ("", "0"))[1] or "0" # If 'Hours' is not in data_input or if it is empty, default to "0"
+    elixirs_cost = session_results.elixirs_cost.replace(',', '').replace(' ', '')  # Remove commas and spaces for validation
 
     if not elixirs_cost.isdigit():
         add_log(f"Invalid elixirs cost: {elixirs_cost}. Expected a number.", "error")
@@ -80,25 +72,25 @@ def calculate_results_session(spot_name: str, value_pack: bool, market_tax: floa
     hours = int(hours)
     elixirs_cost_h = int(elixirs_cost) if hours > 0 else 0  # Elixirs cost per hour, if hours is 0, set to 0
 
-    if not check_data_input(data_input):
+    if not check_data_input(session_results.data_input):
         return -1  # Check if the input data is valid
     
-    original_data_input = data_input.copy()  # Keep a copy of the original data input for restoring some values later
+    original_data_input = session_results.data_input.copy()  # Keep a copy of the original data input for restoring some values later
 
-    exchange_breath_of_narcion(data_input) # Add breath of narcion previous to actual breath of narcion
-    if auto_calculate_best_profit:
-        exchange_wildsparks(data_input)  # Exchange wildsparks if auto calculate best profit is enabled
-        if exchange_data_best_profit(spot_name, data_input, lightstone_costs, imperfect_lightstone_costs) == -1:
-            add_log(f"Error exchanging data for best profit calculation for spot: {spot_name}.", "error")
+    exchange_breath_of_narcion(session_results.data_input) # Add breath of narcion previous to actual breath of narcion
+    if session_results.auto_calculate_best_profit:
+        exchange_wildsparks(session_results.data_input)  # Exchange wildsparks if auto calculate best profit is enabled
+        if exchange_data_best_profit(session_results.name_spot, session_results.data_input, session_results.lightstone_costs, session_results.imperfect_lightstone_costs) == -1:
+            add_log(f"Error exchanging data for best profit calculation for spot: {session_results.name_spot}.", "error")
             return -1
 
-    total = results_total(data_input) if hours > 0 else 0  # Calculate total results only if hours is greater than 0
+    total = results_total(session_results.data_input) if hours > 0 else 0  # Calculate total results only if hours is greater than 0
     
-    value_pack_val = value_pack_multiplier if value_pack else 0  # Set value pack multiplier if value pack is active, otherwise set to 0
-    value_pack_val += extra_profit_multiplier if extra_profit else 0  # Add extra profit multiplier if extra profit is active, otherwise add 0
+    value_pack_val = value_pack_multiplier if session_results.value_pack else 0  # Set value pack multiplier if value pack is active, otherwise set to 0
+    value_pack_val += extra_profit_multiplier if session_results.extra_profit else 0  # Add extra profit multiplier if extra profit is active, otherwise add 0
 
     total_h = results_h(total, hours) if hours > 0 else 0  # Calculate total results per hour only if hours is greater than 0
-    taxed = results_taxed(total, market_tax, value_pack_val) if hours > 0 else 0 # Apply market tax, value pack and extra profit if applicable if hours is greater than 0
+    taxed = results_taxed(total, session_results.market_tax, value_pack_val) if hours > 0 else 0 # Apply market tax, value pack and extra profit if applicable if hours is greater than 0
     taxed_h = results_taxed_h(taxed, hours) if hours > 0 else 0  # Calculate taxed results per hour only if hours is greater than 0
     total_elixirs_cost = get_total_elixirs_cost(elixirs_cost_h, hours)  # Get the total cost of elixirs for the session
 
@@ -107,19 +99,19 @@ def calculate_results_session(spot_name: str, value_pack: bool, market_tax: floa
     total_h -= elixirs_cost_h # Subtract elixirs cost per 1 hour
     taxed_h -= elixirs_cost_h # Subtract elixirs cost per 1 hour after tax
 
-    user_inputs = ["Breath of Narcion", "Breath of Narcion Previous", "Usable Hide", "Damaged Hide", "Supreme Hide", f"St. {spot_name} Head", "Wildspark", "Black Gem Frag.",]
+    user_inputs = ["Breath of Narcion", "Breath of Narcion Previous", "Usable Hide", "Damaged Hide", "Supreme Hide", f"St. {session_results.name_spot} Head", "Wildspark", "Black Gem Frag.",]
     for key in user_inputs: # Restore user inputs that are not calculated
         if key in original_data_input:
-            data_input[key] = original_data_input[key]
+            session_results.data_input[key] = original_data_input[key]
 
     return {
         'total': total,
         'total_h': total_h,
         'taxed': taxed,
         'taxed_h': taxed_h,
-        'new_labels_input_text': recalculate_labels_input(total, data_input),
+        'new_labels_input_text': recalculate_labels_input(total, session_results.data_input),
         'elixirs_cost': str(f"{total_elixirs_cost:,}"),
-        'new_data_input': data_input
+        'new_data_input': session_results.data_input
     }
 
 def get_total_elixirs_cost(elixirs_cost: int, hours: int) -> int:
