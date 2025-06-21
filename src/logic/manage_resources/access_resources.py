@@ -235,7 +235,7 @@ def get_match_elixirs(elixir_name_id: str) -> dict[str, str]:
     """
     try:
         with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
-            elixirs_perfumes = json.load(file).get('elixir_perfume_ids', {})
+            elixirs_perfumes = json.load(file).get('elixir_perfume_names_ids', {})
     except FileNotFoundError:
         add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
         return {}
