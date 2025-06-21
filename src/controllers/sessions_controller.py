@@ -83,23 +83,35 @@ def on_clean_session_subctrler(get_current_page_name: Callable[[], Optional[str]
             "no_action"
         )
         return
+    
+    if not show_confirm_clean:
+        add_log("Cleaning sessions without confirmation dialog.", "info")
+        on_clean_sessions_subctrler(get_current_page_name, change_page)
+        return
 
-    if show_confirm_clean:
-        add_log("Showing confirmation dialog for cleaning sessions.", "info")
-        enable_confirm_message = show_dialog_confirmation(
-            "Are you sure you want to clean the sessions?", 
-            lambda: on_clean_sessions_subctrler(get_current_page_name, change_page), 
-            "clean_sessions"
-        )
-        if not update_confirm_dialog(enable_confirm_message, "clean_sessions"):
+    add_log("Showing confirmation dialog for cleaning sessions.", "info")
+    clean_sessions, remember_user_choice = show_dialog_confirmation(
+        "Are you sure you want to clean the sessions?", 
+        "clean_sessions"
+    )
+
+    if clean_sessions:
+        if remember_user_choice == show_confirm_clean:
+            add_log("Exiting without changing confirmation message.", "info")
+            on_clean_sessions_subctrler(get_current_page_name, change_page)
+            return
+        
+        if not update_confirm_dialog(remember_user_choice, "clean_sessions"):
             show_dialog_type(
-                f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", 
-                "Settings file error", 
-                "error", 
+                f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.",
+                "Settings file error",
+                "error",
                 "no_action"
             )
-    else:
         on_clean_sessions_subctrler(get_current_page_name, change_page)
+    else:
+        add_log("User cancelled cleaning sessions", "info")
+        return
 
 def delete_session_subctrler(file_path: str, change_page: Callable[[str], None]):
     """

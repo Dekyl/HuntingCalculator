@@ -70,9 +70,9 @@ class AppController:
         Handle the exit button click event.
         """
         add_log("Exit button clicked.", "info")
-        res, show_confirm_exit = get_show_confirm_exit()
+        success, show_confirm_exit = get_show_confirm_exit()
 
-        if not res:
+        if not success:
             add_log(f"Error retrieving data from '{settings_json}', check if the file exists and is writable", "error")
             show_dialog_type(
                 f"Error retrieving data from '{settings_json}', check if the file exists and is writable.", 
@@ -80,25 +80,37 @@ class AppController:
                 "error", 
                 "no_action"
             )
+            self.exit_application_controller()
             return
-
-        if show_confirm_exit:
-            add_log("Showing confirmation dialog for exiting app.", "info")
-            enable_confirm_message = show_dialog_confirmation(
-                "Are you sure you want to exit?", 
-                lambda: self.exit_application_controller(), 
-                "exit"
-            )
-            if not update_confirm_dialog(enable_confirm_message, "exit"):
-                show_dialog_type(
-                    f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.", 
-                    "Settings file error", 
-                    "error", 
-                    "no_action"
-                )
-        else:
+        
+        if not show_confirm_exit:
             add_log("Exiting app without confirmation dialog.", "info")
             self.exit_application_controller()
+            return
+
+        add_log("Showing confirmation dialog for exiting app.", "info")
+        user_confirm_exit, remember_user_choice = show_dialog_confirmation(
+                                                    "Are you sure you want to exit?",
+                                                    "exit"
+                                                )
+
+        if user_confirm_exit:
+            if remember_user_choice == show_confirm_exit:
+                add_log("Exiting without changing confirmation message.", "info")
+                self.exit_application_controller()
+                return
+            
+            if not update_confirm_dialog(remember_user_choice, "exit"):
+                show_dialog_type(
+                    f"Error updating settings in file '{settings_json}'. Check if the file exists and is writable.",
+                    "Settings file error",
+                    "error",
+                    "no_action"
+                )
+            self.exit_application_controller()
+        else:
+            add_log("User cancelled exiting app", "info")
+            return
 
     def get_spots_list_controller(self) -> list[str]:
         """
