@@ -118,7 +118,7 @@ def get_spot_id_icon(spot_name: str) -> str:
         add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return ''
     
-def get_spot_loot(spot_name: str) -> list[str]:
+def get_spot_loot(spot_name: str) -> dict[str, str]:
     """
     Get the loot data for a specific hunting spot.
         :param spot_name: The name of the hunting spot.
@@ -131,17 +131,17 @@ def get_spot_loot(spot_name: str) -> list[str]:
         with open(res_abs_paths['data'], 'r', encoding='utf-8') as file:
             data = json.load(file)
             spot = data.get('spots', {}).get(spot_name, {})
-            spot_items = spot.get('loot', [])
+            spot_items = spot.get('loot', {})
     except FileNotFoundError:
         add_log(f"Data file not found: '{res_abs_paths['data']}'.", "error")
-        return []
+        return {}
     except json.JSONDecodeError:
         add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
-        return []
+        return {}
 
     if not spot_items:
-        return []
-    return spot_items + common_items
+        return {}
+    return {**spot_items, **common_items}  # Merge spot items with common items
 
 def get_no_market_items(spot_name: str) -> list[str]:
     """
