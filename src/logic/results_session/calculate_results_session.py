@@ -84,17 +84,17 @@ def calculate_results_session(session_results: SessionResultsData) -> dict[str, 
             add_log(f"Error exchanging data for best profit calculation for spot: {session_results.name_spot}.", "error")
             return -1
 
-    total = results_total(session_results.data_input) if hours > 0 else 0  # Calculate total results only if hours is greater than 0
+    total_no_elixirs = results_total(session_results.data_input) if hours > 0 else 0  # Calculate total results only if hours is greater than 0
     
     value_pack_val = value_pack_multiplier if session_results.value_pack else 0  # Set value pack multiplier if value pack is active, otherwise set to 0
     value_pack_val += extra_profit_multiplier if session_results.extra_profit else 0  # Add extra profit multiplier if extra profit is active, otherwise add 0
 
-    total_h = results_h(total, hours) if hours > 0 else 0  # Calculate total results per hour only if hours is greater than 0
-    taxed = results_taxed(total, session_results.market_tax, value_pack_val) if hours > 0 else 0 # Apply market tax, value pack and extra profit if applicable if hours is greater than 0
+    total_h = results_h(total_no_elixirs, hours) if hours > 0 else 0  # Calculate total results per hour only if hours is greater than 0
+    taxed = results_taxed(total_no_elixirs, session_results.market_tax, value_pack_val) if hours > 0 else 0 # Apply market tax, value pack and extra profit if applicable if hours is greater than 0
     taxed_h = results_taxed_h(taxed, hours) if hours > 0 else 0  # Calculate taxed results per hour only if hours is greater than 0
     total_elixirs_cost = get_total_elixirs_cost(elixirs_cost_h, hours)  # Get the total cost of elixirs for the session
 
-    total -= total_elixirs_cost  # Subtract elixirs cost
+    total = total_no_elixirs - total_elixirs_cost  # Subtract elixirs cost
     taxed -= total_elixirs_cost  # Subtract elixirs cost after tax
     total_h -= elixirs_cost_h # Subtract elixirs cost per 1 hour
     taxed_h -= elixirs_cost_h # Subtract elixirs cost per 1 hour after tax
@@ -109,7 +109,7 @@ def calculate_results_session(session_results: SessionResultsData) -> dict[str, 
         'total_h': total_h,
         'taxed': taxed,
         'taxed_h': taxed_h,
-        'new_labels_input_text': recalculate_labels_input(total, session_results.data_input),
+        'new_labels_input_text': recalculate_labels_input(total_no_elixirs, session_results.data_input),
         'elixirs_cost': str(f"{total_elixirs_cost:,}"),
         'new_data_input': session_results.data_input
     }
