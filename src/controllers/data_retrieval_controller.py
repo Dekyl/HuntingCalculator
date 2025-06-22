@@ -18,7 +18,8 @@ from logic.sql_items_data.sql_db_connection import check_cached_data, update_cac
 from logic.sql_items_data.merge_fetched_data import merge_cached_fetched_data
 from config.config import (
     market_tax,
-    NestedDict
+    NestedDict,
+    reduced_item_names
 )
 
 from PySide6.QtCore import QThread, QTimer
@@ -193,6 +194,11 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             return
 
         no_market_items = get_no_market_items(self.new_session.name_spot)
+
+        for item_id, (item_name, price) in data_fetched["items"].items():
+            if item_name in reduced_item_names:
+                # Reduce item name if it exists in the reduced_item_names mapping
+                data_fetched["items"][item_id] = (reduced_item_names[item_name], price)
 
         self.new_session.set_extra_data(
             spot_id_icon,

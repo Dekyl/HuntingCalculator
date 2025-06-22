@@ -94,6 +94,8 @@ class SessionInputs(QWidget):
         # Column where to place next element
         col = 0
 
+        
+
         for i, (icon, label, price) in enumerate(self.labels_icons_input):
             new_data_input = QLineEdit()
             name_without_percent = self.session_input_callbacks.get_no_name_percent(label.text()) # Get the name without the percentage
