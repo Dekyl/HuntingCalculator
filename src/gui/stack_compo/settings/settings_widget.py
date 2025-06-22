@@ -26,6 +26,7 @@ class SettingsWidget(QWidget):
     It provides a user-friendly interface to change these settings and save them.
     """
     def __init__(self):
+        """ Initialize the SettingsWidget and set up the layout and widgets. """
         super().__init__()
         self.controller = AppController.get_instance()
 
