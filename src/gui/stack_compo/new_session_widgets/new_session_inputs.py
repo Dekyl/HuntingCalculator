@@ -12,12 +12,13 @@ from PySide6.QtGui import QIcon, QFont
 from PySide6.QtCore import Qt
 
 from gui.aux_components import SmartLabel
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
-from config.config import settings_json
+from logic.data_classes.session_results import SessionResultsData
+from config.config import settings_json, breath_of_narcion_id
 
 class SessionInputs(QWidget):
     def __init__(self, new_session: NewSessionData, default_font: QFont, qtooltip_style: str, default_style: str, session_input_callbacks: SessionInputCallbacks):
@@ -31,26 +32,29 @@ class SessionInputs(QWidget):
         """
         super().__init__()
 
-        inputs_layout = QGridLayout(self)
-
         self.labels_icons_input: list[tuple[Optional[QIcon], QLabel, Optional[QLabel]]] = []
         self.controller = AppController.get_instance()  # Get the instance of the AppController
         self.new_session = new_session  # Store the new session data
         self.session_input_callbacks = session_input_callbacks  # Store the callbacks for getting labels and inputs
+        self.default_font = default_font  # Store the default font for the labels and input fields
+        self.default_style = default_style  # Store the default style for the input fields
+        self.qtooltip_style = qtooltip_style  # Store the tooltip style
+
+        inputs_layout = QGridLayout(self)
 
         assert self.new_session.items is not None, "Items must be provided in the new session data."
         for i, (id, (item_name, price)) in enumerate(self.new_session.items.items()):
             icon = QIcon(res_abs_paths[id]) if os.path.exists(res_abs_paths[id]) else QIcon(res_abs_paths["not_found_ico"])
 
             label = SmartLabel(f"{item_name} (0.00%)")
-            label.setFont(default_font)
+            label.setFont(self.default_font)
             label.setStyleSheet(f"""
-                {qtooltip_style}
+                {self.qtooltip_style}
             """)
 
             price_value = QLabel(str(f"{price:,}"))
             price_value.setContentsMargins(15, 0, 0, 0)
-            price_value.setFont(default_font)
+            price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
             self.labels_icons_input.append((icon, label, price_value))
@@ -59,28 +63,28 @@ class SessionInputs(QWidget):
         for no_market_item in self.new_session.no_market_items:
             label = SmartLabel(f"{no_market_item} (0.00%)")
             label.setMinimumHeight(50)
-            label.setFont(default_font)
+            label.setFont(self.default_font)
             label.setStyleSheet(f"""
-                {qtooltip_style}
+                {self.qtooltip_style}
             """)
 
             if "breath of narcion" in no_market_item.lower():
-                icon = QIcon(res_abs_paths["56221"]) if os.path.exists(res_abs_paths["56221"]) else QIcon(res_abs_paths["not_found_ico"]) # 56221 is the ID for Breath of Narcion
+                icon = QIcon(res_abs_paths[breath_of_narcion_id]) if os.path.exists(res_abs_paths[breath_of_narcion_id]) else QIcon(res_abs_paths["not_found_ico"])
             else:
                 no_market_item_lower_replace = no_market_item.lower().replace(" ", "_")
                 icon = QIcon(res_abs_paths[no_market_item_lower_replace]) if os.path.exists(res_abs_paths[no_market_item_lower_replace]) else QIcon(res_abs_paths["not_found_ico"])
 
             price_value = QLabel("0")
             price_value.setContentsMargins(15, 0, 0, 0)
-            price_value.setFont(default_font)
+            price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
             self.labels_icons_input.append((icon, label, price_value))
 
         label = SmartLabel("Hours")
         label.setMinimumHeight(50)
-        label.setFont(default_font)
+        label.setFont(self.default_font)
         label.setStyleSheet(f"""
-            {qtooltip_style}
+            {self.qtooltip_style}
         """)
 
         self.labels_icons_input.append((None, label, None))
@@ -94,7 +98,7 @@ class SessionInputs(QWidget):
             new_data_input = QLineEdit()
             name_without_percent = self.session_input_callbacks.get_no_name_percent(label.text()) # Get the name without the percentage
 
-            if (new_session.auto_calculate_best_profit and 
+            if (self.new_session.auto_calculate_best_profit and 
                 (name_without_percent.startswith("M. Sp.") or 
                     name_without_percent.startswith("M. St.") or 
                     name_without_percent.startswith("BMB:"))):
@@ -110,13 +114,13 @@ class SessionInputs(QWidget):
                     }
                 """)
             else:
-                new_data_input.setStyleSheet(default_style)
+                new_data_input.setStyleSheet(self.default_style)
                 # Connects each input with callback function that updates the results of the new session
                 new_data_input.textChanged.connect(self.update_session_results)
             
             new_data_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
             new_data_input.setMinimumHeight(26)
-            new_data_input.setFont(default_font)
+            new_data_input.setFont(self.default_font)
 
             self.line_edit_inputs[name_without_percent] = new_data_input
 
@@ -131,7 +135,7 @@ class SessionInputs(QWidget):
                 icon_label.setPixmap(icon.pixmap(30, 30))
                 icon_label_layout.addWidget(icon_label)
 
-            label.setFont(default_font)
+            label.setFont(self.default_font)
             icon_label_layout.addWidget(label)
 
             inputs_layout.addWidget(icon_label_widget, row_offset, col, Qt.AlignmentFlag.AlignTop)
@@ -165,7 +169,20 @@ class SessionInputs(QWidget):
 
         assert self.new_session.lightstone_costs is not None, "Lightstone costs must be provided in the new session data."
         assert self.new_session.imperfect_lightstone_costs is not None, "Imperfect lightstone costs must be provided in the new session data."
-        res_data = self.controller.get_session_results(self.new_session.name_spot, self.new_session.value_pack, self.new_session.market_tax, self.new_session.extra_profit, data_input, self.new_session.elixirs_cost, self.new_session.auto_calculate_best_profit, self.new_session.lightstone_costs, self.new_session.imperfect_lightstone_costs)
+
+        session_results = SessionResultsData(
+            self.new_session.name_spot,
+            value_pack=self.new_session.value_pack,
+            market_tax=self.new_session.market_tax,
+            extra_profit=self.new_session.extra_profit,
+            data_input=data_input,
+            elixirs_cost=self.new_session.elixirs_cost,
+            auto_calculate_best_profit=self.new_session.auto_calculate_best_profit,
+            lightstone_costs=self.new_session.lightstone_costs,
+            imperfect_lightstone_costs=self.new_session.imperfect_lightstone_costs
+        )
+
+        res_data = self.controller.get_session_results_controller(session_results)
         if res_data == -1:
             show_dialog_type("Error calculating results, please ensure all fields contain digits", "Calculate results", "error", "no_action")
             return

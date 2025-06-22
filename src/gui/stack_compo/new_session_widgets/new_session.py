@@ -8,8 +8,8 @@ from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.save_session_callbacks import SaveSessionCallbacks
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
 from gui.manage_widgets import ManagerWidgets
-from controller.app_controller import AppController
-from . import *
+from controllers.app_controller import AppController
+from . import * # Importing all from current package using __init__ to include all necessary widgets
 
 class NewSession(QWidget):
     """
@@ -71,7 +71,7 @@ class NewSession(QWidget):
         """   
 
         # Set the hunting spot title and icon
-        title_widget = create_session_title_widget(new_session.name_spot, new_session.spot_id_icon)
+        title_widget = TitleNewSession(new_session.name_spot, new_session.spot_id_icon)
 
         session_inputs_callbacks = SessionInputCallbacks(
             get_no_name_percent = self.get_no_name_percent,

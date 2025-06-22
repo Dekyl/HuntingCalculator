@@ -6,46 +6,11 @@ from config.config import (
     settings_json, 
     default_settings, 
     res_abs_paths, 
-    saved_sessions_folder
+    saved_sessions_folder,
+    user_settings_folder,
+    sql_db_folder
 )
 from logic.manage_resources.access_resources import get_app_resource
-
-def check_all_fields_exist_data(target_file: str, meipass_src: str, label: str):
-    """
-    Check if all fields in the target JSON file exist, and if not, add them with default values
-    from the source JSON file located in the MEIPASS directory.
-        :param target_file: The path to the target JSON file
-        :param meipass_src: The path to the source JSON file in the MEIPASS directory.
-        :param label: A label for logging purposes, indicating which file is being checked.
-        :return: True if all fields exist or were added successfully, False otherwise.
-    """
-    if not os.path.exists(meipass_src):
-        return False
-
-    updated = False
-    try:
-        with open(target_file, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        with open(meipass_src, 'r', encoding='utf-8') as src_data_file:
-            default_fields = json.load(src_data_file)
-
-        for field, val in default_fields.items():
-            if field not in data:
-                add_log(f"Adding missing field '{field}' to {label}", "warning")
-                data[field] = val
-                updated = True
-
-        if updated:
-            with open(target_file, 'w', encoding='utf-8') as outfile:
-                json.dump(data, outfile, indent=4)
-                add_log(f"Added missing fields to {label}", "warning")
-
-    except Exception as e:
-        add_log(f"Error checking fields in {label}: {e}", "error")
-        return False
-    
-    return True
 
 def check_all_fields_exist_settings() -> bool:
     """
@@ -84,11 +49,9 @@ def startup_resources() -> bool:
     """
     global res_abs_paths
 
-    if not os.path.exists(saved_sessions_folder):
-        os.mkdir(saved_sessions_folder)
-
-    if not os.path.exists('usr'):
-        os.mkdir('usr')
+    os.makedirs(saved_sessions_folder, exist_ok=True)
+    os.makedirs(user_settings_folder, exist_ok=True)
+    os.makedirs(sql_db_folder, exist_ok=True)
 
     if not os.path.exists(settings_json): #  Check if the settings JSON file exists
         add_log(f"Settings file {settings_json} not found, creating a new one.", "info")

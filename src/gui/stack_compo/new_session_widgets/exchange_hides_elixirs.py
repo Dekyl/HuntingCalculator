@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QL
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 
 class ExchangeHidesElixirs(QWidget):
     """ 
@@ -17,6 +17,7 @@ class ExchangeHidesElixirs(QWidget):
             :param results_default_style: The default style to be applied to the results input fields.
         """
         super().__init__()
+        
         self.controller = AppController.get_instance()  # Controller instance to handle the logic of the new session
         self.default_font = default_font
         self.default_style = default_style
@@ -107,7 +108,7 @@ class ExchangeHidesElixirs(QWidget):
             :param green_hides: The number of green hides to exchange.
             :param blue_hides: The number of blue hides to exchange.
         """
-        exchange_results = self.controller.on_exchange_hides(green_hides, blue_hides)
+        exchange_results = self.controller.on_exchange_hides_controller(green_hides, blue_hides)
         if exchange_results:
             self.update_session_exchange_hides(exchange_results)
 

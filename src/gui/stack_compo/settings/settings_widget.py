@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt, QTimer
 
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 from gui.manage_widgets import ManagerWidgets
 from gui.stack_compo.settings.settings_elixirs_widget import SettingsElixirsWidget
@@ -26,10 +26,11 @@ class SettingsWidget(QWidget):
     It provides a user-friendly interface to change these settings and save them.
     """
     def __init__(self):
+        """ Initialize the SettingsWidget and set up the layout and widgets. """
         super().__init__()
         self.controller = AppController.get_instance()
 
-        settings_data = self.controller.get_all_settings_data()
+        settings_data = self.controller.get_all_settings_data_controller()
         if settings_data is None:
             show_dialog_type("Failed to load settings data. Please check the settings file.", "Settings load", "error", "no_action")
             QTimer.singleShot(0, lambda: ManagerWidgets.get_instance().set_page("home")) # Gives time to render actual widget before switching inmediately (if not it will not render main widget)
@@ -275,7 +276,7 @@ class SettingsWidget(QWidget):
             If the settings are saved successfully, it updates the original settings to match the current actual data.
         """
         self.setEnabled(False) # Disable the widget while saving settings
-        result = self.controller.apply_user_settings(self.settings_actual_data)
+        result = self.controller.apply_user_settings_controller(self.settings_actual_data)
 
         if result == 0: # If the settings were saved successfully
             self.update_original_settings() # Update the original settings to match the current actual data

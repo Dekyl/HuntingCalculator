@@ -1,15 +1,40 @@
-from typing import Any, Callable
+from typing import Callable
 
 from PySide6.QtWidgets import QMessageBox, QCheckBox, QFileDialog
 from PySide6.QtGui import QIcon
 
 from config.config import saved_sessions_folder, res_abs_paths
 
-def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "exit") -> bool:
+def show_dialog_confirm_delete_session(file_path: str) -> bool:
+    """
+    Show a confirmation dialog before deleting a session.
+        :param file_path: The path of the session file to be deleted.
+    """
+    msg_box = QMessageBox()
+    msg_box.setWindowIcon(QIcon(res_abs_paths["clean_sessions_ico"]))
+    msg_box.setWindowTitle("Confirm Deletion")
+    msg_box.setIcon(QMessageBox.Icon.Warning)
+    msg_box.setText(f"Are you sure you want to delete the session file:\n{file_path}")
+    msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+    msg_box.setStyleSheet("""
+        QLabel {
+            padding: 5px;
+            font-size: 14px;
+        }
+        QPushButton {
+            min-width: 70px; 
+            min-height: 20px;
+            font-size: 14px;
+        }
+    """)
+
+    reply = msg_box.exec()
+    return reply == QMessageBox.StandardButton.Yes
+
+def show_dialog_confirmation(message: str, confirm_action: str = "exit") -> tuple[bool, bool]:
     """
     Show a confirmation dialog before executing an action.
         :param message: The confirmation message to display.
-        :param action: The action to execute if confirmed.
         :param confirm_action: The action that was confirmed, used to set the icon.
     """
     msg_box = QMessageBox()
@@ -46,12 +71,9 @@ def show_dialog_confirmation(message: str, action: Any, confirm_action: str = "e
     msg_box.setCheckBox(checkbox)
 
     reply = msg_box.exec()
-    if reply == QMessageBox.StandardButton.Yes:
-        if checkbox.isChecked():
-            action()
-            return False # Do not show the confirmation dialog again
-        action()
-    return True
+    close = reply == QMessageBox.StandardButton.Yes
+    show_again = not checkbox.isChecked()
+    return close, show_again
 
 def show_dialog_type(msg: str, title: str, type: str = "info", action: str = "no_action"):
     """

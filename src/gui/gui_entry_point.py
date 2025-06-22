@@ -10,7 +10,7 @@ from gui.stack_compo.settings.settings_widget import SettingsWidget
 from gui.stack_compo.home_widget import HomeWidget
 from gui.stack_compo.new_session_widgets.new_session import NewSession
 from gui.stack_compo.view_sessions_widget import ViewSessionsWidget
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 
@@ -73,11 +73,11 @@ class GuiEntryPoint(QMainWindow):
 
         # View sessions shortcut
         shortcut_view_sessions = QShortcut("Ctrl+A", self)
-        shortcut_view_sessions.activated.connect(lambda: self.controller.show_dialog_select_session() if self.controller else None)
+        shortcut_view_sessions.activated.connect(lambda: self.controller.show_dialog_select_session_controller() if self.controller else None)
 
         # Clean sessions shortcut
         shortcut_clean_sessions = QShortcut("Ctrl+L", self)
-        shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button() if self.controller else None)
+        shortcut_clean_sessions.activated.connect(lambda: self.controller.clean_all_sessions_controller() if self.controller else None)
 
         # Settings shortcut
         shortcut_settings = QShortcut("Ctrl+G", self)
@@ -85,7 +85,7 @@ class GuiEntryPoint(QMainWindow):
 
         # Exit application shortcut
         shortcut_exit = QShortcut("Ctrl+Q", self)
-        shortcut_exit.activated.connect(self.controller.on_exit_button if self.controller else None)
+        shortcut_exit.activated.connect(self.controller.on_exit_button_controller if self.controller else None)
 
     def create_new_session_widget(self, new_session: NewSessionData):
         """

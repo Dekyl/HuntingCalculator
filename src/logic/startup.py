@@ -1,4 +1,4 @@
-from logic.logs import setup_logs, add_log
+from logic.logs import LoggerManager, add_log
 from logic.manage_resources.prepare_resources import startup_resources
 
 def setup_all() -> bool:
@@ -9,7 +9,7 @@ def setup_all() -> bool:
     It initializes logging, prepares resources, and loads the application.
         :return: True if setup is successful, False otherwise.
     """
-    setup_logs()
+    LoggerManager()
     add_log("Starting APP - Setting up all components\n", "info")
     add_log("Preparing resources...", "info")
     if not startup_resources():

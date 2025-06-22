@@ -28,7 +28,7 @@ from PySide6.QtGui import (
 )
 
 from config.config import res_abs_paths, scroll_bar_style
-from controller.app_controller import AppController
+from controllers.app_controller import AppController
 from gui.dialogs.dialogs_user import show_dialog_type
 
 class SettingsElixirsWidget(QWidget):
@@ -44,6 +44,7 @@ class SettingsElixirsWidget(QWidget):
             :param on_settings_changed: A callback function to notify when settings change.
         """
         super().__init__()
+        
         app_instance = QApplication.instance()
         if app_instance:
             app_instance.installEventFilter(self) # Install event filter to capture mouse events
@@ -60,7 +61,7 @@ class SettingsElixirsWidget(QWidget):
         self.matches_dialog = None  # Initialize matches_dialog attribute
 
         for id, name in setting_val.items():
-            self.add_elixir_entry(name, id)
+            self.add_elixir_entry(id, name)
 
         self.create_search_elixir_line_edit() # Create the search line edit for elixirs
         self.create_esc_shortcut() # Create the ESC shortcut to close the dialog
@@ -163,7 +164,7 @@ class SettingsElixirsWidget(QWidget):
         Search for elixirs by name or ID and update the elixir settings.
             :param text: The text to search for in the elixirs.
         """
-        matches = self.controller.get_match_elixirs(text)
+        matches = self.controller.get_match_elixirs_controller(text)
         if matches is None:
             self.close_matches_dialog()  # Close previous dialog if exists
             return # Empty matches, do nothing

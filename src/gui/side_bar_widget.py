@@ -7,8 +7,7 @@ from PySide6.QtCore import QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
 from gui.aux_components import QHLine
-from controller.app_controller import AppController
-from interface.view_interface import ViewInterface
+from controllers.app_controller import AppController
 from config.config import res_abs_paths
 
 class SideBarWidget(QWidget):
@@ -17,29 +16,21 @@ class SideBarWidget(QWidget):
     It contains buttons for navigation and actions such as home, new session, view sessions, clean sessions, settings, and exit.
     This class is a singleton and should be accessed via the get_instance method.
     """
-    _instance = None  # Singleton instance of SideBarWidget
+    instance = None  # Singleton instance of SideBarWidget
 
-    def __init__(self, view: Optional[ViewInterface] = None):
+    def __init__(self, main_window: QMainWindow):
         """
         Initialize the SideBarWidget with a reference to the main application window.
             :param view: Implement of ViewInterface.
         """
-        # If view is None, raise an error
-        if view is None:
-            raise ValueError("View must be ViewerInterface implementation.")
-        
-        # Ensure the view is a QMainWindow instance
-        if SideBarWidget._instance is not None:
-            raise Exception("This class is a singleton!")
-        SideBarWidget._instance = self
-
         super().__init__()  # Initialize the QWidget
-
-        self.view = view
-        self.main_window = self.view.get_main_window_instance() if hasattr(self.view, 'get_main_window_instance') else None
-        if not isinstance(self.main_window, QMainWindow):
-            raise TypeError("Expected QMainWindow from get_main_window_instance()")
         
+        if SideBarWidget.instance is not None:
+            raise Exception("SideBarWidget is a singleton!")
+        SideBarWidget.instance = self
+
+        self.main_window = main_window
+
         self.controller = AppController.get_instance()
         self.button_icon_size = QSize(20, 20) # Default icon size for buttons
 
@@ -51,18 +42,18 @@ class SideBarWidget(QWidget):
             border-radius: 8px;
         """)
 
-        self.manager_widgets = ManagerWidgets.get_instance()
-        self.buttons_side_bar: list[tuple[str, Callable[[QPushButton], None,], str]] = [
-            ("Home", lambda _: self.manager_widgets.set_page("home"), "Ctrl+H"),
+        manager_widgets = ManagerWidgets.get_instance()
+        buttons_side_bar: list[tuple[str, Callable[[QPushButton], None,], str]] = [
+            ("Home", lambda _: manager_widgets.set_page("home"), "Ctrl+H"),
             ("New session", lambda btn: self.show_spots_list_widget(btn), "Ctrl+N"),
-            ("View sessions", lambda _: self.controller.show_dialog_select_session(), "Ctrl+A"),
-            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button() if self.controller else None, "Ctrl+L"),
-            ("Settings", lambda _: self.controller.create_settings_widget() if self.controller else None, "Ctrl+G"),
-            ("Exit", lambda _: self.controller.on_exit_button() if self.controller else None, "Ctrl+Q")
+            ("View sessions", lambda _: self.controller.show_dialog_select_session_controller(), "Ctrl+A"),
+            ("Clean sessions", lambda _: self.controller.clean_all_sessions_controller() if self.controller else None, "Ctrl+L"),
+            ("Settings", lambda _: self.controller.create_settings_widget_controller() if self.controller else None, "Ctrl+G"),
+            ("Exit", lambda _: self.controller.on_exit_button_controller() if self.controller else None, "Ctrl+Q")
         ]
 
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
-        for i, (text, action, shortcut) in enumerate(self.buttons_side_bar):
+        for i, (text, action, shortcut) in enumerate(buttons_side_bar):
             button_side_bar = QPushButton()
             text_low = text.lower().replace(' ', '_')
             self.left_widget_buttons[text_low] = button_side_bar
@@ -104,7 +95,7 @@ class SideBarWidget(QWidget):
             button_side_bar.clicked.connect(lambda _, b=button_side_bar, a=action: a(b)) # type: ignore
             left_layout.addWidget(button_side_bar)
 
-            if i < len(self.buttons_side_bar) - 1:
+            if i < len(buttons_side_bar) - 1:
                 left_layout.addWidget(QHLine())
                 
         # Add stretch to the bottom of the layout to push buttons to the top
@@ -132,7 +123,7 @@ class SideBarWidget(QWidget):
         the new_session widget is opened for the selected spot.
             :param button: The button that triggered the dialog to show the spots list.
         """
-        spots = self.controller.get_spots_list() if self.controller else [] # Assume this method retrieves the list of spots
+        spots = self.controller.get_spots_list_controller() if self.controller else [] # Assume this method fetches the list of spots
 
         if not spots:
             return # Exit if there is no 'spots' field
@@ -191,7 +182,7 @@ class SideBarWidget(QWidget):
             # This is necessary to avoid late binding issues in lambda functions
             # Calls open_new_session_for_spot with the selected spot when the button is clicked
             # Closes the dialog after opening the new session
-            button.clicked.connect(lambda _, s=spot: (self.controller.select_new_session(s), spots_dialog.accept())) # type: ignore
+            button.clicked.connect(lambda _, s=spot: (self.controller.select_new_session_controller(s), spots_dialog.accept())) # type: ignore
 
             # Create a keyboard shortcut for each button spot
             shortcut_view_sessions = QShortcut(f"Ctrl+{i+1}", spots_dialog)
@@ -215,6 +206,6 @@ class SideBarWidget(QWidget):
         Get the singleton instance of SideBarWidget.
             :return: The singleton instance of SideBarWidget.
         """
-        if SideBarWidget._instance is None:
+        if SideBarWidget.instance is None:
             raise Exception("SideBarWidget instance not created. Call SideBarWidget.")
-        return SideBarWidget._instance
+        return SideBarWidget.instance
