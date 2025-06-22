@@ -103,16 +103,16 @@ class ViewSessionsWidget(QWidget):
         delete_session_button = QPushButton("Delete Session")
         delete_session_button.setStyleSheet("""
             QPushButton {
-                background-color: rgb(200, 60, 60);
+                background-color: rgb(180, 30, 30);
                 color: white;
                 border-radius: 8px;
                 padding: 10px;
             }
             QPushButton:hover {
-                background-color: rgb(220, 100, 100);
+                background-color: rgb(200, 60, 60);
             }
             QPushButton:pressed {
-                background-color: rgb(255, 140, 140);
+                background-color: rgb(220, 90, 90);
             }
         """)
         
