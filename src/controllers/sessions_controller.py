@@ -3,7 +3,7 @@ from typing import Callable, Optional, Any
 from logic.results_session.calculate_results_session import calculate_results_session
 from logic.data_classes.save_session_data import SaveSessionData
 from logic.data_classes.session_results import SessionResultsData
-from logic.manage_excels import clean_sessions, save_session, delete_saved_session
+from logic.manage_excels import SaveSession, clean_sessions, delete_saved_session
 from logic.manage_resources.access_resources import (
     get_show_confirm_clean, 
     update_confirm_dialog, 
@@ -201,7 +201,8 @@ class SessionController:
             :param session_data: An instance of SaveSessionData containing the session details.
             :return: True if successful, False if an error occurs.
         """
-        return save_session(session_data)
+        save_session = SaveSession(session_data)  # Call the SaveSession function to save the session data
+        return save_session.save()  # Return the result of the save operation
         
     def handle_get_results_session(self, session_results: SessionResultsData) -> dict[str, Any] | int:
         """

@@ -56,179 +56,192 @@ def clean_sessions() -> int:
     add_log(f"Clean sessions dialog selection -> 0 (No elements found to delete)", "info")
     return 0
 
-def save_session(session_data: SaveSessionData) -> bool:
+class SaveSession:
+    """ 
+    Class to handle saving hunting session results to an Excel file.
+    This class provides methods to save session data, including results and metadata,
+    to an Excel file in a structured format.
     """
-    Save the results of a hunting session to an Excel file.
-        :param session_data: An instance of SaveSessionData containing the results and metadata of the hunting session.
-        :return: False if an error occurs, otherwise True.
-    """
-    try:
-        int(session_data.res_data[-1])
-    except:
-        return False
-    
-    now = datetime.now()
-    now_str = now.strftime("%d-%m-%Y_%H-%M-%S")
-    name_spot = session_data.name_spot.lower().replace(" ", "_").replace("/", "_").replace("\\", "_")  # Sanitize the name_spot for file naming
+    def __init__(self, session_data: SaveSessionData):
+        """
+        Initialize the SaveSession instance with session data.
+            :param session_data: An instance of SaveSessionData containing the results and metadata of the hunting session.
+        """
+        self.session_data = session_data
+        self.name_spot = self.session_data.name_spot.lower().replace(" ", "_").replace("/", "_").replace("\\", "_")  # Sanitize the name_spot for file naming
+        
+        self.taxed_res_h = self.session_data.taxed_res_h
+        self.taxed_res = self.session_data.taxed_res
+        self.total_res = self.session_data.total_res
+        self.total_res_h = self.session_data.total_res_h
 
-    results_hour = str(session_data.taxed_res_h / 1000000000)[:5]
+        self.res_labels = self.session_data.res_name
+        self.res_data = self.session_data.res_data
+        self.hours = self.res_data[-1]  # Last element in res_data is the number of hours in str
+        self.label_hours = self.res_labels[-1] # Last label in res_name is "Hours"
+        self.hours_digit = 0  # Initialize hours_digit to 0, will be set later
 
-    path = f"{saved_sessions_folder}/{now_str}_({results_hour}b).xlsx"
-
-    workbook = openpyxl.Workbook()
-    worksheet = workbook["Sheet"]
-    worksheet.title = "Hunting Session Results"
-    worksheet["A1"] = "Item Name"
-    worksheet["B1"] = "Number of Items"
-
-    max_label_width = len("Item Name")  # Initialize with the width of the header
-    for i, label in enumerate(session_data.res_name[:-1]):
+    def save(self) -> bool:
+        """
+        Save the results of a hunting session to an Excel file.
+            :return: False if an error occurs, otherwise True.
+        """
         try:
-            int(session_data.res_data[i])
+            self.hours_digit = int(self.hours) # Ensure hours is an integer
         except:
             return False
         
-        row = i + 2  # Start from row 2 for labels and data
-        worksheet[f"A{row}"] = label
-        cell_val = worksheet[f"B{row}"]
-        cell_val.value = session_data.res_data[i]
-        cell_val.number_format = '#,##0' # Format as number with thousands separator
+        now = datetime.now()
+        now_str = now.strftime("%d-%m-%Y_%H-%M-%S")
+        
 
-        if len(label) > max_label_width:
-            max_label_width = len(label)
+        results_hour = str(self.taxed_res_h / 1000000000)[:5]
 
-    worksheet.column_dimensions['A'].width = max_label_width + 2
+        path = f"{saved_sessions_folder}/{now_str}_({results_hour}b).xlsx"
 
-    dic_results = {
-        0: session_data.total_res,
-        1: session_data.total_res_h,
-        2: session_data.taxed_res,
-        3: session_data.taxed_res_h
-    }
-
-    start_column = 3
-    worksheet[f"{get_column_letter(start_column)}1"] = session_data.res_name[-1]  # Last label is "Hours"
-    worksheet[f"{get_column_letter(start_column)}2"] = session_data.res_data[-1]  # Last data input is the number of hours
-
-    start_column += 1
-
-    for i, label in enumerate(session_data.labels_res):
-        cell_val = worksheet[get_column_letter(start_column + i) + "2"]
-        worksheet[get_column_letter(start_column + i) + "1"] = label
-        cell_val.value = dic_results[i]
-        cell_val.number_format = '#,##0' # Format as number with thousands separator
-
-    workbook.save(filename=path)
-
-    log_message = (
-        f"\tResults saved in '{path}'\n"
-        f"\tInput Labels: {session_data.res_name}\n"
-        f"\tInput Data: {session_data.res_data}\n"
-        f"\tResult Labels: {session_data.labels_res}\n"
-        f"\tTotal Results: {session_data.total_res:,}\n"
-        f"\tResults per Hour: {session_data.total_res_h:,}\n"
-        f"\tResults after Tax: {session_data.taxed_res:,}\n"
-        f"\tResults after Tax per Hour: {session_data.taxed_res_h:,}"
-    )
-    add_log(log_message, "info")
-
-    return save_average(
-        name_spot, 
-        session_data.taxed_res_h, 
-        int(session_data.res_data[-1]), 
-        session_data.res_name, 
-        session_data.res_data
-    )
-
-def save_average(name_spot: str, results_tax_h: int, hours_session: int, labels_input: list[str], data_input: list[str]) -> bool:
-    """
-    Updates the average results of hunting sessions of a spot saved into the excel file.
-        :param name_spot: Name of the hunting spot.
-        :param results_tax_h: Average results after tax per hour.
-        :param hours_session: Total hours of the session.
-        :param labels_input: List of labels for the input data.
-        :param data_input: List of input data values.
-        :return: True if successful, False if an error occurs.
-    """
-    path = f"{saved_sessions_folder}/average_results_{name_spot}.xlsx"
-
-    if not os.path.exists(path): # If the file does not exist, create it
-        if hours_session <= 0 or len(labels_input) != len(data_input):
-            return False
         workbook = openpyxl.Workbook()
         worksheet = workbook["Sheet"]
-
+        worksheet.title = "Hunting Session Results"
         worksheet["A1"] = "Item Name"
-        worksheet["B1"] = "Total Number of Items"
-        worksheet["C1"] = "Average Number of Items"
-        worksheet["D1"] = "Total Hours"
-        worksheet["D2"] = hours_session  # Number of hours
-        worksheet["E1"] = "Total Sessions"
-        worksheet["E2"] = 1  # Number of sessions
-        worksheet["F1"] = "Average Hours/Session"
-        worksheet["F2"] = hours_session  # Number of hours
-        worksheet["G1"] = "Total Money"
-        worksheet["G2"] = results_tax_h * hours_session
-        worksheet["H1"] = "Average Money/Hour"
-        worksheet["H2"] = results_tax_h
-        worksheet["I1"] = "Average Money/Session"
-        worksheet["I2"] = results_tax_h * hours_session / hours_session
+        worksheet["B1"] = "Number of Items"
 
         max_label_width = len("Item Name")  # Initialize with the width of the header
-        for i, label in enumerate(labels_input[:-1]):
+        for i, label in enumerate(self.res_labels[:-1]):
+            try:
+                int(self.res_data[i])
+            except:
+                return False
+            
             row = i + 2  # Start from row 2 for labels and data
-            worksheet[f"A{row}"] = label[0:label.rfind(" ")]
-            worksheet[f"B{row}"] = data_input[i]
-            worksheet[f"C{row}"] = data_input[i]
+            worksheet[f"A{row}"] = label
+            cell_val = worksheet[f"B{row}"]
+            cell_val.value = self.res_data[i]
+            cell_val.number_format = '#,##0' # Format as number with thousands separator
 
             if len(label) > max_label_width:
                 max_label_width = len(label)
 
         worksheet.column_dimensions['A'].width = max_label_width + 2
 
+        dic_results = {
+            0: self.total_res,
+            1: self.total_res_h,
+            2: self.taxed_res,
+            3: self.taxed_res_h
+        }
+
+        start_column = 3
+        worksheet[f"{get_column_letter(start_column)}1"] = self.label_hours  # Last label is "Hours"
+        worksheet[f"{get_column_letter(start_column)}2"] = self.hours  # Last data input is the number of hours
+
+        start_column += 1
+
+        for i, label in enumerate(self.session_data.labels_res):
+            cell_val = worksheet[get_column_letter(start_column + i) + "2"]
+            worksheet[get_column_letter(start_column + i) + "1"] = label
+            cell_val.value = dic_results[i]
+            cell_val.number_format = '#,##0' # Format as number with thousands separator
+
         workbook.save(filename=path)
+
+        log_message = (
+            f"\tResults saved in '{path}'\n"
+            f"\tInput Labels: {self.res_labels}\n"
+            f"\tInput Data: {self.res_data}\n"
+            f"\tResult Labels: {self.session_data.labels_res}\n"
+            f"\tTotal Results: {self.total_res:,}\n"
+            f"\tResults per Hour: {self.total_res_h:,}\n"
+            f"\tResults after Tax: {self.taxed_res:,}\n"
+            f"\tResults after Tax per Hour: {self.taxed_res_h:,}"
+        )
+        add_log(log_message, "info")
+
+        return self.save_average()  # Call the save_average method to update the average results
+
+    def save_average(self) -> bool:
+        """
+        Updates the average results of hunting sessions of a spot saved into the excel file.
+            :return: True if successful, False if an error occurs.
+        """
+        path = f"{saved_sessions_folder}/average_results_{self.name_spot}.xlsx"
+
+        if not os.path.exists(path): # If the file does not exist, create it
+            if self.hours_digit <= 0 or len(self.res_labels) != len(self.res_data):
+                return False
+            workbook = openpyxl.Workbook()
+            worksheet = workbook["Sheet"]
+
+            worksheet["A1"] = "Item Name"
+            worksheet["B1"] = "Total Number of Items"
+            worksheet["C1"] = "Average Number of Items"
+            worksheet["D1"] = "Total Hours"
+            worksheet["D2"] = self.hours_digit  # Number of hours
+            worksheet["E1"] = "Total Sessions"
+            worksheet["E2"] = 1  # Number of sessions
+            worksheet["F1"] = "Average Hours/Session"
+            worksheet["F2"] = self.hours_digit  # Number of hours
+            worksheet["G1"] = "Total Money" # Total money acquired and taxed
+            worksheet["G2"] = self.taxed_res_h * self.hours_digit
+            worksheet["H1"] = "Average Money/Hour"
+            worksheet["H2"] = self.taxed_res_h
+            worksheet["I1"] = "Average Money/Session"
+            worksheet["I2"] = self.taxed_res_h * self.hours_digit / self.hours_digit
+
+            max_label_width = len("Item Name")  # Initialize with the width of the header
+            for i, label in enumerate(self.res_labels[:-1]):
+                row = i + 2  # Start from row 2 for labels and data
+                worksheet[f"A{row}"] = label[0:label.rfind(" ")]
+                worksheet[f"B{row}"] = self.res_data[i]
+                worksheet[f"C{row}"] = self.res_data[i]
+
+                if len(label) > max_label_width:
+                    max_label_width = len(label)
+
+            worksheet.column_dimensions['A'].width = max_label_width + 2
+
+            workbook.save(filename=path)
+            return True
+        
+        workbook = openpyxl.load_workbook(filename=path)
+        worksheet = workbook["Sheet"]
+
+        total_hours = int(worksheet['D2'].value) # Total hours from the previous sessions
+        if total_hours <= 0:
+            return False
+
+        new_total_money = int(worksheet['G2'].value) + self.taxed_res_h * self.hours_digit
+        new_total_hours = total_hours + self.hours_digit
+        new_total_sessions = int(worksheet['E2'].value) + 1
+
+        worksheet['D2'] = new_total_hours
+        worksheet['E2'] = new_total_sessions
+        worksheet['F2'] = float(new_total_hours / new_total_sessions)
+        worksheet['F2'].number_format = '#,##0.00' # Format as number with two decimal places
+        worksheet['G2'] = new_total_money
+        worksheet['H2'] = int(new_total_money / new_total_hours)
+        worksheet['I2'] = int(new_total_money / new_total_sessions)
+
+        for i, data_inp in enumerate(self.res_data[:-1]):
+            row = i + 2  # Start from row 2 for labels and data
+
+            cell_val_total = worksheet[f"B{row}"]
+            cell_val_total.value = int(cell_val_total.value) + int(data_inp) if cell_val_total.value else int(data_inp)
+            cell_val_total.number_format = '#,##0' # Format as number with thousands separator
+
+            cell_val_average = worksheet[f"C{row}"]
+            cell_val_average.value = float(cell_val_total.value / new_total_hours) if new_total_hours > 0 else 0
+            cell_val_average.number_format = '#,##0.00' # Format as number with thousands separator
+
+        workbook.save(filename=path)
+        log_message = (
+            f"\tAverage results updated for spot: {self.name_spot}\n"
+            f"\tResults saved in {path}\n"
+            f"\tInput Labels: {self.res_labels}\n"
+            f"\tInput Data: {self.res_data}\n"
+            f"\tTotal Hours: {self.hours_digit}\n"
+            f"\tTotal Money: {self.taxed_res_h * self.hours_digit:,}\n"
+            f"\tAverage Money/Hour: {self.taxed_res_h:,}\n"
+            f"\tAverage Money/Session: {self.taxed_res_h * self.hours_digit / self.hours_digit:,}"
+        )
+        add_log(log_message, "info")
         return True
-    
-    workbook = openpyxl.load_workbook(filename=path)
-    worksheet = workbook["Sheet"]
-
-    total_hours = int(worksheet['D2'].value) # Total hours from the previous sessions
-    if total_hours <= 0:
-        return False
-
-    new_total_money = int(worksheet['G2'].value) + results_tax_h * hours_session
-    new_total_hours = total_hours + hours_session
-    new_total_sessions = int(worksheet['E2'].value) + 1
-
-    worksheet['D2'] = new_total_hours
-    worksheet['E2'] = new_total_sessions
-    worksheet['F2'] = float(new_total_hours / new_total_sessions)
-    worksheet['F2'].number_format = '#,##0.00' # Format as number with two decimal places
-    worksheet['G2'] = new_total_money
-    worksheet['H2'] = int(new_total_money / new_total_hours)
-    worksheet['I2'] = int(new_total_money / new_total_sessions)
-
-    for i, data_inp in enumerate(data_input[:-1]):
-        row = i + 2  # Start from row 2 for labels and data
-
-        cell_val_total = worksheet[f"B{row}"]
-        cell_val_total.value = int(cell_val_total.value) + int(data_inp) if cell_val_total.value else int(data_inp)
-        cell_val_total.number_format = '#,##0' # Format as number with thousands separator
-
-        cell_val_average = worksheet[f"C{row}"]
-        cell_val_average.value = float(cell_val_total.value / new_total_hours) if new_total_hours > 0 else 0
-        cell_val_average.number_format = '#,##0.00' # Format as number with thousands separator
-
-    workbook.save(filename=path)
-    log_message = (
-        f"\tAverage results updated for spot: {name_spot}\n"
-        f"\tResults saved in {path}\n"
-        f"\tInput Labels: {labels_input}\n"
-        f"\tInput Data: {data_input}\n"
-        f"\tTotal Hours: {hours_session}\n"
-        f"\tTotal Money: {results_tax_h * hours_session:,}\n"
-        f"\tAverage Money/Hour: {results_tax_h:,}\n"
-        f"\tAverage Money/Session: {results_tax_h * hours_session / hours_session:,}"
-    )
-    add_log(log_message, "info")
-    return True
