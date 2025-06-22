@@ -40,7 +40,6 @@ def check_cached_data(data_items: dict[str, str]) -> tuple[dict[str, str], FlatD
                 add_log(f"Item {item_name} (ID: {item_id}) is outdated, needs to be fetched", "info")
                 outdated_items[item_id] = item_name  # Item is outdated, needs to be fetched
             else:
-                add_log(f"Using cached price for {item_name} (ID: {item_id})", "info")
                 cached_items[item_id] = (item_name, int(price)) # Item is up-to-date, use cached price
         else:
             add_log(f"Item {item_name} (ID: {item_id}) not found in cache, needs to be fetched", "info")

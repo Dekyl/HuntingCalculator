@@ -331,7 +331,7 @@ class SettingsElixirsWidget(QWidget):
 
         if elixir_id in elixirs_dict:
             self.close_matches_dialog()  # Close previous dialog if exists
-            show_dialog_type(f"{elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "info", "no_action")
+            show_dialog_type(f"{elixir_name} ({elixir_id}) is already in the list.", "Add elixir", "warning", "no_action")
             return # If the elixir ID is already in the dict, do nothing
 
         elixirs_dict[elixir_id] = elixir_name # Add the new elixir to the list
