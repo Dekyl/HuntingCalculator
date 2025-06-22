@@ -5,6 +5,32 @@ from PySide6.QtGui import QIcon
 
 from config.config import saved_sessions_folder, res_abs_paths
 
+def show_dialog_confirm_delete_session(file_path: str) -> bool:
+    """
+    Show a confirmation dialog before deleting a session.
+        :param file_path: The path of the session file to be deleted.
+    """
+    msg_box = QMessageBox()
+    msg_box.setWindowIcon(QIcon(res_abs_paths["clean_sessions_ico"]))
+    msg_box.setWindowTitle("Confirm Deletion")
+    msg_box.setIcon(QMessageBox.Icon.Warning)
+    msg_box.setText(f"Are you sure you want to delete the session file:\n{file_path}")
+    msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+    msg_box.setStyleSheet("""
+        QLabel {
+            padding: 5px;
+            font-size: 14px;
+        }
+        QPushButton {
+            min-width: 70px; 
+            min-height: 20px;
+            font-size: 14px;
+        }
+    """)
+
+    reply = msg_box.exec()
+    return reply == QMessageBox.StandardButton.Yes
+
 def show_dialog_confirmation(message: str, confirm_action: str = "exit") -> tuple[bool, bool]:
     """
     Show a confirmation dialog before executing an action.

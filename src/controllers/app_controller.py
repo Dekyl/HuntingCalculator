@@ -11,7 +11,7 @@ from logic.manage_resources.access_resources import (
 )
 from logic.data_classes.save_session_data import SaveSessionData
 from logic.data_classes.session_results import SessionResultsData
-from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type
+from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_confirm_delete_session
 from config.config import settings_json
 from interface.view_interface import ViewInterface
 from controllers.sessions_controller import SessionController
@@ -211,6 +211,13 @@ class AppController:
         Delete a session file.
             :param file_path: The path to the session file to delete.
         """
+        delete = show_dialog_confirm_delete_session(file_path)  # Show a confirmation dialog before deleting the session file
+
+        if not delete:
+            add_log(f"User cancelled deletion of session file '{file_path}'.", "info")
+            return
+        
+        add_log(f"Deleting session file '{file_path}'.", "info")
         self.session_controller.handle_delete_session(file_path)  # Call the clean_sessions_controller method to delete the session file
 
     def show_dialog_select_session_controller(self):
