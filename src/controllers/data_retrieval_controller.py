@@ -2,7 +2,7 @@ from typing import Callable, Optional
 from PySide6.QtCore import QThread, QTimer, Slot, QObject
 
 from gui.dialogs.dialogs_user import show_dialog_type
-from logic.results_session.calculate_results_session import calculate_elixirs_cost_hour
+from logic.calculate_results_session import calculate_elixirs_cost_hour
 from logic.logs import add_log
 from logic.data_fetcher import DataFetcher
 from logic.data_classes.new_session_data import NewSessionData
