@@ -16,7 +16,7 @@ class SideBarWidget(QWidget):
     It contains buttons for navigation and actions such as home, new session, view sessions, clean sessions, settings, and exit.
     This class is a singleton and should be accessed via the get_instance method.
     """
-    _instance = None  # Singleton instance of SideBarWidget
+    instance = None  # Singleton instance of SideBarWidget
 
     def __init__(self, main_window: QMainWindow):
         """
@@ -25,9 +25,9 @@ class SideBarWidget(QWidget):
         """
         super().__init__()  # Initialize the QWidget
         
-        if SideBarWidget._instance is not None:
+        if SideBarWidget.instance is not None:
             raise Exception("SideBarWidget is a singleton!")
-        SideBarWidget._instance = self
+        SideBarWidget.instance = self
 
         self.main_window = main_window
 
@@ -123,7 +123,7 @@ class SideBarWidget(QWidget):
         the new_session widget is opened for the selected spot.
             :param button: The button that triggered the dialog to show the spots list.
         """
-        spots = self.controller.get_spots_list_controller() if self.controller else [] # Assume this method retrieves the list of spots
+        spots = self.controller.get_spots_list_controller() if self.controller else [] # Assume this method fetches the list of spots
 
         if not spots:
             return # Exit if there is no 'spots' field
@@ -206,6 +206,6 @@ class SideBarWidget(QWidget):
         Get the singleton instance of SideBarWidget.
             :return: The singleton instance of SideBarWidget.
         """
-        if SideBarWidget._instance is None:
+        if SideBarWidget.instance is None:
             raise Exception("SideBarWidget instance not created. Call SideBarWidget.")
-        return SideBarWidget._instance
+        return SideBarWidget.instance

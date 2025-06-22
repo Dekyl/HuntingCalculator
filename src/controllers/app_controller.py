@@ -11,7 +11,11 @@ from logic.manage_resources.access_resources import (
 )
 from logic.data_classes.save_session_data import SaveSessionData
 from logic.data_classes.session_results import SessionResultsData
-from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type, show_dialog_confirm_delete_session
+from gui.dialogs.dialogs_user import (
+    show_dialog_confirmation, 
+    show_dialog_type, 
+    show_dialog_confirm_delete_session
+)
 from config.config import settings_json
 from interface.view_interface import ViewInterface
 from controllers.sessions_controller import SessionController
@@ -23,16 +27,16 @@ class AppController:
     A controller class to manage the application logic and user interactions.
     This class is a singleton and should be accessed via the get_instance method.
     """
-    _instance = None # Singleton instance
+    instance = None # Singleton instance
 
     def __init__(self, view: ViewInterface):
         """
         Initialize the AppController with the main window.
             :param view: The main window of the application, implementing ViewInterface.
         """
-        if AppController._instance is not None:
+        if AppController.instance is not None:
             raise Exception("AppController is a singleton!")
-        AppController._instance = self
+        AppController.instance = self
         add_log("AppController initialized.", "info")
         
         self.view = view
@@ -223,7 +227,7 @@ class AppController:
     def show_dialog_select_session_controller(self):
         """
         Show a dialog to select a session.
-        This method retrieves the list of saved sessions and displays them in a dialog.
+        This method fetches the list of saved sessions and displays them in a dialog.
         """
         self.session_controller.handle_show_select_session()
 
@@ -233,6 +237,6 @@ class AppController:
         Get the singleton instance of AppController.
             :return: The singleton instance of AppController.
         """
-        if AppController._instance is None:
+        if AppController.instance is None:
             raise Exception("AppController instance not created. Call AppController first.")
-        return AppController._instance
+        return AppController.instance

@@ -12,3 +12,4 @@ venv/
 *.spec
 build
 usr/
+db/

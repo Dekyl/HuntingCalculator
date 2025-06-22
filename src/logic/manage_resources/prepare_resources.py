@@ -6,7 +6,9 @@ from config.config import (
     settings_json, 
     default_settings, 
     res_abs_paths, 
-    saved_sessions_folder
+    saved_sessions_folder,
+    user_settings_folder,
+    sql_db_folder
 )
 from logic.manage_resources.access_resources import get_app_resource
 
@@ -47,11 +49,9 @@ def startup_resources() -> bool:
     """
     global res_abs_paths
 
-    if not os.path.exists(saved_sessions_folder):
-        os.mkdir(saved_sessions_folder)
-
-    if not os.path.exists('settings'):
-        os.mkdir('settings')
+    os.makedirs(saved_sessions_folder, exist_ok=True)
+    os.makedirs(user_settings_folder, exist_ok=True)
+    os.makedirs(sql_db_folder, exist_ok=True)
 
     if not os.path.exists(settings_json): #  Check if the settings JSON file exists
         add_log(f"Settings file {settings_json} not found, creating a new one.", "info")

@@ -8,16 +8,16 @@ class ManagerWidgets:
     """
     A helper class to manage multiple widgets via a QStackedWidget.
     """
-    _instance = None
+    instance = None
 
     def __init__(self):
         """
         Initialize the ManageWidgets instance with a QStackedWidget.
         This class is a singleton and should be accessed via the get_instance method.
         """
-        if ManagerWidgets._instance is not None:
+        if ManagerWidgets.instance is not None:
             raise Exception("ManagerWidgets is a singleton!")
-        ManagerWidgets._instance = self
+        ManagerWidgets.instance = self
         
         self.stack = QStackedWidget()
         self.pages: dict[str, QWidget] = {}  #  Dictionary to hold page names and their corresponding widgets
@@ -78,6 +78,6 @@ class ManagerWidgets:
         Get the singleton instance of ManagerWidgets.
             :return: The singleton instance of ManagerWidgets.
         """
-        if ManagerWidgets._instance is None:
+        if ManagerWidgets.instance is None:
             raise Exception("ManagerWidgets instance not created. Call ManagerWidgets first.")
-        return ManagerWidgets._instance
+        return ManagerWidgets.instance

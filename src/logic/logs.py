@@ -8,7 +8,7 @@ class LoggerManager:
     It initializes the logger, sets up the log file,
     and provides methods to add log messages at different levels.
     """
-    _instance = None
+    instance = None
 
     def __init__(self):
         """ 
@@ -16,9 +16,9 @@ class LoggerManager:
         This method sets up the logging configuration and ensures that
         only one instance of Logger can exist (singleton pattern).
         """
-        if LoggerManager._instance is not None:
+        if LoggerManager.instance is not None:
             raise Exception("Logger is a singleton!")
-        LoggerManager._instance = self
+        LoggerManager.instance = self
 
         os.makedirs('logs', exist_ok=True) # Ensure the logs directory exists
 
@@ -63,9 +63,9 @@ class LoggerManager:
         Get the singleton instance of the Logger class.
         If the instance does not exist, it creates one.
         """
-        if LoggerManager._instance is None:
+        if LoggerManager.instance is None:
             raise Exception("Logger instance not created. Call Logger first.")
-        return LoggerManager._instance
+        return LoggerManager.instance
     
 def add_log(message: str, level: str = 'info'):
     """

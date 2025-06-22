@@ -3,9 +3,13 @@ from typing import Any, TypeAlias
 
 # Global configuration settings for the application
 
-max_threads = 12 # Maximum number of threads to use for concurrent requests
-log_level = logging.DEBUG # Logging level for the application
+max_threads = 10 # Maximum number of threads to use for concurrent requests
+log_level = logging.INFO # Logging level for the application
 threshold_delete_logs = 1024 * 1024  # 1 MB
+user_settings_folder = 'settings' # Folder where user settings are stored
+sql_db_folder = 'db' # Folder where the SQLite database files are stored
+saved_sessions_folder = "Hunting Sessions"  # Folder where hunting sessions are saved
+sql_file = f'{sql_db_folder}/cached_data.db' # Path to the SQLite database file for cached data
 
 res_list = {
     'data': 'res/data.json',
@@ -92,9 +96,9 @@ breath_of_narcion_id = "56221"  # ID of the Breath of Narcion item
 
 max_attempts = 3 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout in seconds to establish a connection to the API
-timeout_retrieve = 5 # Timeout in seconds to retrieve data from the API
-saved_sessions_folder = "Hunting Sessions"  # Folder where hunting sessions are saved
+timeout_fetch = 5 # Timeout in seconds to fetch data from the API
 backoff_time = 0.5 # Time in seconds to wait before retrying a request
+time_cached = 60 * 10  # Time in seconds to cache data (10 minutes)
 
 scroll_bar_style = f"""
     QScrollBar:vertical {{ /* Vertical background scroll bar */

@@ -23,7 +23,7 @@ class SessionController:
     This class provides methods to handle session-related actions such as cleaning sessions, deleting sessions,
     viewing existing sessions, saving session data, and calculating session results.
     """
-    _instance = None # Singleton instance
+    instance = None # Singleton instance
 
     def __init__(self, get_current_page_name: Callable[[], Optional[str]], change_page: Callable[[str], None], process_view_session: Callable[[str], None]):
         """ 
@@ -33,9 +33,9 @@ class SessionController:
             :param change_page: Function to change the current page.
             :param process_view_session: Function to process the viewing of a session.
         """
-        if SessionController._instance is not None:
+        if SessionController.instance is not None:
             raise Exception("SessionController is a singleton!")
-        SessionController._instance = self
+        SessionController.instance = self
         add_log("SessionController initialized.", "info")
 
         self.get_current_page_name = get_current_page_name
@@ -219,6 +219,6 @@ class SessionController:
         Get the singleton instance of SessionController.
             :return: The singleton instance of SessionController.
         """
-        if SessionController._instance is None:
+        if SessionController.instance is None:
             raise Exception("SessionController instance not created. Call SessionController first.")
-        return SessionController._instance
+        return SessionController.instance

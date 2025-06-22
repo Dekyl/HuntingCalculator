@@ -72,7 +72,7 @@ def get_show_confirm_clean() -> tuple[bool, bool]:
             if not check_field_exists("show_confirm_clean_message", settings, settings_json):
                 return (False, False)  # Return False if the field does not exist
             confirm_clean = settings['show_confirm_clean_message']
-            return (True, confirm_clean)  # Return True if the field exists and the value is retrieved successfully
+            return (True, confirm_clean)  # Return True if the field exists and the value is fetched successfully
     except FileNotFoundError:
         add_log(f"Settings file not found: '{settings_json}'.", "error")
         return (False, False)
@@ -93,7 +93,7 @@ def get_show_confirm_exit() -> tuple[bool, bool]:
             if not check_field_exists("show_confirm_exit_message", settings, settings_json):
                 return (False, False)  # Return False if the field does not exist
             confirm_exit = settings['show_confirm_exit_message']
-            return (True, confirm_exit)  # Return True if the field exists and the value is retrieved successfully
+            return (True, confirm_exit)  # Return True if the field exists and the value is fetched successfully
     except FileNotFoundError:
         add_log(f"Settings file not found: '{settings_json}'.", "error")
         return (False, False)
@@ -163,7 +163,7 @@ def get_no_market_items(spot_name: str) -> list[str]:
 def get_user_setting(setting: str) -> Any:
     """
     Get a specific user setting from the settings file.
-        :param setting: The name of the setting to retrieve.
+        :param setting: The name of the setting to fetch.
         :return: The value of the specified setting, or an empty string if not found.
     """
     try:
@@ -256,7 +256,7 @@ def get_match_elixirs(elixir_name_id: str) -> dict[str, str]:
 def get_data_value(data_name: str) -> Any:
     """
     Get a specific value from the data file.
-        :param data_name: The name of the data to retrieve.
+        :param data_name: The name of the data to fetch.
         :return: The value of the specified data, or None if not found.
     """
     try:
