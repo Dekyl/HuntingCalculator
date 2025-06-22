@@ -32,26 +32,29 @@ class SessionInputs(QWidget):
         """
         super().__init__()
 
-        inputs_layout = QGridLayout(self)
-
         self.labels_icons_input: list[tuple[Optional[QIcon], QLabel, Optional[QLabel]]] = []
         self.controller = AppController.get_instance()  # Get the instance of the AppController
         self.new_session = new_session  # Store the new session data
         self.session_input_callbacks = session_input_callbacks  # Store the callbacks for getting labels and inputs
+        self.default_font = default_font  # Store the default font for the labels and input fields
+        self.default_style = default_style  # Store the default style for the input fields
+        self.qtooltip_style = qtooltip_style  # Store the tooltip style
+
+        inputs_layout = QGridLayout(self)
 
         assert self.new_session.items is not None, "Items must be provided in the new session data."
         for i, (id, (item_name, price)) in enumerate(self.new_session.items.items()):
             icon = QIcon(res_abs_paths[id]) if os.path.exists(res_abs_paths[id]) else QIcon(res_abs_paths["not_found_ico"])
 
             label = SmartLabel(f"{item_name} (0.00%)")
-            label.setFont(default_font)
+            label.setFont(self.default_font)
             label.setStyleSheet(f"""
-                {qtooltip_style}
+                {self.qtooltip_style}
             """)
 
             price_value = QLabel(str(f"{price:,}"))
             price_value.setContentsMargins(15, 0, 0, 0)
-            price_value.setFont(default_font)
+            price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
             self.labels_icons_input.append((icon, label, price_value))
@@ -60,9 +63,9 @@ class SessionInputs(QWidget):
         for no_market_item in self.new_session.no_market_items:
             label = SmartLabel(f"{no_market_item} (0.00%)")
             label.setMinimumHeight(50)
-            label.setFont(default_font)
+            label.setFont(self.default_font)
             label.setStyleSheet(f"""
-                {qtooltip_style}
+                {self.qtooltip_style}
             """)
 
             if "breath of narcion" in no_market_item.lower():
@@ -73,15 +76,15 @@ class SessionInputs(QWidget):
 
             price_value = QLabel("0")
             price_value.setContentsMargins(15, 0, 0, 0)
-            price_value.setFont(default_font)
+            price_value.setFont(self.default_font)
             price_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
             self.labels_icons_input.append((icon, label, price_value))
 
         label = SmartLabel("Hours")
         label.setMinimumHeight(50)
-        label.setFont(default_font)
+        label.setFont(self.default_font)
         label.setStyleSheet(f"""
-            {qtooltip_style}
+            {self.qtooltip_style}
         """)
 
         self.labels_icons_input.append((None, label, None))
@@ -95,7 +98,7 @@ class SessionInputs(QWidget):
             new_data_input = QLineEdit()
             name_without_percent = self.session_input_callbacks.get_no_name_percent(label.text()) # Get the name without the percentage
 
-            if (new_session.auto_calculate_best_profit and 
+            if (self.new_session.auto_calculate_best_profit and 
                 (name_without_percent.startswith("M. Sp.") or 
                     name_without_percent.startswith("M. St.") or 
                     name_without_percent.startswith("BMB:"))):
@@ -111,13 +114,13 @@ class SessionInputs(QWidget):
                     }
                 """)
             else:
-                new_data_input.setStyleSheet(default_style)
+                new_data_input.setStyleSheet(self.default_style)
                 # Connects each input with callback function that updates the results of the new session
                 new_data_input.textChanged.connect(self.update_session_results)
             
             new_data_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
             new_data_input.setMinimumHeight(26)
-            new_data_input.setFont(default_font)
+            new_data_input.setFont(self.default_font)
 
             self.line_edit_inputs[name_without_percent] = new_data_input
 
@@ -132,7 +135,7 @@ class SessionInputs(QWidget):
                 icon_label.setPixmap(icon.pixmap(30, 30))
                 icon_label_layout.addWidget(icon_label)
 
-            label.setFont(default_font)
+            label.setFont(self.default_font)
             icon_label_layout.addWidget(label)
 
             inputs_layout.addWidget(icon_label_widget, row_offset, col, Qt.AlignmentFlag.AlignTop)
