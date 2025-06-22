@@ -269,23 +269,6 @@ def get_data_value(data_name: str) -> Any:
     except json.JSONDecodeError:
         add_log(f"Error decoding JSON in data file: '{res_abs_paths['data']}'.", "error")
         return None
-    
-def delete_saved_session(file_path: str) -> int:
-    """
-    Delete a specific session file.
-        :param file_path: The path to the session file to delete.
-        :return: 0 if the deletion was successful, -1 if the file does not exist, -2 if an error occurred.
-    """
-    try:
-        if not os.path.exists(file_path):
-            add_log(f"Session file '{file_path}' does not exist.", "error")
-            return -1
-        os.remove(file_path)
-        add_log(f"Session file '{file_path}' deleted successfully.", "info")
-        return 0
-    except Exception as e:
-        add_log(f"Error deleting session file '{file_path}': {e}", "error")
-        return -2
 
 def get_app_resource(relative_path: str) -> str:
     """

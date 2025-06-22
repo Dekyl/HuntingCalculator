@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Optional, cast
 
 from PySide6.QtWidgets import QStackedWidget, QWidget, QMainWindow
+
+no_singleton_pages = ["view_sessions", "settings", "new_session"]
 
 class ManagerWidgets:
     """
@@ -14,7 +16,7 @@ class ManagerWidgets:
         This class is a singleton and should be accessed via the get_instance method.
         """
         if ManagerWidgets._instance is not None:
-            raise Exception("This class is a singleton!")
+            raise Exception("ManagerWidgets is a singleton!")
         ManagerWidgets._instance = self
         
         self.stack = QStackedWidget()
@@ -26,6 +28,15 @@ class ManagerWidgets:
             :param name: The name of the page to be added.
             :param page: The QWidget instance to be added as a page.
         """
+        current_page = self.get_current_page_name()
+
+        if current_page and current_page in no_singleton_pages:
+            # If the current page is in no_singleton_pages, we remove it from the stack to release resources
+            old_page = self.pages[current_page]
+            self.stack.removeWidget(old_page)
+            old_page.deleteLater()  # Delete widget to free resources
+            del self.pages[current_page]
+
         page.setProperty("page_name", name)
         self.pages[name] = page
         self.stack.addWidget(page)
@@ -43,7 +54,10 @@ class ManagerWidgets:
         Get the name of the current page in the QStackedWidget.
             :return: The name of the current page or None if no page is set.
         """
-        return self.stack.currentWidget().property("page_name")
+        current_widget = cast(Optional[QWidget], self.stack.currentWidget())
+        if current_widget is not None:
+            return current_widget.property("page_name")
+        return None
 
     def get_stack(self) -> QStackedWidget:
         """

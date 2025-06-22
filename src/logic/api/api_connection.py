@@ -3,8 +3,36 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock, Event
 
 from logic.logs import add_log
-from logic.api.get_data_api_requests import get_item_data, get_sell_price, get_buy_price
+from logic.api.get_data_api_requests import ApiRequest
 from config.config import max_threads, NestedDict, FlatDict
+
+def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone_ids: dict[str, str], imperfect_lightstone_ids: dict[str, str], region: str = "eu") -> Optional[NestedDict]:
+    """
+    Search for the current prices of items and elixirs from the Black Desert Market API and save them in a JSON file.
+        :param item_ids: Dictionary of item IDs and their names to fetch prices for.
+        :param elixir_ids: Dictionary of elixir IDs and their names to fetch costs for.
+        :param lightstone_ids: Dictionary of lightstone IDs to fetch costs for.
+        :param imperfect_lightstone_ids: Dictionary of imperfect lightstone IDs to fetch costs for.
+        :param region: The region for which to fetch the data.
+        :return: A dictionary containing two dictionaries: prices of items and costs of elixirs, or None if the API request fails.
+    """
+    data_types: list[tuple[str, dict[str, str], str]] = [
+        ("items", item_ids, "Items"),
+        ("elixirs", elixir_ids, "Elixirs"),
+        ("lightstones", lightstone_ids, "Lightstones"),
+        ("imperfect_lightstones", imperfect_lightstone_ids, "Imp-Lightstones"),
+    ]
+
+    results: NestedDict = {}
+
+    for key, ids, label in data_types:
+        result = make_api_requests(ids, region, label)
+        if result is None:
+            add_log(f"Failed to retrieve data for {label}.", "error")
+            return None
+        results[key] = result
+
+    return results
 
 def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items") -> Optional[FlatDict]:
     """
@@ -30,21 +58,12 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
         if cancel_event.is_set(): # Check if the cancel event is set before proceeding
             return -1
         
-        body_price = get_item_data(id, cancel_event, region, 0)
-        if cancel_event.is_set() or not body_price:
-            add_log(f"Failed to fetch data for {item_type} ID {id}. Skipping...", "error")
+        api_request = ApiRequest(id, item_type, cancel_event, region)
+        price = api_request.get_price() # Fetch the price using the ApiRequest class
+
+        if cancel_event.is_set() or not price: # Check if the cancel event is set or if the price is empty
+            add_log(f"Failed to fetch price for {item_type} ID {id}. Skipping...", "error")
             return -1
-        
-        if item_type == "Items":
-            price = get_sell_price(body_price, cancel_event)
-            if cancel_event.is_set() or not price:
-                add_log(f"Failed to fetch sell price for {item_type} ID {id}. Skipping...", "error")
-                return -1
-        else:
-            price = get_buy_price(body_price, cancel_event)
-            if cancel_event.is_set() or not price:
-                add_log(f"Failed to fetch buy price for {item_type} ID {id}. Skipping...", "error")
-                return -1
             
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
         if not cancel_event.is_set():
@@ -77,31 +96,3 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
     
     add_log(items_log, "debug")
     return prices_final
-
-def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone_ids: dict[str, str], imperfect_lightstone_ids: dict[str, str], region: str = "eu") -> Optional[NestedDict]:
-    """
-    Search for the current prices of items and elixirs from the Black Desert Market API and save them in a JSON file.
-        :param item_ids: Dictionary of item IDs and their names to fetch prices for.
-        :param elixir_ids: Dictionary of elixir IDs and their names to fetch costs for.
-        :param lightstone_ids: Dictionary of lightstone IDs to fetch costs for.
-        :param imperfect_lightstone_ids: Dictionary of imperfect lightstone IDs to fetch costs for.
-        :param region: The region for which to fetch the data.
-        :return: A dictionary containing two dictionaries: prices of items and costs of elixirs, or None if the API request fails.
-    """
-    data_types: list[tuple[str, dict[str, str], str]] = [
-        ("items", item_ids, "Items"),
-        ("elixirs", elixir_ids, "Elixirs"),
-        ("lightstones", lightstone_ids, "Lightstones"),
-        ("imperfect_lightstones", imperfect_lightstone_ids, "Imp-Lightstones"),
-    ]
-
-    results: NestedDict = {}
-
-    for key, ids, label in data_types:
-        result = make_api_requests(ids, region, label)
-        if result is None:
-            add_log(f"Failed to retrieve data for {label}.", "error")
-            return None
-        results[key] = result
-
-    return results

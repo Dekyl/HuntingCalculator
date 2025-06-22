@@ -77,7 +77,7 @@ class GuiEntryPoint(QMainWindow):
 
         # Clean sessions shortcut
         shortcut_clean_sessions = QShortcut("Ctrl+L", self)
-        shortcut_clean_sessions.activated.connect(lambda: self.controller.on_clean_sessions_button_controller() if self.controller else None)
+        shortcut_clean_sessions.activated.connect(lambda: self.controller.clean_all_sessions_controller() if self.controller else None)
 
         # Settings shortcut
         shortcut_settings = QShortcut("Ctrl+G", self)

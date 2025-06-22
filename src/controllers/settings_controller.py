@@ -5,7 +5,7 @@ from logic.manage_resources.access_resources import get_user_settings, apply_use
 from gui.dialogs.dialogs_user import show_dialog_type
 from config.config import settings_json, default_settings
 
-def get_all_settings_data_subctrler() -> Optional[dict[str, Any]]:
+def handle_get_all_settings_data() -> Optional[dict[str, Any]]:
     """
     Get the settings data from the setings file.
         :return: A dictionary containing the settings data or None if the settings file is not found or if any required keys are missing.
@@ -20,7 +20,7 @@ def get_all_settings_data_subctrler() -> Optional[dict[str, Any]]:
 
     return all_settings
 
-def apply_user_settings_subctrler(new_settings: dict[str, tuple[str, Any]]) -> int:
+def handle_apply_user_settings(new_settings: dict[str, tuple[str, Any]]) -> int:
     """
     Save the new settings to the settings file.
         :param new_settings: A dictionary containing the new settings to save.
