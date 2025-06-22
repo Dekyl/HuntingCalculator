@@ -6,6 +6,23 @@ from logic.logs import add_log
 from config.config import saved_sessions_folder
 from logic.data_classes.save_session_data import SaveSessionData
 
+def delete_saved_session(file_path: str) -> int:
+    """
+    Delete a specific session file.
+        :param file_path: The path to the session file to delete.
+        :return: 0 if the deletion was successful, -1 if the file does not exist, -2 if an error occurred.
+    """
+    try:
+        if not os.path.exists(file_path):
+            add_log(f"Session file '{file_path}' does not exist.", "error")
+            return -1
+        os.remove(file_path)
+        add_log(f"Session file '{file_path}' deleted successfully.", "info")
+        return 0
+    except Exception as e:
+        add_log(f"Error deleting session file '{file_path}': {e}", "error")
+        return -2
+
 def clean_sessions() -> int:
     """
     Clean the sessions of the hunting session by all saved files.

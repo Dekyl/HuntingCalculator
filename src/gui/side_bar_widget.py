@@ -30,7 +30,7 @@ class SideBarWidget(QWidget):
         
         # Ensure the view is a QMainWindow instance
         if SideBarWidget._instance is not None:
-            raise Exception("This class is a singleton!")
+            raise Exception("SideBarWidget is a singleton!")
         SideBarWidget._instance = self
 
         super().__init__()  # Initialize the QWidget
@@ -56,7 +56,7 @@ class SideBarWidget(QWidget):
             ("Home", lambda _: self.manager_widgets.set_page("home"), "Ctrl+H"),
             ("New session", lambda btn: self.show_spots_list_widget(btn), "Ctrl+N"),
             ("View sessions", lambda _: self.controller.show_dialog_select_session_controller(), "Ctrl+A"),
-            ("Clean sessions", lambda _: self.controller.on_clean_sessions_button_controller() if self.controller else None, "Ctrl+L"),
+            ("Clean sessions", lambda _: self.controller.clean_all_sessions_controller() if self.controller else None, "Ctrl+L"),
             ("Settings", lambda _: self.controller.create_settings_widget_controller() if self.controller else None, "Ctrl+G"),
             ("Exit", lambda _: self.controller.on_exit_button_controller() if self.controller else None, "Ctrl+Q")
         ]

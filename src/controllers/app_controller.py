@@ -14,15 +14,9 @@ from logic.data_classes.session_results import SessionResultsData
 from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type
 from config.config import settings_json
 from interface.view_interface import ViewInterface
-from controllers.sessions_controller import (
-    on_clean_session_subctrler, 
-    delete_session_subctrler, 
-    show_select_session_subctrler,
-    save_session_subctrler, 
-    get_res_session_subctrler
-)
-from controllers.data_retrieval_controller import DataRetrievalController, get_match_elixirs_subctrler
-from controllers.settings_controller import get_all_settings_data_subctrler, apply_user_settings_subctrler
+from controllers.sessions_controller import SessionController
+from controllers.data_retrieval_controller import DataRetrievalController, get_match_elixirs
+from controllers.settings_controller import SettingsController
 
 class AppController:
     """
@@ -37,11 +31,23 @@ class AppController:
             :param view: The main window of the application, implementing ViewInterface.
         """
         if AppController._instance is not None:
-            raise Exception("This class is a singleton!")
+            raise Exception("AppController is a singleton!")
         AppController._instance = self
         add_log("AppController initialized.", "info")
+        
         self.view = view
-        self.data_controller = None
+        self.session_controller = SessionController(
+            self.view.get_current_page_name, 
+            self.change_page_controller, 
+            self.view.process_view_session
+        )  # Initialize the session controller
+        self.settings_controller = SettingsController()  # Initialize the settings controller
+        self.data_controller = DataRetrievalController( # Initialize the data retrieval controller
+            self.show_error_enable_ui_controller,
+            self.view.set_ui_enabled,
+            self.view.set_session_button_enabled,
+            self.view.create_new_session_widget
+        )
 
     def change_page_controller(self, page_name: str):
         """
@@ -51,12 +57,12 @@ class AppController:
         add_log(f"Changing page to {page_name}.", "info")
         self.view.change_page(page_name)
 
-    def on_clean_sessions_button_controller(self):
+    def clean_all_sessions_controller(self):
         """
         Handle the clean sessions button click event.
             This method is called when the clean sessions button is clicked.
         """
-        on_clean_session_subctrler(self.view.get_current_page_name, self.change_page_controller)
+        self.session_controller.handle_delete_all_sessions()
         
     def exit_application_controller(self):
         """
@@ -131,26 +137,7 @@ class AppController:
             :param spot_name: The name of the hunting spot selected by the user.
         """
         self.view.set_ui_enabled(False) # Disable the UI while fetching data
-        def start_controller():
-            self.data_controller = DataRetrievalController( # Retrieve data for the selected spot after giving time to render the UI changes
-                spot_name,
-                self.show_error_enable_ui_controller,
-                self.view.set_ui_enabled,
-                self.view.set_session_button_enabled,
-                self.view.create_new_session_widget,
-                self.clear_data_controller
-            )
-            self.data_controller.start()
-
-        QTimer.singleShot(0, start_controller)
-
-    def clear_data_controller(self):
-        """
-        Clear the data controller instance.
-        This method is called to reset the data controller when necessary.
-        """
-        add_log("Clearing data controller instance.", "info")
-        self.data_controller = None
+        QTimer.singleShot(0, lambda: self.data_controller.start_data_retrieval(spot_name)) # Start data retrieval after the UI is rendered
 
     def show_error_enable_ui_controller(self, message: str, title: str, action: str = "no_action"):
         """
@@ -188,7 +175,7 @@ class AppController:
             :param session_data: An instance of SaveSessionData containing the session details.
             :return: True if successful, False if an error occurs.
         """
-        return save_session_subctrler(session_data)
+        return self.session_controller.handle_save_session(session_data)
     
     def get_session_results_controller(self, session_results: SessionResultsData) -> dict[str, Any] | int:
         """
@@ -196,21 +183,21 @@ class AppController:
             :param session_results: An instance of SessionResultsData containing the results of the session.
             :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
-        return get_res_session_subctrler(session_results)
+        return self.session_controller.handle_get_results_session(session_results)
     
     def get_all_settings_data_controller(self) -> Optional[dict[str, Any]]:
         """
         Get the settings data from the setings file.
             :return: A dictionary containing the settings data or None if the settings file is not found or if any required keys are missing.
         """
-        return get_all_settings_data_subctrler()
+        return self.settings_controller.handle_get_all_settings_data()
     
     def apply_user_settings_controller(self, new_settings: dict[str, tuple[str, Any]]) -> int:
         """
         Save the new settings to the settings file.
             :param new_settings: A dictionary containing the new settings to save.
         """
-        return apply_user_settings_subctrler(new_settings)
+        return self.settings_controller.handle_apply_user_settings(new_settings)
     
     def get_match_elixirs_controller(self, elixir_name_id: str) -> dict[str, str] | str | None:
         """
@@ -218,21 +205,21 @@ class AppController:
             :param elixir_name_id: The name ID of the elixir to match.
             :return: A dictionary containing the matching elixirs or a message if no matches are found.
         """
-        return get_match_elixirs_subctrler(elixir_name_id)
+        return get_match_elixirs(elixir_name_id)
     
     def delete_session_controller(self, file_path: str):
         """
         Delete a session file.
             :param file_path: The path to the session file to delete.
         """
-        delete_session_subctrler(file_path, self.change_page_controller)  # Call the clean_sessions_controller method to delete the session file
+        self.session_controller.handle_delete_session(file_path)  # Call the clean_sessions_controller method to delete the session file
 
     def show_dialog_select_session_controller(self):
         """
         Show a dialog to select a session.
         This method retrieves the list of saved sessions and displays them in a dialog.
         """
-        show_select_session_subctrler(self.view.process_view_session)
+        self.session_controller.handle_show_select_session()
 
     @staticmethod
     def get_instance() -> "AppController":

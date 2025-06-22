@@ -8,7 +8,7 @@ class DataFetcher(QObject):
     It retrieves data for specified loot and elixir IDs, region, and language.
     It emits a signal when the data fetching is complete or fails.
     """
-    finished = Signal(object) # Signal to emit when data fetching is complete or fails (type of data sent)
+    finished_retrieving_data = Signal(object) # Signal to emit when data fetching is complete or fails (type of data sent)
 
     def __init__(self, loot_items: dict[str, str], elixirs: dict[str, str], region: str, lightstones: dict[str, str], imperfect_lightstones: dict[str, str]):
         """
@@ -35,6 +35,6 @@ class DataFetcher(QObject):
         self.data_retrieved = connect_api(self.loot_items, self.elixirs, self.lightstones, self.imperfect_lightstones, self.region)
         
         if self.data_retrieved:
-            self.finished.emit(self.data_retrieved)  # Emit the retrieved data and costs
+            self.finished_retrieving_data.emit(self.data_retrieved)  # Emit the retrieved data and costs
         else:
-            self.finished.emit(None)  # Emit None if data retrieval fails
+            self.finished_retrieving_data.emit(None)  # Emit None if data retrieval fails

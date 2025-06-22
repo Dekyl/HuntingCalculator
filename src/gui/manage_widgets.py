@@ -14,7 +14,7 @@ class ManagerWidgets:
         This class is a singleton and should be accessed via the get_instance method.
         """
         if ManagerWidgets._instance is not None:
-            raise Exception("This class is a singleton!")
+            raise Exception("ManagerWidgets is a singleton!")
         ManagerWidgets._instance = self
         
         self.stack = QStackedWidget()

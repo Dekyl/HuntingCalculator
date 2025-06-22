@@ -17,14 +17,11 @@ def get_price(item_data: str, cancel_event: Event, sell_or_buy: str) -> str:
     try:
         data = json.loads(item_data)
         availability = data["data"]["availability"]
-        print(availability)
         price = None
 
         for entry in availability:
             if cancel_event.is_set():
                 return ""
-            
-            print(entry)
 
             if entry[sell_or_buy] != 0:
                 if price is None:
