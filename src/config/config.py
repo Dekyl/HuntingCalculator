@@ -88,6 +88,7 @@ default_settings: dict[str, Any] = {
     "language": "en-US",
     "elixirs": {}
 }
+breath_of_narcion_id = "56221"  # ID of the Breath of Narcion item
 
 max_attempts = 3 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout in seconds to establish a connection to the API

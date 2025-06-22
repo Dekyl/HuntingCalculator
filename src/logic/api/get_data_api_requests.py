@@ -6,7 +6,11 @@ from typing import cast
 from logic.logs import add_log
 from config.config import timeout_connection, max_attempts, backoff_time, timeout_retrieve
 
-class ApiRequest():
+class ApiRequest:
+    """
+    A class to handle API requests to the Black Desert Market for fetching item and elixir prices.
+    This class manages the connection, retries, and parsing of data from the API.
+    """
     def __init__(self, id_item: str, item_type: str, cancel_event: Event, region: str = "eu"):
         """
         Initialize the ApiRequest object with item ID, type, region, and cancellation event.

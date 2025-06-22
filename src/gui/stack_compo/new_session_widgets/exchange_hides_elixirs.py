@@ -17,6 +17,7 @@ class ExchangeHidesElixirs(QWidget):
             :param results_default_style: The default style to be applied to the results input fields.
         """
         super().__init__()
+        
         self.controller = AppController.get_instance()  # Controller instance to handle the logic of the new session
         self.default_font = default_font
         self.default_style = default_style

@@ -18,7 +18,7 @@ from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
 from logic.data_classes.session_results import SessionResultsData
-from config.config import settings_json
+from config.config import settings_json, breath_of_narcion_id
 
 class SessionInputs(QWidget):
     def __init__(self, new_session: NewSessionData, default_font: QFont, qtooltip_style: str, default_style: str, session_input_callbacks: SessionInputCallbacks):
@@ -69,7 +69,7 @@ class SessionInputs(QWidget):
             """)
 
             if "breath of narcion" in no_market_item.lower():
-                icon = QIcon(res_abs_paths["56221"]) if os.path.exists(res_abs_paths["56221"]) else QIcon(res_abs_paths["not_found_ico"]) # 56221 is the ID for Breath of Narcion
+                icon = QIcon(res_abs_paths[breath_of_narcion_id]) if os.path.exists(res_abs_paths[breath_of_narcion_id]) else QIcon(res_abs_paths["not_found_ico"])
             else:
                 no_market_item_lower_replace = no_market_item.lower().replace(" ", "_")
                 icon = QIcon(res_abs_paths[no_market_item_lower_replace]) if os.path.exists(res_abs_paths[no_market_item_lower_replace]) else QIcon(res_abs_paths["not_found_ico"])

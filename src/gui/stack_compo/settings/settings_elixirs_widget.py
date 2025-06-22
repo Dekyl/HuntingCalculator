@@ -44,6 +44,7 @@ class SettingsElixirsWidget(QWidget):
             :param on_settings_changed: A callback function to notify when settings change.
         """
         super().__init__()
+        
         app_instance = QApplication.instance()
         if app_instance:
             app_instance.installEventFilter(self) # Install event filter to capture mouse events
