@@ -15,8 +15,8 @@ from gui.dialogs.dialogs_user import show_dialog_confirmation, show_dialog_type
 from config.config import settings_json
 from interface.view_interface import ViewInterface
 from controllers.sessions_controller import SessionController
-from controllers.data_retrieval_controller import DataRetrievalController, get_match_elixirs
-from controllers.settings_controller import SettingsController
+from controllers.data_retrieval_controller import DataRetrievalController
+from controllers.settings_controller import handle_get_all_settings_data, handle_apply_user_settings
 
 class AppController:
     """
@@ -41,7 +41,6 @@ class AppController:
             self.change_page_controller, 
             self.view.process_view_session
         )  # Initialize the session controller
-        self.settings_controller = SettingsController()  # Initialize the settings controller
         self.data_controller = DataRetrievalController( # Initialize the data retrieval controller
             self.show_error_enable_ui_controller,
             self.view.set_ui_enabled,
@@ -190,14 +189,14 @@ class AppController:
         Get the settings data from the setings file.
             :return: A dictionary containing the settings data or None if the settings file is not found or if any required keys are missing.
         """
-        return self.settings_controller.handle_get_all_settings_data()
+        return handle_get_all_settings_data()
     
     def apply_user_settings_controller(self, new_settings: dict[str, tuple[str, Any]]) -> int:
         """
         Save the new settings to the settings file.
             :param new_settings: A dictionary containing the new settings to save.
         """
-        return self.settings_controller.handle_apply_user_settings(new_settings)
+        return handle_apply_user_settings(new_settings)
     
     def get_match_elixirs_controller(self, elixir_name_id: str) -> dict[str, str] | str | None:
         """
@@ -205,7 +204,7 @@ class AppController:
             :param elixir_name_id: The name ID of the elixir to match.
             :return: A dictionary containing the matching elixirs or a message if no matches are found.
         """
-        return get_match_elixirs(elixir_name_id)
+        return self.data_controller.handle_get_match_elixirs(elixir_name_id)
     
     def delete_session_controller(self, file_path: str):
         """

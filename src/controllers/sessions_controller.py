@@ -29,6 +29,9 @@ class SessionController:
         """ 
         Initialize the SessionController.
         This constructor is private to enforce the singleton pattern.
+            :param get_current_page_name: Function to get the current page name.
+            :param change_page: Function to change the current page.
+            :param process_view_session: Function to process the viewing of a session.
         """
         if SessionController._instance is not None:
             raise Exception("SessionController is a singleton!")

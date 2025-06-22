@@ -175,7 +175,22 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
 
         self.create_new_session_widget(self.new_session)
 
-    def get_instance(self) -> "DataRetrievalController":
+    def handle_get_match_elixirs(self, elixir_name_id: str) -> dict[str, str] | str | None:
+        """
+        Get the matching elixirs for the given elixir name or elixir ID.
+            :param elixir_name_id: The name ID of the elixir to match.
+            :return: A dictionary containing the matching elixirs or a message if no matches are found.
+        """
+        if not elixir_name_id:
+            return None
+        if elixir_name_id.isspace():
+            return "No matches."
+        
+        matches = get_match_elixirs(elixir_name_id)
+        return matches if matches else "No matches."
+
+    @staticmethod
+    def get_instance() -> "DataRetrievalController":
         """
         Get the singleton instance of DataRetrievalController.
             :return: The singleton instance of DataRetrievalController.
@@ -183,17 +198,3 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         if DataRetrievalController._instance is None:
             raise Exception("DataRetrievalController is not initialized.")
         return DataRetrievalController._instance
-
-def get_match_elixirs_subctrler(elixir_name_id: str) -> dict[str, str] | str | None:
-    """
-    Get the matching elixirs for the given elixir name or elixir ID.
-        :param elixir_name_id: The name ID of the elixir to match.
-        :return: A dictionary containing the matching elixirs or a message if no matches are found.
-    """
-    if not elixir_name_id:
-        return None
-    if elixir_name_id.isspace():
-        return "No matches."
-    
-    matches = get_match_elixirs(elixir_name_id)
-    return matches if matches else "No matches."
