@@ -26,9 +26,13 @@ def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone
     results: NestedDict = {}
 
     for key, ids, label in data_types:
+        if not ids:
+            add_log(f"No {label} to fetch. Skipping...", "info")
+            results[key] = {}
+            continue
         result = make_api_requests(ids, region, label)
         if result is None:
-            add_log(f"Failed to retrieve data for {label}.", "error")
+            add_log(f"Failed to fetch data for {label}.", "error")
             return None
         results[key] = result
 

@@ -4,7 +4,7 @@ from threading import Event
 from typing import cast
 
 from logic.logs import add_log
-from config.config import timeout_connection, max_attempts, backoff_time, timeout_retrieve
+from config.config import timeout_connection, max_attempts, backoff_time, timeout_fetch
 
 class ApiRequest:
     """
@@ -35,7 +35,7 @@ class ApiRequest:
 
         item_data = self.get_item_data()
         if not item_data:
-            add_log(f"Failed to retrieve data for item {self.id_item} after {self.attempts} attempts", "error")
+            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts} attempts", "error")
             return ""
         try:
             data = json.loads(item_data)
@@ -101,7 +101,7 @@ class ApiRequest:
         c.setopt(c.CONNECTTIMEOUT, timeout_connection)    # type: ignore
         c.setopt(c.URL, self.url)                              # type: ignore
         c.setopt(c.WRITEDATA, buffer)                     # type: ignore
-        c.setopt(c.TIMEOUT, timeout_retrieve)             # type: ignore
+        c.setopt(c.TIMEOUT, timeout_fetch)             # type: ignore
 
         try:
             c.perform()

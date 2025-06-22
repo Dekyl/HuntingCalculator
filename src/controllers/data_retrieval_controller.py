@@ -14,6 +14,8 @@ from logic.manage_resources.access_resources import (
     get_no_market_items,
     get_match_elixirs
 )
+from logic.sql_items_data.sql_db_connection import check_cached_data, update_cached_data
+from logic.sql_items_data.merge_fetched_data import merge_cached_fetched_data
 from config.config import (
     market_tax,
     NestedDict
@@ -26,10 +28,10 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
     """
     Controller for managing data retrieval for hunting sessions.
     This class handles the retrieval of data for a specific hunting spot, manages the worker thread,
-    and processes the retrieved data to create a new session.
+    and processes the fetched data to create a new session.
     It is designed as a singleton to ensure that only one instance exists throughout the application.
     """
-    _instance = None # Singleton instance
+    instance = None # Singleton instance
 
     def __init__(
         self,
@@ -47,9 +49,9 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             :param on_finished_callback: Optional callback function to execute when data retrieval is finished.
         """
         super().__init__()
-        if DataRetrievalController._instance is not None:
+        if DataRetrievalController.instance is not None:
             raise Exception("DataRetrievalController is a singleton!")
-        DataRetrievalController._instance = self
+        DataRetrievalController.instance = self
         add_log("DataRetrievalController initialized.", "info")
 
         self.show_error_enable_ui = show_error_enable_ui
@@ -60,9 +62,9 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
     def start_data_retrieval(self, spot_name: str):
         """
         Start the data retrieval process for the selected hunting spot.
-        This method initializes the data fetching process, retrieves loot items,
+        This method initializes the data fetching process, fetches loot items,
         and sets up the worker thread to handle the data retrieval.
-            :param spot_name: The name of the hunting spot for which data is to be retrieved.
+            :param spot_name: The name of the hunting spot for which data is to be fetched.
         """
         add_log(f"Session selected: {spot_name}, retrieving data", "info")
         loot_items = get_spot_loot(spot_name)
@@ -82,21 +84,21 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
 
         # Validate all
         if not region:
-            self.show_error_enable_ui("Region setting not found.", "Settings file error", "no_action"); return
+            self.show_error_enable_ui("'Region' setting not found.", "Settings file error", "no_action"); return
         if not language:
-            self.show_error_enable_ui("Language setting not found.", "Settings file error", "no_action"); return
+            self.show_error_enable_ui("'Language' setting not found.", "Settings file error", "no_action"); return
         if extra_profit is None:
-            self.show_error_enable_ui("Extra profit setting missing.", "Settings file error", "no_action"); return
+            self.show_error_enable_ui("'Extra profit' setting missing.", "Settings file error", "no_action"); return
         if value_pack is None:
-            self.show_error_enable_ui("Value pack setting missing.", "Settings file error", "no_action"); return
+            self.show_error_enable_ui("'Value pack' setting missing.", "Settings file error", "no_action"); return
         if elixirs is None:
-            self.show_error_enable_ui("Elixirs setting missing.", "Settings file error", "no_action"); return
+            self.show_error_enable_ui("'Elixirs' setting missing.", "Settings file error", "no_action"); return
         if lightstones is None:
             self.show_error_enable_ui("'lighstone_items' missing.", "Data file error", "no_action"); return
         if imperfect_lightstones is None:
             self.show_error_enable_ui("'imperfect_lighstone_items' missing.", "Data file error", "no_action"); return
         if auto_profit is None:
-            self.show_error_enable_ui("Auto profit setting missing.", "Settings file error", "no_action"); return
+            self.show_error_enable_ui("'Auto profit' setting missing.", "Settings file error", "no_action"); return
         
         self.new_session = NewSessionData(
             spot_name,
@@ -105,15 +107,35 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             market_tax,
             extra_profit
         )
+        self.do_update_cached_data = True # Flag to determine if cached data should be updated
+
+        # Check if any data is outdated
+        add_log("Checking for outdated data...", "info")
+        outdated_loot_items, self.loot_items_cached = check_cached_data(loot_items)
+        outdated_elixirs, self.elixirs_cached = check_cached_data(elixirs)
+        outdated_lightstones, self.lightstones_cached = check_cached_data(lightstones)
+        outdated_imperfect_lightstones, self.imperfect_lightstones_cached = check_cached_data(imperfect_lightstones)
+
+        if not outdated_loot_items and not outdated_elixirs and not outdated_lightstones and not outdated_imperfect_lightstones:
+            add_log("No outdated data found, proceeding with cached data.", "info")
+            self.do_update_cached_data = False
+            data_fetched: NestedDict = {
+                "items": self.loot_items_cached,
+                "elixirs": self.elixirs_cached,
+                "lightstones": self.lightstones_cached,
+                "imperfect_lightstones": self.imperfect_lightstones_cached
+            }
+            self.on_data_fetched(data_fetched)
+            return
 
         # Setup worker and thread
         self.worker_thread = QThread()
         self.worker = DataFetcher(
-            loot_items,
-            elixirs,
+            outdated_loot_items,
+            outdated_elixirs,
             region,
-            lightstones,
-            imperfect_lightstones
+            outdated_lightstones,
+            outdated_imperfect_lightstones
         )
 
         self.worker.moveToThread(self.worker_thread) # Move the worker to the thread
@@ -124,23 +146,22 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         self.worker_thread.start()
 
     @Slot(object)
-    def cleanup_worker(self,  data_retrieved: Optional[NestedDict]):
+    def cleanup_worker(self, data_fetched: Optional[NestedDict]):
         """ 
         Clean up the worker thread after data retrieval is complete.
-            :param data_retrieved: The data retrieved from the API, or None if an error occurred.
+            :param data_fetched: The data fetched from the API, or None if an error occurred.
         """
         self.worker_thread.quit()
         self.worker.deleteLater()
-        self.on_data_retrieved(data_retrieved) # Call the callback method with the retrieved data
+        self.on_data_fetched(data_fetched) # Call the callback method with the fetched data
 
-    def on_data_retrieved(self, data_retrieved: Optional[NestedDict]):
+    def on_data_fetched(self, data_fetched: Optional[NestedDict]):
         """
-        Callback method to handle the data retrieved from the worker thread.
-            :param data_retrieved: The data retrieved from the API, or None if an error occurred.
+        Callback method to handle the data fetched from the worker thread.
+            :param data_fetched: The data fetched from the API, or None if an error occurred.
         """
         self.set_ui_enabled(True)
-
-        if data_retrieved is None:
+        if data_fetched is None:
             add_log(f"Error retrieving data for spot '{self.new_session.name_spot}'", "error")
             self.set_session_button_enabled(False)
             show_dialog_type(
@@ -151,6 +172,15 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             )
             QTimer.singleShot(80000, lambda: self.set_session_button_enabled(True))
             return
+        
+        if self.do_update_cached_data:
+            # Update cached data if necessary
+            add_log("Updating cached data...", "info")
+            update_cached_data(data_fetched)
+            # Merge the fetched data with cached data
+            add_log("Merging fetched data with cached data...", "info")
+            # Merges cached data into fetched data "data_fetched" variable
+            merge_cached_fetched_data(data_fetched, self.loot_items_cached, self.elixirs_cached, self.lightstones_cached, self.imperfect_lightstones_cached)
 
         spot_id_icon = get_spot_id_icon(self.new_session.name_spot)
         if not spot_id_icon:
@@ -167,10 +197,10 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         self.new_session.set_extra_data(
             spot_id_icon,
             no_market_items,
-            data_retrieved["items"],
-            calculate_elixirs_cost_hour(data_retrieved["elixirs"]),
-            data_retrieved["lightstones"],
-            data_retrieved["imperfect_lightstones"]
+            data_fetched["items"],
+            calculate_elixirs_cost_hour(data_fetched["elixirs"]),
+            data_fetched["lightstones"],
+            data_fetched["imperfect_lightstones"]
         )
 
         self.create_new_session_widget(self.new_session)
@@ -195,6 +225,6 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         Get the singleton instance of DataRetrievalController.
             :return: The singleton instance of DataRetrievalController.
         """
-        if DataRetrievalController._instance is None:
+        if DataRetrievalController.instance is None:
             raise Exception("DataRetrievalController is not initialized.")
-        return DataRetrievalController._instance
+        return DataRetrievalController.instance
