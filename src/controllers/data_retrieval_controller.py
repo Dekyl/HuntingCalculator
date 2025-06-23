@@ -74,7 +74,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             return
 
         # Collect required data
-        region = get_user_setting("region")
+        self.region = get_user_setting("region")
         language = get_user_setting("language")
         extra_profit = get_user_setting("extra_profit")
         value_pack = get_user_setting("value_pack")
@@ -84,7 +84,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         auto_profit = get_user_setting("auto_calculate_best_profit")
 
         # Validate all
-        if not region:
+        if not self.region:
             self.show_error_enable_ui("'Region' setting not found.", "Settings file error", "no_action"); return
         if not language:
             self.show_error_enable_ui("'Language' setting not found.", "Settings file error", "no_action"); return
@@ -111,11 +111,20 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         self.do_update_cached_data = True # Flag to determine if cached data should be updated
 
         # Check if any data is outdated
-        add_log("Checking for outdated data...", "info")
-        outdated_loot_items, self.loot_items_cached = check_cached_data(loot_items)
-        outdated_elixirs, self.elixirs_cached = check_cached_data(elixirs)
-        outdated_lightstones, self.lightstones_cached = check_cached_data(lightstones)
-        outdated_imperfect_lightstones, self.imperfect_lightstones_cached = check_cached_data(imperfect_lightstones)
+        add_log(f"Checking for outdated data in {self.region} entry", "info")
+        try:
+            outdated_loot_items, self.loot_items_cached = check_cached_data(loot_items, self.region)
+            outdated_elixirs, self.elixirs_cached = check_cached_data(elixirs, self.region)
+            outdated_lightstones, self.lightstones_cached = check_cached_data(lightstones, self.region)
+            outdated_imperfect_lightstones, self.imperfect_lightstones_cached = check_cached_data(imperfect_lightstones, self.region)
+        except Exception as e:
+            add_log(f"Error checking cached data: {e}", "error")
+            self.show_error_enable_ui(
+                "Error checking cached data, please remove your database and restart the application.",
+                "Database error",
+                "no_action"
+            )
+            return
 
         if not outdated_loot_items and not outdated_elixirs and not outdated_lightstones and not outdated_imperfect_lightstones:
             add_log("No outdated data found, proceeding with cached data.", "info")
@@ -134,7 +143,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         self.worker = DataFetcher(
             outdated_loot_items,
             outdated_elixirs,
-            region,
+            self.region,
             outdated_lightstones,
             outdated_imperfect_lightstones
         )
@@ -175,9 +184,18 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             return
         
         if self.do_update_cached_data:
-            # Update cached data if necessary
-            add_log("Updating cached data...", "info")
-            update_cached_data(data_fetched)
+            try:
+                # Update cached data if necessary
+                add_log("Updating cached data...", "info")
+                update_cached_data(data_fetched, self.region)
+            except Exception as e:
+                add_log(f"Error updating cached data: {e}", "error")
+                self.show_error_enable_ui(
+                    "Error updating cached data, please remove your database and restart the application.",
+                    "Database error",
+                    "no_action"
+                )
+                return
             # Merge the fetched data with cached data
             add_log("Merging fetched data with cached data...", "info")
             # Merges cached data into fetched data "data_fetched" variable
