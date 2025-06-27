@@ -35,12 +35,15 @@ class ApiRequest:
 
         item_data = self.get_item_data()
         if not item_data:
-            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts} attempts", "error")
+            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts + 1} attempts", "error")
             return ""
         try:
             data = json.loads(item_data)
             availability = data["data"]["availability"]
             price = None
+
+            if self.sell_or_buy == "buyCount":
+                availability = reversed(availability)  # Reverse the list for buyCount to get the highest price first
 
             for entry in availability:
                 if self.cancel_event.is_set():
@@ -76,7 +79,7 @@ class ApiRequest:
         else:
             add_log(f"Unexpected response code {response_code} for item {self.id_item} data", "warning")
 
-        if self.attempts < max_attempts:
+        if self.attempts < max_attempts - 1:
             time.sleep(backoff_time)  # backoff before retrying
             self.attempts += 1
             return self.get_item_data()

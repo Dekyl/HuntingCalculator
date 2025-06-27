@@ -74,7 +74,7 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
             with lock:
                 price_int = int(price) if price.isdigit() else -1 # Convert price to int, handle non-digit cases
                 prices_ids[id] = price_int # id, sell_price
-                add_log(f"Fetched {item_type} ID {id} with price {price_int:,}", "info")
+                add_log(f"Fetched {item_type} ID {id} with price {price_int:,}", "debug")
 
         return 0  # Return 0 on success, -1 on failure
 
