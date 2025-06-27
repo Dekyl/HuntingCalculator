@@ -35,7 +35,7 @@ class ApiRequest:
 
         item_data = self.get_item_data()
         if not item_data:
-            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts + 1} attempts", "error")
+            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts + 1} attempts", "warning")
             return ""
         try:
             data = json.loads(item_data)
@@ -84,7 +84,6 @@ class ApiRequest:
             self.attempts += 1
             return self.get_item_data()
 
-        add_log(f"Max attempts reached ({max_attempts}) for item {self.id_item} data", "error")
         return ""
 
     def perform_api_request(self) -> tuple[BytesIO, int]:

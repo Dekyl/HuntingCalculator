@@ -63,8 +63,11 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
         api_request = ApiRequest(id, item_type, cancel_event, region)
         price = api_request.get_price() # Fetch the price using the ApiRequest class
 
-        if cancel_event.is_set() or not price: # Check if the cancel event is set or if the price is empty
-            add_log(f"Failed to fetch price for {item_type} ID {id}. Skipping...", "error")
+        if not price: # Check if the cancel event is set or if the price is empty
+            add_log(f"Failed to fetch price for {item_type} ID {id}. Skipping...", "warning")
+            return -1
+        if cancel_event.is_set():
+            add_log(f"Cancellation event set while fetching {item_type} ID {id}. Stopping further processing...", "warning")
             return -1
             
         # Ensure thread-safe access to the shared dictionary if the cancel event is not set
@@ -81,7 +84,7 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
         for future in as_completed(futures):
             result = future.result()
             if result == -1:
-                add_log("Cancelling remaining tasks...", "error")
+                add_log("Cancelling remaining tasks...", "warning")
                 cancel_event.set() # Cancel remaining futures
                 break
 
@@ -89,7 +92,7 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
     items_log = f"{item_type}: {{\n"
     for id, price in prices_ids.items():
         if price == -1: # If the price is -1, it means that an error occurred while fetching data for this ID
-            add_log(f"Failed to fetch data for ID {id}. Returning...", "error")
+            add_log(f"Failed to fetch data for ID {id}. Returning...", "warning")
             return (False, prices_final)
         name = ids[id]
         prices_final[id] = (name, price) # id, (name, price)
