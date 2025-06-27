@@ -180,12 +180,12 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             add_log(f"Error retrieving data for spot '{self.new_session.name_spot}'", "error")
             self.set_session_button_enabled(False)
             show_dialog_type(
-                "Error fetching data from API, disabling button for 30s.",
+                "Error fetching data from API, disabling button for 60s.",
                 "API timeout",
                 "error",
                 "no_action"
             )
-            QTimer.singleShot(30000, lambda: self.set_session_button_enabled(True))
+            QTimer.singleShot(60000, lambda: self.set_session_button_enabled(True))
             return
         
         if self.do_update_cached_data:
