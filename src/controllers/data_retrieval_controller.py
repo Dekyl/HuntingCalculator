@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable
 from PySide6.QtCore import QThread, QTimer, Slot, QObject
 
 from gui.dialogs.dialogs_user import show_dialog_type
@@ -23,7 +23,7 @@ from config.config import (
 )
 
 from PySide6.QtCore import QThread, QTimer
-from typing import Callable, Optional
+from typing import Callable
 
 class DataRetrievalController(QObject): # Inherits from QObject to use signals and slots (otherwise it would not work)
     """
@@ -111,7 +111,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         self.do_update_cached_data = True # Flag to determine if cached data should be updated
 
         # Check if any data is outdated
-        add_log(f"Checking for outdated data in {self.region} entry", "info")
+        add_log(f"Checking for outdated data in {self.region} db entry", "info")
         try:
             outdated_loot_items, self.loot_items_cached = check_cached_data(loot_items, self.region)
             outdated_elixirs, self.elixirs_cached = check_cached_data(elixirs, self.region)
@@ -135,7 +135,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
                 "lightstones": self.lightstones_cached,
                 "imperfect_lightstones": self.imperfect_lightstones_cached
             }
-            self.on_data_fetched(data_fetched)
+            self.on_data_fetched((True, data_fetched))
             return
 
         # Setup worker and thread
@@ -156,22 +156,28 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         self.worker_thread.start()
 
     @Slot(object)
-    def cleanup_worker(self, data_fetched: Optional[NestedDict]):
+    def cleanup_worker(self, results_fetch: tuple[bool, NestedDict]):
         """ 
         Clean up the worker thread after data retrieval is complete.
-            :param data_fetched: The data fetched from the API, or None if an error occurred.
+            :param results_fetch: A tuple containing a boolean indicating if the data was fetched completely fetched or half of it did and dictionary with results.
         """
         self.worker_thread.quit()
         self.worker.deleteLater()
-        self.on_data_fetched(data_fetched) # Call the callback method with the fetched data
+        self.on_data_fetched(results_fetch) # Call the callback method with the fetched data
 
-    def on_data_fetched(self, data_fetched: Optional[NestedDict]):
+    def on_data_fetched(self, results_fetch: tuple[bool, NestedDict]):
         """
         Callback method to handle the data fetched from the worker thread.
-            :param data_fetched: The data fetched from the API, or None if an error occurred.
+            :param results_fetch: A tuple containing a boolean indicating if the data was fetched completely fetched or half of it did and dictionary with results.
         """
         self.set_ui_enabled(True)
-        if data_fetched is None:
+        all_data_fetched, data_fetched = results_fetch
+        if not all_data_fetched:
+            # Update cached data if necessary
+            add_log("Updating cached data of half results after fail fetching...", "info")
+            print(data_fetched)
+            update_cached_data(data_fetched, self.region) # Update cached data with the half fetched data so it does not start from scratch next time
+            
             add_log(f"Error retrieving data for spot '{self.new_session.name_spot}'", "error")
             self.set_session_button_enabled(False)
             show_dialog_type(

@@ -1,4 +1,3 @@
-from typing import Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock, Event
 
@@ -6,7 +5,7 @@ from logic.logs import add_log
 from logic.api.get_data_api_requests import ApiRequest
 from config.config import max_threads, NestedDict, FlatDict
 
-def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone_ids: dict[str, str], imperfect_lightstone_ids: dict[str, str], region: str = "eu") -> Optional[NestedDict]:
+def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone_ids: dict[str, str], imperfect_lightstone_ids: dict[str, str], region: str = "eu") -> tuple[bool, NestedDict]:
     """
     Search for the current prices of items and elixirs from the Black Desert Market API and save them in a JSON file.
         :param item_ids: Dictionary of item IDs and their names to fetch prices for.
@@ -14,7 +13,7 @@ def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone
         :param lightstone_ids: Dictionary of lightstone IDs to fetch costs for.
         :param imperfect_lightstone_ids: Dictionary of imperfect lightstone IDs to fetch costs for.
         :param region: The region for which to fetch the data.
-        :return: A dictionary containing two dictionaries: prices of items and costs of elixirs, or None if the API request fails.
+        :return: A tuple containing a boolean indicating half requests done, and a nested dictionary with the fetched data until the moment it failed (if did).
     """
     data_types: list[tuple[str, dict[str, str], str]] = [
         ("items", item_ids, "Items"),
@@ -23,28 +22,27 @@ def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone
         ("imperfect_lightstones", imperfect_lightstone_ids, "Imp-Lightstones"),
     ]
 
-    results: NestedDict = {}
-
+    results: NestedDict = {"items": {}, "elixirs": {}, "lightstones": {}, "imperfect_lightstones": {}} # Initialize results dictionary
     for key, ids, label in data_types:
         if not ids:
             add_log(f"No {label} to fetch. Skipping...", "info")
             results[key] = {}
             continue
-        result = make_api_requests(ids, region, label)
-        if result is None:
-            add_log(f"Failed to fetch data for {label}.", "error")
-            return None
-        results[key] = result
+        all_fetched, data_fetched = make_api_requests(ids, region, label)
+        results[key] = data_fetched
+        if not all_fetched:
+            add_log(f"Failed to fetch all data for {label}.", "error")
+            return (False, results)  # Return partial results if any request fails
 
-    return results
+    return (True, results)
 
-def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items") -> Optional[FlatDict]:
+def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items") -> tuple[bool, FlatDict]:
     """
     Make API requests to fetch prices from the Black Desert Market API.
         :param ids: Dictionary of IDs and their names to fetch prices for.
         :param region: The region for which to fetch the data.
         :param item_type: Type of items to fetch prices for (e.g., "Items", "Elixirs").
-        :return: A dictionary containing item IDs and their corresponding prices, or None if the API request fails.
+        :return: A tuple containing a boolean indicating if all requests were successful, and a flat dictionary with the fetched prices.
     """
     prices_ids: dict[str, int] = {id: -1 for id in ids} # Initialize with None to handle cases where the item is not found
     lock = Lock()  # Lock to ensure thread-safe access
@@ -92,11 +90,11 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
     for id, price in prices_ids.items():
         if price == -1: # If the price is -1, it means that an error occurred while fetching data for this ID
             add_log(f"Failed to fetch data for ID {id}. Returning...", "error")
-            return None
+            return (False, prices_final)
         name = ids[id]
         prices_final[id] = (name, price) # id, (name, price)
         items_log += f"\tID {id} ({name}): Price {price:,}\n"
     items_log += "}"
     
     add_log(items_log, "debug")
-    return prices_final
+    return (True, prices_final)

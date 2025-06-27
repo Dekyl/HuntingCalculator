@@ -6,7 +6,7 @@ class DataFetcher(QObject):
     """
     DataFetcher is a QObject that handles the fetching of data from an API.
     It fetches data for specified loot and elixir IDs, region, and language.
-    It emits a signal when the data fetching is complete or fails.
+    It emits a signal when the data fetching is complete or half complete.
     """
     finished_retrieving_data = Signal(object) # Signal to emit when data fetching is complete or fails (type of data sent)
 
@@ -30,11 +30,7 @@ class DataFetcher(QObject):
         """
         Run the data fetching process.
         This method connects to the API and fetches the data for the specified hunting spot.
-        It emits a signal with the results or None if an error occurs.
+        It emits a signal with the results.
         """
         self.data_fetched = connect_api(self.loot_items, self.elixirs, self.lightstones, self.imperfect_lightstones, self.region)
-        
-        if self.data_fetched:
-            self.finished_retrieving_data.emit(self.data_fetched)  # Emit the fetched data and costs
-        else:
-            self.finished_retrieving_data.emit(None)  # Emit None if data retrieval fails
+        self.finished_retrieving_data.emit(self.data_fetched)  # Emit the fetched data and costs

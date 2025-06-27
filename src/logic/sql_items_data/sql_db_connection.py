@@ -43,6 +43,7 @@ def check_cached_data(data_items: dict[str, str], region: str) -> tuple[dict[str
                 add_log(f"Item {item_name} (ID: {item_id}) is outdated, needs to be fetched", "debug")
                 outdated_items[item_id] = item_name  # Item is outdated, needs to be fetched
             else:
+                add_log(f"Item {item_name} (ID: {item_id}) is up to date, no need to be fetched", "debug")
                 cached_items[item_id] = (item_name, int(price)) # Item is up-to-date, use cached price
         else:
             add_log(f"Item {item_name} (ID: {item_id}) not found in cache, needs to be fetched", "debug")
