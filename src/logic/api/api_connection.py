@@ -47,7 +47,7 @@ def make_api_requests(ids: dict[str, str], region: str, item_type: str = "Items"
     prices_ids: dict[str, int] = {id: -1 for id in ids} # Initialize with None to handle cases where the item is not found
     lock = Lock()  # Lock to ensure thread-safe access
 
-    add_log("Connecting to Black Desert Market API to get prices...", "info")
+    add_log(f"Connecting to Black Desert Market API to get {item_type} prices...", "info")
 
     cancel_event = Event()
     def process_item(id: str) -> int:
