@@ -175,7 +175,6 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         if not all_data_fetched:
             # Update cached data if necessary
             add_log("Updating cached data of half results after fail fetching...", "info")
-            print(data_fetched)
             update_cached_data(data_fetched, self.region) # Update cached data with the half fetched data so it does not start from scratch next time
             
             add_log(f"Error retrieving data for spot '{self.new_session.name_spot}'", "error")

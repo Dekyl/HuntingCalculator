@@ -98,7 +98,7 @@ max_attempts = 3 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout in seconds to establish a connection to the API
 timeout_fetch = 5 # Timeout in seconds to fetch data from the API
 backoff_time = 0.5 # Time in seconds to wait before retrying a request
-time_cached = 60 * 10  # Time in seconds to cache data (10 minutes)
+time_cached = 60 * 10  # Time in seconds for cache data (10 minutes)
 
 scroll_bar_style = f"""
     QScrollBar:vertical {{ /* Vertical background scroll bar */
@@ -164,12 +164,12 @@ reduced_item_names = {
     "Stuffed Grass Rhino Head": "St. Grass Rhino Head",
     "Master's Stuffed Grass Rhino Head": "M. St. Grass Rhino Head",
     "Master's Special Stuffed Grass Rhino Head": "M. Sp. St. Grass Rhino Head",
-    "Stuffed Vedure Doe Head": "St. Vedure Doe Head",
-    "Master's Stuffed Vedure Doe Head": "M. St. Vedure Doe Head",
-    "Master's Special Stuffed Vedure Doe Head": "M. Sp. St. Vedure Doe Head",
-    "Stuffed Verdure Buck Head": "St. Verdure Buck Head",
-    "Master's Stuffed Verdure Buck Head": "M. St. Verdure Buck Head",
-    "Master's Special Stuffed Verdure Buck Head": "M. Sp. St. Verdure Buck Head",
+    "Stuffed Verdure Doe": "St. Verdure Doe",
+    "Master's Stuffed Verdure Doe": "M. St. Verdure Doe",
+    "Master's Special Stuffed Verdure Doe": "M. Sp. St. Verdure Doe",
+    "Stuffed Verdure Buck": "St. Verdure Buck",
+    "Master's Stuffed Verdure Buck": "M. St. Verdure Buck",
+    "Master's Special Stuffed Verdure Buck": "M. Sp. St. Verdure Buck",
     "Stuffed Shadow Wolf Head": "St. Shadow Wolf Head",
     "Master's Stuffed Shadow Wolf Head": "M. St. Shadow Wolf Head",
     "Master's Special Stuffed Shadow Wolf Head": "M. Sp. St. Shadow Wolf Head"
