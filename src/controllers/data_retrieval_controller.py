@@ -68,8 +68,8 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             :param spot_name: The name of the hunting spot for which data is to be fetched.
         """
         add_log(f"Session selected: {spot_name}, retrieving data", "info")
-        loot_items = get_spot_loot(spot_name)
-        if not loot_items:
+        self.loot_items = get_spot_loot(spot_name)
+        if not self.loot_items:
             self.show_error_enable_ui(f"Error fetching loot for spot '{spot_name}'.", "Data error", "no_action")
             return
 
@@ -113,7 +113,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         # Check if any data is outdated
         add_log(f"Checking for outdated data in {self.region} db entry", "info")
         try:
-            outdated_loot_items, self.loot_items_cached = check_cached_data(loot_items, self.region)
+            outdated_loot_items, self.loot_items_cached = check_cached_data(self.loot_items, self.region)
             outdated_elixirs, self.elixirs_cached = check_cached_data(elixirs, self.region)
             outdated_lightstones, self.lightstones_cached = check_cached_data(lightstones, self.region)
             outdated_imperfect_lightstones, self.imperfect_lightstones_cached = check_cached_data(imperfect_lightstones, self.region)
@@ -180,12 +180,12 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             add_log(f"Error retrieving data for spot '{self.new_session.name_spot}'", "error")
             self.set_session_button_enabled(False)
             show_dialog_type(
-                "Error fetching data from API, disabling button for 80s.",
+                "Error fetching data from API, disabling button for 30s.",
                 "API timeout",
                 "error",
                 "no_action"
             )
-            QTimer.singleShot(80000, lambda: self.set_session_button_enabled(True))
+            QTimer.singleShot(30000, lambda: self.set_session_button_enabled(True))
             return
         
         if self.do_update_cached_data:
@@ -204,7 +204,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             # Merge the fetched data with cached data
             add_log("Merging fetched data with cached data...", "info")
             # Merges cached data into fetched data "data_fetched" variable
-            merge_cached_fetched_data(data_fetched, self.loot_items_cached, self.elixirs_cached, self.lightstones_cached, self.imperfect_lightstones_cached)
+            merge_cached_fetched_data(data_fetched, self.loot_items_cached, self.elixirs_cached, self.lightstones_cached, self.imperfect_lightstones_cached, self.loot_items)
 
         spot_id_icon = get_spot_id_icon(self.new_session.name_spot)
         if not spot_id_icon:

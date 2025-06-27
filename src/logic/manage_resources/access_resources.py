@@ -122,9 +122,7 @@ def get_spot_loot(spot_name: str) -> dict[str, str]:
     """
     Get the loot data for a specific hunting spot.
         :param spot_name: The name of the hunting spot.
-        :return: A tuple containing two lists:
-            - The first list contains the IDs of the loot items.
-            - The second list contains the IDs of items that are not available on the market.
+        :return: A dictionary containing item IDs and their names available at the specified hunting spot.
     """
     common_items = get_data_value('common_items')
     try:
