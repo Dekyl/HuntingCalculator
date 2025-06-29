@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QLineEdit
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
@@ -26,14 +26,28 @@ class ExchangeHidesElixirs(QWidget):
         # Create widget that contains exchange hides and elixirs cost widgets
         exchange_elixirs_layout = QHBoxLayout(self)
         exchange_elixirs_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Set background color for the layout
 
         # Create exchange hides widget
         exchange_hides_widget = self.create_session_exchange_hides_widget()
         # Create elixirs cost widget
         elixirs_cost_widget = self.create_session_elixirs_cost_widget()
+        # Create user action to get max profit
+        user_action_widget = self.create_user_action_widget()
 
-        exchange_elixirs_layout.addWidget(exchange_hides_widget, alignment=Qt.AlignmentFlag.AlignLeft)
-        exchange_elixirs_layout.addWidget(elixirs_cost_widget, alignment=Qt.AlignmentFlag.AlignRight)
+        left_spacer = QWidget()
+        left_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+
+        right_spacer = QWidget()
+        right_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+
+        exchange_elixirs_layout.addWidget(left_spacer)
+        exchange_elixirs_layout.addWidget(exchange_hides_widget)
+        exchange_elixirs_layout.addSpacing(100)
+        exchange_elixirs_layout.addWidget(elixirs_cost_widget)
+        exchange_elixirs_layout.addSpacing(100)
+        exchange_elixirs_layout.addWidget(user_action_widget)
+        exchange_elixirs_layout.addWidget(right_spacer)
 
     def create_session_exchange_hides_widget(self) -> QWidget:
         """
@@ -43,47 +57,50 @@ class ExchangeHidesElixirs(QWidget):
         """
         # Create widget that contains exchange hides input fields widget and results of the exchange
         exchange_widget = QWidget()
-        exchange_widget.setContentsMargins(0, 0, 200, 0)
         exchange_layout = QVBoxLayout(exchange_widget)
 
         # Create a widget that contains the exchange hides input fields
         exchange_input_widget = QWidget()
-        exchange_input_layout = QGridLayout(exchange_input_widget)
+        exchange_input_layout = QHBoxLayout(exchange_input_widget)
 
         green_exchange_label = QLabel("Green Hides Exchange")
         green_exchange_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         green_exchange_label.setFont(self.default_font)
-        green_exchange_label.setContentsMargins(0, 0, 25, 0)
 
         blue_exchange_label = QLabel("Blue Hides Exchange")
         blue_exchange_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         blue_exchange_label.setFont(self.default_font)
-        blue_exchange_label.setContentsMargins(25, 0, 0, 0)
 
         self.green_exchange_line_edit = QLineEdit()
         self.green_exchange_line_edit.setFont(self.default_font)
         self.green_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.green_exchange_line_edit.setMinimumHeight(26)
         self.green_exchange_line_edit.setStyleSheet(self.default_style)
-        self.green_exchange_line_edit.setMinimumWidth(220)
-        self.green_exchange_line_edit.setContentsMargins(25, 0, 0, 0)
         
         blue_exchange_line_edit = QLineEdit()
         blue_exchange_line_edit.setFont(self.default_font)
         blue_exchange_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         blue_exchange_line_edit.setMinimumHeight(26)
         blue_exchange_line_edit.setStyleSheet(self.default_style)
-        blue_exchange_line_edit.setMinimumWidth(220)
-        blue_exchange_line_edit.setContentsMargins(25, 0, 0, 0)
 
         # Connects each input field with the function that resolves the request
         self.green_exchange_line_edit.textChanged.connect(lambda greens: self.on_exchange_hides(greens, blue_exchange_line_edit.text())) # type: ignore
         blue_exchange_line_edit.textChanged.connect(lambda blues: self.on_exchange_hides(self.green_exchange_line_edit.text(), blues)) # type: ignore
 
-        exchange_input_layout.addWidget(green_exchange_label, 0, 0, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight)
-        exchange_input_layout.addWidget(blue_exchange_label, 0, 1, Qt.AlignmentFlag.AlignBottom)
-        exchange_input_layout.addWidget(self.green_exchange_line_edit, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
-        exchange_input_layout.addWidget(blue_exchange_line_edit, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        green_widget = QWidget()
+        green_layout = QVBoxLayout(green_widget)
+        green_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        blue_widget = QWidget()
+        blue_layout = QVBoxLayout(blue_widget)
+        blue_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        green_layout.addWidget(green_exchange_label)
+        green_layout.addWidget(self.green_exchange_line_edit)
+        blue_layout.addWidget(blue_exchange_label)
+        blue_layout.addWidget(blue_exchange_line_edit)
+
+        exchange_input_layout.addWidget(green_widget, 0, Qt.AlignmentFlag.AlignBottom)
+        exchange_input_layout.addWidget(blue_widget, 0, Qt.AlignmentFlag.AlignBottom)
 
         # Adds the results of the exchange hides
         results_exchange_label = QLabel("Results Exchange")
@@ -95,9 +112,9 @@ class ExchangeHidesElixirs(QWidget):
         self.exchange_results_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.exchange_results_line_edit.setMinimumHeight(26)
         self.exchange_results_line_edit.setStyleSheet(self.default_style)
-        self.exchange_results_line_edit.setMaximumWidth(220)
+        self.exchange_results_line_edit.setMinimumWidth(220)
 
-        exchange_layout.addWidget(exchange_input_widget, 0, Qt.AlignmentFlag.AlignCenter)
+        exchange_layout.addWidget(exchange_input_widget, 0, Qt.AlignmentFlag.AlignHCenter)
         exchange_layout.addWidget(results_exchange_label, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
         exchange_layout.addWidget(self.exchange_results_line_edit, 0, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
 
@@ -118,9 +135,8 @@ class ExchangeHidesElixirs(QWidget):
             :return: A QWidget containing the elixirs cost input field and label.
         """
         elixirs_cost_widget = QWidget()
-        elixirs_cost_widget.setContentsMargins(200, 9, 0, 0) # Add some space at the top of the widget to align it with the exchange hides widget
         elixirs_cost_layout = QVBoxLayout(elixirs_cost_widget)
-        elixirs_cost_layout.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        elixirs_cost_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         elixirs_cost_label = QLabel("Elixirs Cost")
         elixirs_cost_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -136,6 +152,31 @@ class ExchangeHidesElixirs(QWidget):
         elixirs_cost_layout.addWidget(self.elixirs_cost_line_edit)
         
         return elixirs_cost_widget
+    
+    def create_user_action_widget(self) -> QWidget:
+        """
+        Create a widget that contains the user action to get max profit.
+            :return: A QWidget containing the user action widget.
+        """
+        user_action_widget = QWidget()
+        user_action_layout = QVBoxLayout(user_action_widget)
+        user_action_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        user_action_label = QLabel("Get Max Profit")
+        user_action_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        user_action_label.setFont(self.default_font)
+
+        self.user_action_line_edit = QLineEdit("")
+        self.user_action_line_edit.setStyleSheet(self.results_default_style)
+        self.user_action_line_edit.setFont(self.default_font)
+        self.user_action_line_edit.setReadOnly(True)
+        self.user_action_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.user_action_line_edit.setMinimumWidth(450)
+
+        user_action_layout.addWidget(user_action_label)
+        user_action_layout.addWidget(self.user_action_line_edit)
+
+        return user_action_widget
 
     def update_session_exchange_hides(self, res_exchange: tuple[int, int, int]):
         """
@@ -158,3 +199,10 @@ class ExchangeHidesElixirs(QWidget):
             :return: The QLineEdit widget for elixirs cost.
         """
         return self.elixirs_cost_line_edit
+
+    def get_user_action_line_edit(self) -> QLineEdit:
+        """
+        Get the user action line edit input field.
+            :return: The QLineEdit widget for user action.
+        """
+        return self.user_action_line_edit

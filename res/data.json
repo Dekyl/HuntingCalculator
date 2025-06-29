@@ -308,5 +308,11 @@
         "794": "Savage Draught",
         "793": "Giant's Draught",
         "791": "Verdure Draught"
+    },
+    "black_stone_buy": {
+        "16001": "Black Stone"
+    },
+    "black_stone_sell": {
+        "16004": "Concentrated Magical Black Stone"
     }
 }

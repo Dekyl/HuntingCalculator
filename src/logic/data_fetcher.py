@@ -10,7 +10,7 @@ class DataFetcher(QObject):
     """
     finished_retrieving_data = Signal(object) # Signal to emit when data fetching is complete or fails (type of data sent)
 
-    def __init__(self, loot_items: dict[str, str], elixirs: dict[str, str], region: str, lightstones: dict[str, str], imperfect_lightstones: dict[str, str]):
+    def __init__(self, loot_items: dict[str, str], elixirs: dict[str, str], region: str, lightstones: dict[str, str], imperfect_lightstones: dict[str, str], black_stone_buy: dict[str, str], black_stone_sell: dict[str, str]):
         """
         Initialize the DataFetcher with the necessary parameters.
             :param loot_items: Dictionary of loot item IDs and their names.
@@ -18,6 +18,8 @@ class DataFetcher(QObject):
             :param region: The region for which to fetch data.
             :param lightstones: Dictionary of lightstone IDs and their names.
             :param imperfect_lightstone: Dictionary of imperfect lightstone IDs and their names.
+            :param black_stone_buy: Dictionary of black stone buy IDs and their names.
+            :param black_stone_sell: Dictionary of black stone sell IDs and their names.
         """
         super().__init__()
         self.loot_items = loot_items
@@ -25,6 +27,8 @@ class DataFetcher(QObject):
         self.region = region
         self.lightstones = lightstones
         self.imperfect_lightstones = imperfect_lightstones
+        self.black_stone_buy = black_stone_buy
+        self.black_stone_sell = black_stone_sell
 
     def run(self):
         """
@@ -32,5 +36,5 @@ class DataFetcher(QObject):
         This method connects to the API and fetches the data for the specified hunting spot.
         It emits a signal with the results.
         """
-        self.data_fetched = connect_api(self.loot_items, self.elixirs, self.lightstones, self.imperfect_lightstones, self.region)
+        self.data_fetched = connect_api(self.loot_items, self.elixirs, self.lightstones, self.imperfect_lightstones, self.black_stone_buy, self.black_stone_sell, self.region)
         self.finished_retrieving_data.emit(self.data_fetched)  # Emit the fetched data and costs
