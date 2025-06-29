@@ -63,6 +63,8 @@ def update_cached_data(data_items: NestedDict, region: str):
     elixirs = data_items["elixirs"]
     lightstones = data_items["lightstones"]
     imperfect_lightstones = data_items["imperfect_lightstones"]
+    black_stone_buy = data_items["black_stone_buy"]
+    black_stone_sell = data_items["black_stone_sell"]
 
     update_items: dict[str, int] = {}
     for item_id, (_, price) in items.items():
@@ -76,6 +78,12 @@ def update_cached_data(data_items: NestedDict, region: str):
 
     for imperfect_lightstone_id, (_, price) in imperfect_lightstones.items():
         update_items[imperfect_lightstone_id] = price
+
+    for black_stone_buy_id, (_, price) in black_stone_buy.items():
+        update_items[black_stone_buy_id] = price
+
+    for black_stone_sell_id, (_, price) in black_stone_sell.items():
+        update_items[black_stone_sell_id] = price
 
     conn = sqlite3.connect(sql_file)
     cursor = conn.cursor()

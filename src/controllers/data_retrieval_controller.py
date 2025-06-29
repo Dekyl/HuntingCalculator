@@ -16,6 +16,7 @@ from logic.manage_resources.access_resources import (
 )
 from logic.sql_items_data.sql_db_connection import check_cached_data, update_cached_data
 from logic.sql_items_data.merge_fetched_data import merge_cached_fetched_data
+from logic.data_classes.merge_results_data import MergeResultsData
 from config.config import (
     market_tax,
     NestedDict,
@@ -82,6 +83,8 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
         lightstones = get_data_value("lighstone_items")
         imperfect_lightstones = get_data_value("imperfect_lighstone_items")
         auto_profit = get_user_setting("auto_calculate_best_profit")
+        black_stone_buy = get_data_value("black_stone_buy")
+        black_stone_sell = get_data_value("black_stone_sell")
 
         # Validate all
         if not self.region:
@@ -100,6 +103,10 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             self.show_error_enable_ui("'imperfect_lighstone_items' missing.", "Data file error", "no_action"); return
         if auto_profit is None:
             self.show_error_enable_ui("'Auto profit' setting missing.", "Settings file error", "no_action"); return
+        if black_stone_buy is None:
+            self.show_error_enable_ui("'black_stone_buy' missing.", "Data file error", "no_action"); return
+        if black_stone_sell is None:
+            self.show_error_enable_ui("'black_stone_sell' missing.", "Data file error", "no_action"); return
         
         self.new_session = NewSessionData(
             spot_name,
@@ -117,6 +124,8 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             outdated_elixirs, self.elixirs_cached = check_cached_data(elixirs, self.region)
             outdated_lightstones, self.lightstones_cached = check_cached_data(lightstones, self.region)
             outdated_imperfect_lightstones, self.imperfect_lightstones_cached = check_cached_data(imperfect_lightstones, self.region)
+            outdated_black_stone_buy, self.black_stone_buy_cached = check_cached_data(black_stone_buy, self.region)
+            outdated_black_stone_sell, self.black_stone_sell_cached = check_cached_data(black_stone_sell, self.region)
         except Exception as e:
             add_log(f"Error checking cached data: {e}", "error")
             self.show_error_enable_ui(
@@ -126,14 +135,16 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             )
             return
 
-        if not outdated_loot_items and not outdated_elixirs and not outdated_lightstones and not outdated_imperfect_lightstones:
+        if not outdated_loot_items and not outdated_elixirs and not outdated_lightstones and not outdated_imperfect_lightstones and not outdated_black_stone_buy and not outdated_black_stone_sell:
             add_log("No outdated data found, proceeding with cached data.", "info")
             self.do_update_cached_data = False
             data_fetched: NestedDict = {
                 "items": self.loot_items_cached,
                 "elixirs": self.elixirs_cached,
                 "lightstones": self.lightstones_cached,
-                "imperfect_lightstones": self.imperfect_lightstones_cached
+                "imperfect_lightstones": self.imperfect_lightstones_cached,
+                "black_stone_buy": self.black_stone_buy_cached,
+                "black_stone_sell": self.black_stone_sell_cached
             }
             self.on_data_fetched((True, data_fetched))
             return
@@ -145,7 +156,9 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             outdated_elixirs,
             self.region,
             outdated_lightstones,
-            outdated_imperfect_lightstones
+            outdated_imperfect_lightstones,
+            outdated_black_stone_buy,
+            outdated_black_stone_sell
         )
 
         self.worker.moveToThread(self.worker_thread) # Move the worker to the thread
@@ -204,7 +217,15 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             # Merge the fetched data with cached data
             add_log("Merging fetched data with cached data...", "info")
             # Merges cached data into fetched data "data_fetched" variable
-            merge_cached_fetched_data(data_fetched, self.loot_items_cached, self.elixirs_cached, self.lightstones_cached, self.imperfect_lightstones_cached, self.loot_items)
+            merge_results_data = MergeResultsData(data_fetched, 
+                                                  self.loot_items_cached, 
+                                                  self.elixirs_cached, 
+                                                  self.lightstones_cached, 
+                                                  self.imperfect_lightstones_cached, 
+                                                  self.black_stone_buy_cached, 
+                                                  self.black_stone_sell_cached, 
+                                                  self.loot_items)
+            merge_cached_fetched_data(merge_results_data)
 
         spot_id_icon = get_spot_id_icon(self.new_session.name_spot)
         if not spot_id_icon:
@@ -229,7 +250,9 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             data_fetched["items"],
             calculate_elixirs_cost_hour(data_fetched["elixirs"]),
             data_fetched["lightstones"],
-            data_fetched["imperfect_lightstones"]
+            data_fetched["imperfect_lightstones"],
+            data_fetched["black_stone_buy"],
+            data_fetched["black_stone_sell"]
         )
 
         self.create_new_session_widget(self.new_session)

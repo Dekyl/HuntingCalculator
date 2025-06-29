@@ -9,3 +9,4 @@ class SessionInputCallbacks:
     get_save_button: Callable[[], QPushButton]
     get_input_results: Callable[[], list[QLineEdit]]
     get_elixirs_cost_line_edit: Callable[[], QLineEdit]
+    get_user_action_line_edit: Callable[[], QLineEdit]

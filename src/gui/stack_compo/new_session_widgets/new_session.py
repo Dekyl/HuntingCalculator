@@ -77,7 +77,8 @@ class NewSession(QWidget):
             get_no_name_percent = self.get_no_name_percent,
             get_save_button = self.get_save_button,
             get_input_results = self.get_input_results,
-            get_elixirs_cost_line_edit = self.get_elixirs_cost_line_edit
+            get_elixirs_cost_line_edit = self.get_elixirs_cost_line_edit,
+            get_user_action_line_edit = self.get_user_action_line_edit
         )
 
         # Create the input widget that contains the input fields for the new session
@@ -107,8 +108,6 @@ class NewSession(QWidget):
 
         ManagerWidgets.get_instance().add_page("new_session", self)
         ManagerWidgets.get_instance().set_page("new_session")
-
-        #self.exchange_hides_elixirs_widget.focus_green_exchange_line_edit()
 
     def get_no_name_percent(self, name: str) -> str:
         """
@@ -159,3 +158,10 @@ class NewSession(QWidget):
             :return: The QLineEdit used to input the elixirs cost.
         """
         return self.exchange_hides_elixirs_widget.get_elixirs_cost_line_edit()
+    
+    def get_user_action_line_edit(self) -> QLineEdit:
+        """
+        Get the line edit for user action from the exchange hides and elixirs widget.
+            :return: The QLineEdit used to input the user action.
+        """
+        return self.exchange_hides_elixirs_widget.get_user_action_line_edit()

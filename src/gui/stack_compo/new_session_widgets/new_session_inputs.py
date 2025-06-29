@@ -171,17 +171,21 @@ class SessionInputs(QWidget):
 
         assert self.new_session.lightstone_costs is not None, "Lightstone costs must be provided in the new session data."
         assert self.new_session.imperfect_lightstone_costs is not None, "Imperfect lightstone costs must be provided in the new session data."
+        assert self.new_session.black_stone_buy is not None, "Black stone costs must be provided in the new session data."
+        assert self.new_session.black_stone_sell is not None, "Black stone costs must be provided in the new session data."
 
         session_results = SessionResultsData(
             self.new_session.name_spot,
-            value_pack=self.new_session.value_pack,
-            market_tax=self.new_session.market_tax,
-            extra_profit=self.new_session.extra_profit,
-            data_input=data_input,
-            elixirs_cost=self.new_session.elixirs_cost,
-            auto_calculate_best_profit=self.new_session.auto_calculate_best_profit,
-            lightstone_costs=self.new_session.lightstone_costs,
-            imperfect_lightstone_costs=self.new_session.imperfect_lightstone_costs
+            self.new_session.value_pack,
+            self.new_session.market_tax,
+            self.new_session.extra_profit,
+            data_input,
+            self.new_session.elixirs_cost,
+            self.new_session.auto_calculate_best_profit,
+            self.new_session.lightstone_costs,
+            self.new_session.imperfect_lightstone_costs,
+            self.new_session.black_stone_buy,
+            self.new_session.black_stone_sell
         )
 
         res_data = self.controller.get_session_results_controller(session_results)
@@ -204,6 +208,7 @@ class SessionInputs(QWidget):
         results_tax_h = res_data["taxed_h"]
         new_labels_input_text = res_data["new_labels_input_text"]
         new_elixirs_cost = res_data["elixirs_cost"]
+        action_user = res_data["action_user"]
 
         for i, (_, label, _) in enumerate(self.labels_icons_input):
             label.setText(new_labels_input_text[i])
@@ -214,11 +219,14 @@ class SessionInputs(QWidget):
         input_results[1].setText(str(f"{results_tot_h:,}"))
         input_results[2].setText(str(f"{results_tax:,}"))
         input_results[3].setText(str(f"{results_tax_h:,}"))
-
-        elixirs_cost_line_edit = self.session_input_callbacks.get_elixirs_cost_line_edit()
-
+        
         # Update the elixirs cost input field with the new elixirs cost
+        elixirs_cost_line_edit = self.session_input_callbacks.get_elixirs_cost_line_edit()
         elixirs_cost_line_edit.setText(new_elixirs_cost)
+
+        # Update the user action input field with the new user action
+        user_action_line_edit = self.session_input_callbacks.get_user_action_line_edit()
+        user_action_line_edit.setText(action_user)
 
         if all_inputs_filled:
             save_button.setEnabled(True) # Enable the save button after updating the results
