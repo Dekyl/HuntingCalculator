@@ -16,5 +16,4 @@ def merge_cached_fetched_data(merge_results_data: MergeResultsData):
     merge_results_data.data_fetched["elixirs"] = {**merge_results_data.data_fetched["elixirs"], **merge_results_data.elixirs_cached}
     merge_results_data.data_fetched["lightstones"] = {**merge_results_data.data_fetched["lightstones"], **merge_results_data.lightstones_cached}
     merge_results_data.data_fetched["imperfect_lightstones"] = {**merge_results_data.data_fetched["imperfect_lightstones"], **merge_results_data.imperfect_lightstones_cached}
-    merge_results_data.data_fetched["black_stone_buy"] = {**merge_results_data.data_fetched["black_stone_buy"], **merge_results_data.black_stone_buy_cached}
-    merge_results_data.data_fetched["black_stone_sell"] = {**merge_results_data.data_fetched["black_stone_sell"], **merge_results_data.black_stone_sell_cached}
+    merge_results_data.data_fetched["black_stone_cost"] = {**merge_results_data.data_fetched["black_stone_cost"], **merge_results_data.black_stone_cost_cached}

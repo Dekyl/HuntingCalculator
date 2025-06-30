@@ -127,6 +127,7 @@
         "767971": "Blessing of Mystic Beasts - Damage Reduction",
         "767972": "Blessing of Mystic Beasts - Evasion",
         "767973": "Blessing of Mystic Beasts - Max HP",
+        "16004": "Concentrated Magical Black Stone",
         "6185": "Fire Horn",
         "4999": "Black Gem Fragment",
         "5000": "Black Gem",
@@ -309,10 +310,7 @@
         "793": "Giant's Draught",
         "791": "Verdure Draught"
     },
-    "black_stone_buy": {
+    "black_stone_cost": {
         "16001": "Black Stone"
-    },
-    "black_stone_sell": {
-        "16004": "Concentrated Magical Black Stone"
     }
 }

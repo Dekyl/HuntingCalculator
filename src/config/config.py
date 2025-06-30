@@ -77,7 +77,8 @@ res_list = {
     "4987": "res/icons/items/4987.png",
     "4998": "res/icons/items/4998.png",
     "721003": "res/icons/items/721003.png",
-    "766107": "res/icons/items/766107.png"
+    "766107": "res/icons/items/766107.png",
+    "16004": "res/icons/items/16004.png"
 }
 
 res_abs_paths: dict[str, str] = {}
@@ -157,6 +158,7 @@ TupleProfits: TypeAlias = tuple[int, bool, dict[str, int]]
 
 reduced_item_names = {
     "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",
+    "Concentrated Magical Black Stone": "Conc. Mag. Black Stone",
     "Blessing of Mystic Beasts - All AP": "BMB: All AP",
     "Blessing of Mystic Beasts - Accuracy": "BMB: Accuracy",
     "Blessing of Mystic Beasts - Damage Reduction": "BMB: Damage Reduction",

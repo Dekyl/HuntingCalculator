@@ -94,8 +94,6 @@ class SessionInputs(QWidget):
         # Column where to place next element
         col = 0
 
-        
-
         for i, (icon, label, price) in enumerate(self.labels_icons_input):
             new_data_input = QLineEdit()
             name_without_percent = self.session_input_callbacks.get_no_name_percent(label.text()) # Get the name without the percentage
@@ -103,7 +101,8 @@ class SessionInputs(QWidget):
             if (self.new_session.auto_calculate_best_profit and 
                 (name_without_percent.startswith("M. Sp.") or 
                     name_without_percent.startswith("M. St.") or 
-                    name_without_percent.startswith("BMB:"))):
+                    name_without_percent.startswith("BMB:") or 
+                    name_without_percent == "Conc. Mag. Black Stone")):
                 
                 new_data_input.setReadOnly(True)
                 new_data_input.setStyleSheet("""
@@ -171,8 +170,7 @@ class SessionInputs(QWidget):
 
         assert self.new_session.lightstone_costs is not None, "Lightstone costs must be provided in the new session data."
         assert self.new_session.imperfect_lightstone_costs is not None, "Imperfect lightstone costs must be provided in the new session data."
-        assert self.new_session.black_stone_buy is not None, "Black stone costs must be provided in the new session data."
-        assert self.new_session.black_stone_sell is not None, "Black stone costs must be provided in the new session data."
+        assert self.new_session.black_stone_cost is not None, "Black stone costs must be provided in the new session data."
 
         session_results = SessionResultsData(
             self.new_session.name_spot,
@@ -184,8 +182,7 @@ class SessionInputs(QWidget):
             self.new_session.auto_calculate_best_profit,
             self.new_session.lightstone_costs,
             self.new_session.imperfect_lightstone_costs,
-            self.new_session.black_stone_buy,
-            self.new_session.black_stone_sell
+            self.new_session.black_stone_cost
         )
 
         res_data = self.controller.get_session_results_controller(session_results)

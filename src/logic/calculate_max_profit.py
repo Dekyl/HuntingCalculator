@@ -32,7 +32,7 @@ class CalculateMaxProfit:
         price_concentrated_gem, amount_concentrated_gem = stones_best_profit.get('Conc. Mag. Black Gem', (0, 0))  # Get the amount of Concentrated Magical Black Gems
         price_sharps, amount_sharps = stones_best_profit.get('S. Black Crystal Shard', (0, 0))  # Get the amount of Special Black Crystal Shards
 
-        data_gems_stones = {
+        original_gems_stones = {
             "price_fragments": price_fragments,
             "amount_fragments": amount_fragments,
             "price_black_gem": price_black_gem,
@@ -45,29 +45,31 @@ class CalculateMaxProfit:
 
         results_profits: dict[str, TupleProfits] = {}
         
-        results_profits["Black Gem Fragments"] = (profit_fragments, _, _) = self.calculate_profit_fragments(data_gems_stones.copy())  # Calculate profit for each stone separately
-        results_profits["Black Gem"] = (profit_black_gem, _, _) = self.calc_profit_black_gem(data_gems_stones.copy())  # Calculate profit for black gems and concentrated black stones (if that is the max profit, otherwise sharps)
-        results_profits["Concentrated Black Gem"] = (profit_conc_black_gem, _, _) = self.calc_profit_conc_black_gem(data_gems_stones) # Calculate profit for concentrated gems and concentrated black stones (if that is the max profit, otherwise sharps)
+        results_profits["Black Gem Fragments"] = (profit_fragments, _, _) = self.calculate_profit_fragments(original_gems_stones.copy(), original_gems_stones)  # Calculate profit for each stone separately
+        results_profits["Black Gem"] = (profit_black_gem, _, _) = self.calc_profit_black_gem(original_gems_stones.copy(), original_gems_stones)  # Calculate profit for black gems and concentrated black stones (if that is the max profit, otherwise sharps)
+        results_profits["Concentrated Black Gem"] = (profit_conc_black_gem, _, _) = self.calc_profit_conc_black_gem(original_gems_stones.copy(), original_gems_stones) # Calculate profit for concentrated gems and concentrated black stones (if that is the max profit, otherwise sharps)
 
         name_max_profit = max(results_profits, key=lambda k: results_profits[k][0])  # Get the key with the maximum profit
         max_profit_action_user = f"{name_max_profit} + "
-        max_profit_action_user += "Concentrated" if results_profits[name_max_profit][1] else "Sharps"  # Add the action based on whether concentrated black stone profit is greater than sharps profit
+        max_profit_action_user += "Concentrated Black Stone" if results_profits[name_max_profit][1] else "Sharps"  # Add the action based on whether concentrated black stone profit is greater than sharps profit
         profit_details_percent_labels = results_profits[name_max_profit][2]  # Get the profit details for the maximum profit
         
         return (max(profit_fragments, profit_black_gem, profit_conc_black_gem), max_profit_action_user, profit_details_percent_labels)  # Return the maximum profit from all calculations
 
-    def calculate_profit_fragments(self, data_gems_stones: dict[str, int]) -> TupleProfits:
+    def calculate_profit_fragments(self, data_gems_stones: dict[str, int], original_gem_stones: dict[str, int]) -> TupleProfits:
         """
         Calculate the profit from each stone and gem separately based on the provided stone data.
             :param data_gems_stones: A dictionary containing the stones and gems data with their prices and amounts.
+            :param original_gem_stones: A dictionary containing the original stones and gems data with their prices and amounts.
             :return: The total profit from black gem fragments, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
         """
-        return self.get_profit_sharps(data_gems_stones, 0)  # Calculate profit from sharps and return the result adding it to current result
+        return self.get_profit_sharps(data_gems_stones, 0, original_gem_stones)  # Calculate profit from sharps and return the result adding it to current result
 
-    def calc_profit_black_gem(self, data_gems_stones: dict[str, int]) -> TupleProfits:
+    def calc_profit_black_gem(self, data_gems_stones: dict[str, int], original_gem_stones: dict[str, int]) -> TupleProfits:
         """
         Calculate the profit from black gems and sharps based on the provided stone data.
             :param data_gems_stones: A dictionary containing the stones and gems data with their prices and amounts.
+            :param original_gem_stones: A dictionary containing the original stones and gems data with their prices and amounts.
             :return: The total profit from black gems, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
         """
         black_stone_cost = 0
@@ -80,12 +82,13 @@ class CalculateMaxProfit:
 
             black_stone_cost = black_stone_exchange * self.black_stone_price  # Black stone cost to deduct from the profit
 
-        return self.get_profit_sharps(data_gems_stones, black_stone_cost)  # Calculate profit from sharps and return the result adding it to current result
+        return self.get_profit_sharps(data_gems_stones, black_stone_cost, original_gem_stones)  # Calculate profit from sharps and return the result adding it to current result
 
-    def calc_profit_conc_black_gem(self, data_gems_stones: dict[str, int]) -> TupleProfits:
+    def calc_profit_conc_black_gem(self, data_gems_stones: dict[str, int], original_gem_stones: dict[str, int]) -> TupleProfits:
         """
         Calculate the profit from concentrated black gems and sharps based on the provided stone data.
             :param data_gems_stones: A dictionary containing the stones and gems data with their prices and amounts.
+            :param original_gem_stones: A dictionary containing the original stones and gems data with their prices and amounts.
             :return: The total profit from concentrated black gems, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
         """
         black_stone_cost = 0
@@ -106,19 +109,12 @@ class CalculateMaxProfit:
 
             data_gems_stones["amount_concentrated_gem"] += amount_concentrated_black_stone  # Add the number of Concentrated Magical Black Gems obtained from the exchange
 
-        return self.get_profit_sharps(data_gems_stones, black_stone_cost)  # Calculate profit from sharps and return the result adding it to current result
+        return self.get_profit_sharps(data_gems_stones, black_stone_cost, original_gem_stones)  # Calculate profit from sharps and return the result adding it to current result
 
-    def get_profit_sharps(self, data_gems_stones: dict[str, int], black_stone_cost: int) -> TupleProfits:
-        profit_fragments = data_gems_stones["amount_fragments"] * data_gems_stones["price_fragments"]
-        profit_black_gem = data_gems_stones["amount_black_gem"] * data_gems_stones["price_black_gem"]
-        profit_concentrated_gem = data_gems_stones["amount_concentrated_gem"] * data_gems_stones["price_concentrated_gem"]
-        profit_concentrated_black_stone = self.get_results_concentrated_black_stone(data_gems_stones["amount_sharps"], data_gems_stones["price_sharps"])
-
-        profit_fragments, profit_black_gem, profit_concentrated_gem, profit_concentrated_black_stone = self.get_profit_details_deduct_black_stone(profit_fragments,
-                                                                                                                                                  profit_black_gem,
-                                                                                                                                                  profit_concentrated_gem, 
-                                                                                                                                                  profit_concentrated_black_stone,
-                                                                                                                                                  black_stone_cost)  # Deduct the cost of Black Stones from the profits
+    def get_profit_sharps(self, data_gems_stones: dict[str, int], black_stone_cost: int, original_gem_stones: dict[str, int]) -> TupleProfits:
+        profit_fragments, profit_black_gem, profit_concentrated_gem, profit_concentrated_black_stone = self.get_profit_details_deduct_black_stone(black_stone_cost,
+                                                                                                                                                  data_gems_stones,
+                                                                                                                                                  original_gem_stones)  # Deduct the cost of Black Stones from the profits
 
         result = (profit_fragments + profit_black_gem + profit_concentrated_gem)  # Add the profits from fragments, black gems and concentrated gems and deduct the cost of Black Stones
         profit_details_percent_labels = {
@@ -153,22 +149,62 @@ class CalculateMaxProfit:
         
         return 0
     
-    def get_profit_details_deduct_black_stone(self, profit_fragments: int, profit_black_gem: int, profit_concentrated_gem: int, profit_concentrated_black_stone: int, black_stone_cost: int) -> tuple[int, int, int, int]:
+    def get_profit_details_deduct_black_stone(self, black_stone_cost: int, modified_gem_stones: dict[str, int], original_gem_stones: dict[str, int]) -> tuple[int, int, int, int]:
         """
         Deduct the cost of Black Stones from the profits and return the updated profits.
             :return: The updated profits after deducting the cost of Black Stones.
         """
-        profit_no_deducted = profit_fragments + profit_black_gem + profit_concentrated_gem + profit_concentrated_black_stone
-        profit_deducted = profit_no_deducted - black_stone_cost
+        profit_fragments = modified_gem_stones["amount_fragments"] * modified_gem_stones["price_fragments"]
+        profit_black_gem = modified_gem_stones["amount_black_gem"] * modified_gem_stones["price_black_gem"]
+        profit_concentrated_gem = modified_gem_stones["amount_concentrated_gem"] * modified_gem_stones["price_concentrated_gem"]
+        profit_sharps = self.get_results_concentrated_black_stone(modified_gem_stones["amount_sharps"], modified_gem_stones["price_sharps"])
 
-        percent_fragments = (profit_fragments / profit_no_deducted) if profit_no_deducted > 0 else 0
-        percent_black_gem = (profit_black_gem / profit_no_deducted) if profit_no_deducted > 0 else 0
-        percent_concentrated_gem = (profit_concentrated_gem / profit_no_deducted) if profit_no_deducted > 0 else 0
-        percent_concentrated_black_stone = (profit_concentrated_black_stone / profit_no_deducted) if profit_no_deducted > 0 else 0
+        profit_no_deducted = 0
+        final_profit_fragments = 0 
+        final_profit_black_gem = 0 
+        final_profit_concentrated_gem = 0 
+        final_profit_sharps = 0
+        aport_deducted_profit: list[str] = []  # List to store the names of the profits that were deducted
 
-        final_profit_fragments = int(profit_deducted * (percent_fragments))  # Calculate the final profit from fragments after deducting the cost of Black Stones
-        final_profit_black_gem = int(profit_deducted * (percent_black_gem))
-        final_profit_concentrated_gem = int(profit_deducted * (percent_concentrated_gem))
-        final_profit_concentrated_black_stone = int(profit_deducted * (percent_concentrated_black_stone))
+        for name, value in modified_gem_stones.items():
+            if name == "amount_fragments":
+                if value != original_gem_stones["amount_fragments"]:
+                    profit_no_deducted += profit_fragments
+                    aport_deducted_profit.append("Fragments")
+                else:
+                    final_profit_fragments = profit_fragments
+            elif name == "amount_black_gem":
+                if value != original_gem_stones["amount_black_gem"]:
+                    profit_no_deducted += profit_black_gem
+                    aport_deducted_profit.append("Black Gem")
+                else:
+                    final_profit_black_gem = profit_black_gem
+            elif name == "amount_concentrated_gem":
+                if value != original_gem_stones["amount_concentrated_gem"]:
+                    profit_no_deducted += profit_concentrated_gem
+                    aport_deducted_profit.append("Concentrated Gem")
+                else:
+                    final_profit_concentrated_gem = profit_concentrated_gem
+            elif name == "amount_sharps":
+                if value != original_gem_stones["amount_sharps"]:
+                    profit_no_deducted += profit_sharps
+                    aport_deducted_profit.append("Sharps")
+                else:
+                    final_profit_sharps = profit_sharps
+
+        profit_deducted = profit_no_deducted - black_stone_cost  # Profit deducted is the profit of those stones who aported to the payment of black stones cost
+
+        if "Fragments" in aport_deducted_profit:
+            percent_fragments = (profit_fragments / profit_no_deducted) if profit_no_deducted > 0 else 0
+            final_profit_fragments = int(profit_deducted * (percent_fragments))
+        if "Black Gem" in aport_deducted_profit:
+            percent_black_gem = (profit_black_gem / profit_no_deducted) if profit_no_deducted > 0 else 0
+            final_profit_black_gem = int(profit_deducted * (percent_black_gem))
+        if "Concentrated Gem" in aport_deducted_profit:
+            percent_concentrated_gem = (profit_concentrated_gem / profit_no_deducted) if profit_no_deducted > 0 else 0
+            final_profit_concentrated_gem = int(profit_deducted * (percent_concentrated_gem))
+        if "Sharps" in aport_deducted_profit:
+            percent_sharps = (profit_sharps / profit_no_deducted) if profit_no_deducted > 0 else 0
+            final_profit_sharps = int(profit_deducted * (percent_sharps))
         
-        return (final_profit_fragments, final_profit_black_gem, final_profit_concentrated_gem, final_profit_concentrated_black_stone)
+        return (final_profit_fragments, final_profit_black_gem, final_profit_concentrated_gem, final_profit_sharps)

@@ -9,15 +9,14 @@ from config.config import (
     FlatDict
 )
 
-def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone_ids: dict[str, str], imperfect_lightstone_ids: dict[str, str], black_stone_buy: dict[str, str], black_stone_sell: dict[str, str], region: str = "eu") -> tuple[bool, NestedDict]:
+def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone_ids: dict[str, str], imperfect_lightstone_ids: dict[str, str], black_stone_cost: dict[str, str], region: str = "eu") -> tuple[bool, NestedDict]:
     """
     Search for the current prices of items and elixirs from the Black Desert Market API and save them in a JSON file.
         :param item_ids: Dictionary of item IDs and their names to fetch prices for.
         :param elixir_ids: Dictionary of elixir IDs and their names to fetch costs for.
         :param lightstone_ids: Dictionary of lightstone IDs to fetch costs for.
         :param imperfect_lightstone_ids: Dictionary of imperfect lightstone IDs to fetch costs for.
-        :param black_stone_buy: Dictionary of black stone buy IDs to fetch costs for.
-        :param black_stone_sell: Dictionary of black stone sell IDs to fetch costs for.
+        :param black_stone_cost: Dictionary of black stone costs IDs to fetch costs for.
         :param region: The region for which to fetch the data.
         :return: A tuple containing a boolean indicating half requests done, and a nested dictionary with the fetched data until the moment it failed (if did).
     """
@@ -27,11 +26,10 @@ def connect_api(item_ids: dict[str, str], elixir_ids: dict[str, str], lightstone
         ("elixirs", elixir_ids, "Elixirs"),
         ("lightstones", lightstone_ids, "Lightstones"),
         ("imperfect_lightstones", imperfect_lightstone_ids, "Imp-Lightstones"),
-        ("black_stone_buy", black_stone_buy, "Black-Stone-Buy"),
-        ("black_stone_sell", black_stone_sell, "Black-Stone-Sell")
+        ("black_stone_cost", black_stone_cost, "Black-Stone-Cost"),
     ]
 
-    results: NestedDict = {"items": {}, "elixirs": {}, "lightstones": {}, "imperfect_lightstones": {}, "black_stone_buy": {}, "black_stone_sell": {}} # Initialize results dictionary
+    results: NestedDict = {"items": {}, "elixirs": {}, "lightstones": {}, "imperfect_lightstones": {}, "black_stone_cost": {}} # Initialize results dictionary
     for key, ids, label in data_types:
         if not ids:
             add_log(f"No {label} to fetch. Skipping...", "info")

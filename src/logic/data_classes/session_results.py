@@ -16,5 +16,4 @@ class SessionResultsData:
     auto_calculate_best_profit: bool
     lightstone_costs: FlatDict
     imperfect_lightstone_costs: FlatDict
-    black_stone_buy: FlatDict
-    black_stone_sell: FlatDict
+    black_stone_cost: FlatDict

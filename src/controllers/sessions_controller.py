@@ -210,6 +210,7 @@ class SessionController:
             :param session_results: An instance of SessionResultsData containing the results of the session.
             :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
+        print(session_results)
         calculate_results = CalculateResultsSession(session_results)  # Create an instance of CalculateResultsSession with the session results
         return calculate_results.calculate_results_session()
     

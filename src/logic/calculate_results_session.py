@@ -58,8 +58,7 @@ class CalculateResultsSession:
         self.extra_profit = session_results.extra_profit  # Get the extra profit flag from the session results
         self.hours = self.session_results.data_input.get('Hours', ("", "0"))[1] or "0" # If 'Hours' is not in data_input or if it is empty, default to "0"
         self.elixirs_cost = self.session_results.elixirs_cost.replace(',', '').replace(' ', '')  # Remove commas and spaces for validation
-        self.black_stone_buy = self.session_results.black_stone_buy  # Get the black stone buy prices from the session results
-        self.black_stone_sell = self.session_results.black_stone_sell  # Get the black stone sell prices from the session results
+        self.black_stone_cost = self.session_results.black_stone_cost # Get the black stone buy prices from the session results
 
     def calculate_results_session(self) -> dict[str, Any] | int:
         """ 
@@ -87,12 +86,6 @@ class CalculateResultsSession:
             self.black_stone_cost = 0
             self.concentrated_black_stone_cost = 0
 
-            for buy_black_stone_id, buy_black_stone_data in self.black_stone_buy.items():
-                if buy_black_stone_id == "16001":
-                    self.black_stone_cost = int(buy_black_stone_data[1])
-            for sell_black_stone_id, sell_black_stone_data in self.black_stone_sell.items():
-                if sell_black_stone_id == "16004":
-                    self.concentrated_black_stone_cost = int(sell_black_stone_data[1])
 
             self.exchange_wildsparks()  # Exchange wildsparks if auto calculate best profit is enabled
             if self.exchange_data_best_profit() == -1:
@@ -236,9 +229,9 @@ class CalculateResultsSession:
 
             total += amount * price
 
-        calculate_max_profit = CalculateMaxProfit(self.black_stone_cost, self.concentrated_black_stone_cost)  # Create an instance of CalculateMaxProfit to calculate profits from stones
-    
+        calculate_max_profit = CalculateMaxProfit(0, self.concentrated_black_stone_cost)  # Create an instance of CalculateMaxProfit to calculate profits from stones
         profit, action_user_max_profit, profit_details_percent_labels = calculate_max_profit.calculate_stones_best_profit(stones_best_profit)  # Calculate best profit from stones
+
         return ((total + profit), action_user_max_profit, profit_details_percent_labels)
 
     def results_h(self) -> int:
@@ -288,6 +281,13 @@ class CalculateResultsSession:
                     item_total = profit_details_percent_labels.get("Concentrated Black Gem", 0) if profit_details_percent_labels else 0
                 elif self.auto_calculate_best_profit and name == "S. Black Crystal Shard":
                     item_total = profit_details_percent_labels.get("Sharps", 0) if profit_details_percent_labels else 0
+                elif name == 'Breath of Narcion':
+                    amount = int(amount.replace(',', '').replace(' ', '') or 0)  # Clean and convert amount
+                    amount_previous = self.data_input.get('Breath of Narcion Previous', ("", "0"))[1]  # Get previous breath of narcion amount
+                    amount_previous = int(amount_previous.replace(',', '').replace(' ', '') or 0)  # Clean and convert previous amount
+                    item_total = (amount + amount_previous) * int(price.replace(',', '').replace(' ', '') or 0)  # Calculate total
+                elif name == "Breath of Narcion Previous":
+                    item_total = 0  # Previous breath of narcion does not contribute to total
                 else:
                     price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces for validation
                     amount = amount.replace(',', '').replace(' ', '') if amount != '' else '0' # Remove commas and spaces for validation
