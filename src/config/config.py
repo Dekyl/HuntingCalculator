@@ -153,6 +153,7 @@ market_tax = 0.35 # Market tax percentage for the results calculation
 NestedDict: TypeAlias = dict[str, dict[str, tuple[str, int]]]
 FlatDict: TypeAlias = dict[str, tuple[str, int]]
 FlatDictInt: TypeAlias = dict[str, tuple[int, int]]
+TupleProfits: TypeAlias = tuple[int, bool, dict[str, int]]
 
 reduced_item_names = {
     "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",

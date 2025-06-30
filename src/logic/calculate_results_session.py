@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import math
 
 from logic.logs import add_log
@@ -19,7 +19,8 @@ from config.config import (
     n_sharp_exchange_concentrate,
     n_sharp_exchange_concentrate_gem,
     n_fragment_exchange,
-    FlatDictInt
+    FlatDictInt,
+    TupleProfits
 )
 
 def calculate_elixirs_cost_hour(elixirs: FlatDict) -> str:
@@ -103,7 +104,7 @@ class CalculateResultsSession:
                 add_log(f"Error exchanging data for best profit calculation for spot: {self.name_spot}.", "error")
                 return -1
 
-        self.total_no_elixirs, action_user = self.results_total() if self.hours_digit > 0 else (0, "")  # Calculate total results only if hours is greater than 0
+        self.total_no_elixirs, action_user, profit_details_percent_labels = self.results_total() if self.hours_digit > 0 else (0, "", None)  # Calculate total results only if hours is greater than 0
         
         self.value_pack_val = value_pack_multiplier if self.value_pack else 0  # Set value pack multiplier if value pack is active, otherwise set to 0
         self.value_pack_val += extra_profit_multiplier if self.extra_profit else 0  # Add extra profit multiplier if extra profit is active, otherwise add 0
@@ -128,7 +129,7 @@ class CalculateResultsSession:
             'total_h': total_h,
             'taxed': self.taxed,
             'taxed_h': taxed_h,
-            'new_labels_input_text': self.recalculate_labels_input(),
+            'new_labels_input_text': self.recalculate_labels_input(profit_details_percent_labels),
             'elixirs_cost': str(f"{total_elixirs_cost:,}"),
             'new_data_input': self.data_input,
             'action_user': action_user
@@ -214,7 +215,7 @@ class CalculateResultsSession:
         """
         return self.elixirs_cost_h * self.hours_digit
 
-    def results_total(self) -> tuple[int, str]:
+    def results_total(self) -> tuple[int, str, Optional[dict[str, int]]]:
         """
         Calculate the total results from the session based on the input data.
             :param data_input: A dictionary containing the input data for the session. (name: (price, amount))
@@ -240,18 +241,18 @@ class CalculateResultsSession:
 
             total += amount * price
 
-        profit, action_user_max_profit = self.calculate_stones_best_profit(stones_best_profit)  # Calculate best profit from stones
+        profit, action_user_max_profit, profit_details_percent_labels = self.calculate_stones_best_profit(stones_best_profit)  # Calculate best profit from stones
 
-        return ((total + profit), action_user_max_profit)
+        return ((total + profit), action_user_max_profit, profit_details_percent_labels)
 
-    def calculate_stones_best_profit(self, stones_best_profit: FlatDictInt) -> tuple[int, str]:
+    def calculate_stones_best_profit(self, stones_best_profit: FlatDictInt) -> tuple[int, str, Optional[dict[str, int]]]:
         """
         Calculate the best profit from stones based on the provided stone data.
             :param stones_best_profit: A dictionary containing the stone data with their prices and amounts.
             :return: The total best profit from the stones and action for the user to get that maximum profit.
         """
         if not stones_best_profit:
-            return (0, "")
+            return (0, "", None)
         
         price_fragments, amount_fragments = stones_best_profit.get('Black Gem Frag.', (0, 0))  # Get the amount of Black Gem Fragments
         price_black_gem, amount_black_gem = stones_best_profit.get('Black Gem', (0, 0))  # Get the amount of Black Gems
@@ -269,37 +270,27 @@ class CalculateResultsSession:
             "amount_sharps": amount_sharps
         }
 
-        results_profits: dict[str, tuple[int, bool]] = {}
-        results_profits["Black Gem Fragments"] = (profit_fragments, _) = self.calculate_profit_fragments(data_gems_stones.copy()) # Calculate profit for each stone separately
-        results_profits["Black Gem"] = (profit_black_gem, _) = self.calc_profit_black_gem(data_gems_stones.copy())  # Calculate profit for black gems and concentrated black stones (if that is the max profit, otherwise sharps)
-        results_profits["Concentrated Black Gem"] = (profit_conc_black_gem, _) = self.calc_profit_conc_black_gem(data_gems_stones) # Calculate profit for concentrated gems and concentrated black stones (if that is the max profit, otherwise sharps)
+        results_profits: dict[str, TupleProfits] = {}
+        profit_fragments, is_concentrated, profit_details = self.calculate_profit_fragments(data_gems_stones.copy())  # Calculate profit for each stone separately
+        results_profits["Black Gem Fragments"] = (profit_fragments, is_concentrated, profit_details)
+        results_profits["Black Gem"] = (profit_black_gem, _, profit_details) = self.calc_profit_black_gem(data_gems_stones.copy())  # Calculate profit for black gems and concentrated black stones (if that is the max profit, otherwise sharps)
+        results_profits["Concentrated Black Gem"] = (profit_conc_black_gem, _, profit_details) = self.calc_profit_conc_black_gem(data_gems_stones) # Calculate profit for concentrated gems and concentrated black stones (if that is the max profit, otherwise sharps)
 
         name_max_profit = max(results_profits, key=lambda k: results_profits[k][0])  # Get the key with the maximum profit
-        max_profit_action_user = f"{name_max_profit} "
-        max_profit_action_user += "(Concentrated)" if results_profits[name_max_profit][1] else "(Sharps)"  # Add the action based on whether concentrated black stone profit is greater than sharps profit
+        max_profit_action_user = f"{name_max_profit} + "
+        max_profit_action_user += "Concentrated" if results_profits[name_max_profit][1] else "Sharps"  # Add the action based on whether concentrated black stone profit is greater than sharps profit
+        profit_details_percent_labels = results_profits[name_max_profit][2]  # Get the profit details for the maximum profit
         
-        return (max(profit_fragments, profit_black_gem, profit_conc_black_gem), max_profit_action_user)  # Return the maximum profit from all calculations
+        return (max(profit_fragments, profit_black_gem, profit_conc_black_gem), max_profit_action_user, profit_details_percent_labels)  # Return the maximum profit from all calculations
 
-    def calculate_profit_fragments(self, data_gems_stones: dict[str, int]) -> tuple[int, bool]:
+    def calculate_profit_fragments(self, data_gems_stones: dict[str, int]) -> TupleProfits:
         """
         Calculate the profit from each stone and gem separately based on the provided stone data.
             :param data_gems_stones: A dictionary containing the stones and gems data with their prices and amounts.
-            :return: The total profit from fragments and concentrated black stones (if max profit) and whether concentrated black stone profit is greater than sharps profit.
+            :return: The total profit from black gem fragments, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
         """
         result = 0
-        result += ((data_gems_stones["amount_black_gem"] * data_gems_stones["price_black_gem"]) + 
-                   (data_gems_stones["amount_fragments"] * data_gems_stones["price_fragments"]) + 
-                   (data_gems_stones["amount_concentrated_gem"] * data_gems_stones["price_concentrated_gem"]))
-        
-        concentrate_black_stone_profit = self.get_results_concentrated_black_stone(data_gems_stones["amount_sharps"], data_gems_stones["price_sharps"])
-        sharps_profit = data_gems_stones["amount_sharps"] * data_gems_stones["price_sharps"]
-
-        if concentrate_black_stone_profit > sharps_profit:
-            result += concentrate_black_stone_profit
-            return (result, True) # True if concentrated black stone profit is greater than sharps profit
-        else:
-            result += sharps_profit
-            return (result, False) # False if concentrated black stone profit is not greater than sharps profit
+        return self.get_profit_sharps(data_gems_stones, result)  # Calculate profit from sharps and return the result adding it to current result
     
     def get_results_concentrated_black_stone(self, amount_sharps: int, price_sharps: int) -> int:
         """
@@ -316,11 +307,11 @@ class CalculateResultsSession:
         
         return 0
 
-    def calc_profit_black_gem(self, data_gems_stones: dict[str, int]) -> tuple[int, bool]:
+    def calc_profit_black_gem(self, data_gems_stones: dict[str, int]) -> TupleProfits:
         """
         Calculate the profit from black gems and sharps based on the provided stone data.
             :param data_gems_stones: A dictionary containing the stones and gems data with their prices and amounts.
-            :return: The total profit from black gems and concentrated black stones (if max profit) and whether concentrated black stone profit is greater than sharps profit.
+            :return: The total profit from black gems, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
         """
         result = 0  # Initialize result variable
 
@@ -333,26 +324,13 @@ class CalculateResultsSession:
 
             result -= black_stone_exchange * self.black_stone_cost  # Subtract the cost of Black Stones used for exchange
 
-        result += ((data_gems_stones["amount_black_gem"] * data_gems_stones["price_black_gem"]) + 
-                   (data_gems_stones["amount_fragments"] * data_gems_stones["price_fragments"]) + 
-                   (data_gems_stones["amount_concentrated_gem"] * data_gems_stones["price_concentrated_gem"]))
-        
-
-        concentrate_black_stone_profit = self.get_results_concentrated_black_stone(data_gems_stones["amount_sharps"], data_gems_stones["price_sharps"])
-        sharps_profit = data_gems_stones["amount_sharps"] * data_gems_stones["price_sharps"]
-
-        if concentrate_black_stone_profit > sharps_profit:
-            result += concentrate_black_stone_profit
-            return (result, True) # True if concentrated black stone profit is greater than sharps profit
-        else:
-            result += sharps_profit
-            return (result, False) # False if concentrated black stone profit is not greater than sharps profit
+        return self.get_profit_sharps(data_gems_stones, result)  # Calculate profit from sharps and return the result adding it to current result
     
-    def calc_profit_conc_black_gem(self, data_gems_stones: dict[str, int]) -> tuple[int, bool]:
+    def calc_profit_conc_black_gem(self, data_gems_stones: dict[str, int]) -> TupleProfits:
         """
         Calculate the profit from concentrated black gems and sharps based on the provided stone data.
             :param data_gems_stones: A dictionary containing the stones and gems data with their prices and amounts.
-            :return: The total profit from concentrated black gems and concentrated black stones (if max profit) and whether concentrated black stone profit is greater than sharps profit.
+            :return: The total profit from concentrated black gems, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
         """
         result = 0  # Initialize result variable
 
@@ -373,19 +351,31 @@ class CalculateResultsSession:
 
             data_gems_stones["amount_concentrated_gem"] += amount_concentrated_black_stone  # Add the number of Concentrated Magical Black Gems obtained from the exchange
 
-        result += ((data_gems_stones["amount_concentrated_gem"] * data_gems_stones["price_concentrated_gem"]) + 
-                   (data_gems_stones["amount_black_gem"] * data_gems_stones["price_black_gem"]) + 
-                   (data_gems_stones["amount_fragments"] * data_gems_stones["price_fragments"]))
-        
+        return self.get_profit_sharps(data_gems_stones, result)  # Calculate profit from sharps and return the result adding it to current result
+
+    def get_profit_sharps(self, data_gems_stones: dict[str, int], result: int) -> TupleProfits:
+        profit_fragments = data_gems_stones["amount_fragments"] * data_gems_stones["price_fragments"]
+        profit_black_gem = data_gems_stones["amount_black_gem"] * data_gems_stones["price_black_gem"]
+        profit_concentrated_gem = data_gems_stones["amount_concentrated_gem"] * data_gems_stones["price_concentrated_gem"]
+
+        result += (profit_fragments + profit_black_gem + profit_concentrated_gem)  # Add the profits from fragments, black gems and concentrated gems
+        results_profit = {
+            "Black Gem Fragments": profit_fragments,
+            "Black Gem": profit_black_gem,
+            "Concentrated Black Gem": profit_concentrated_gem
+        }
+
         concentrate_black_stone_profit = self.get_results_concentrated_black_stone(data_gems_stones["amount_sharps"], data_gems_stones["price_sharps"])
         sharps_profit = data_gems_stones["amount_sharps"] * data_gems_stones["price_sharps"]
 
         if concentrate_black_stone_profit > sharps_profit:
             result += concentrate_black_stone_profit
-            return (result, True) # True if concentrated black stone profit is greater than sharps profit
+            results_profit["Sharps"] = concentrate_black_stone_profit  # Add concentrated black stone profit if it is greater than sharps profit
+            return (result, True, results_profit) # True if concentrated black stone profit is greater than sharps profit
         else:
             result += sharps_profit
-            return (result, False) # False if concentrated black stone profit is not greater than sharps profit
+            results_profit["Sharps"] = sharps_profit
+            return (result, False, results_profit) # False if concentrated black stone profit is not greater than sharps profit
 
     def results_h(self) -> int:
         """
@@ -414,9 +404,10 @@ class CalculateResultsSession:
         """
         return int(self.taxed / self.hours_digit)
 
-    def recalculate_labels_input(self) -> list[str]:
+    def recalculate_labels_input(self, profit_details_percent_labels: Optional[dict[str, int]]) -> list[str]:
         """
         Recalculate the labels for input data based on the total results.
+            :param profit_details_percent_labels: A dictionary containing the profit details to calculate percentages for specific items.
             :return: A list of recalculated labels for input data.
         """
         new_labels_input_text: list[str] = []
@@ -424,9 +415,19 @@ class CalculateResultsSession:
             if name == 'Hours':
                 new_labels_input_text.append(name)
             else:
-                price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces for validation
-                amount = amount.replace(',', '').replace(' ', '') if amount != '' else '0' # Remove commas and spaces for validation
-                item_total = int(price) * int(amount)
+                if name == "Black Gem Frag.":
+                    item_total = profit_details_percent_labels.get("Black Gem Fragments", 0) if profit_details_percent_labels else 0
+                elif name == "Black Gem":
+                    item_total = profit_details_percent_labels.get("Black Gem", 0) if profit_details_percent_labels else 0
+                elif name == "Conc. Mag. Black Gem":
+                    item_total = profit_details_percent_labels.get("Concentrated Black Gem", 0) if profit_details_percent_labels else 0
+                elif name == "S. Black Crystal Shard":
+                    item_total = profit_details_percent_labels.get("Sharps", 0) if profit_details_percent_labels else 0
+                else:
+                    price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces for validation
+                    amount = amount.replace(',', '').replace(' ', '') if amount != '' else '0' # Remove commas and spaces for validation
+                    item_total = int(price) * int(amount)
+
                 percent = (item_total / self.total_no_elixirs) * 100 if self.total_no_elixirs > 0 else 0
                 if percent > 100:
                     percent = 100.0
