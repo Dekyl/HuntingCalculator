@@ -85,7 +85,7 @@ class GuiEntryPoint(QMainWindow):
 
         # Exit application shortcut
         shortcut_exit = QShortcut("Ctrl+Q", self)
-        shortcut_exit.activated.connect(self.controller.on_exit_button_controller if self.controller else None)
+        shortcut_exit.activated.connect(self.controller.handle_close_window if self.controller else None)
 
     def create_new_session_widget(self, new_session: NewSessionData):
         """
@@ -146,9 +146,10 @@ class GuiEntryPoint(QMainWindow):
         self.manager.add_page("view_sessions", ViewSessionsWidget(session_file_selected)) # Add the view_sessions widget to the manager
         self.manager.set_page("view_sessions") # Switch to the view sessions page
 
-    def close_window(self):
+    def trigger_close_event(self):
         """
-        Close the main window and exit the application.
+        Trigger the close event of the main window.
+        This method is called when the user attempts to close the main window.
         """
         self.close()
 
@@ -157,5 +158,4 @@ class GuiEntryPoint(QMainWindow):
         Overrides the window close event (e.g., clicking the X button).
         You can handle cleanup or confirmation here.
         """
-        self.controller.on_exit_button_controller()
-        closeEvent.ignore()  # Ignore the close event to prevent the window from closing immediately as it is handled by the controller
+        closeEvent.accept() if self.controller.on_exit_button_controller() else closeEvent.ignore()

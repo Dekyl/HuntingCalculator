@@ -49,7 +49,7 @@ class SideBarWidget(QWidget):
             ("View sessions", lambda _: self.controller.show_dialog_select_session_controller(), "Ctrl+A"),
             ("Clean sessions", lambda _: self.controller.clean_all_sessions_controller() if self.controller else None, "Ctrl+L"),
             ("Settings", lambda _: self.controller.create_settings_widget_controller() if self.controller else None, "Ctrl+G"),
-            ("Exit", lambda _: self.controller.on_exit_button_controller() if self.controller else None, "Ctrl+Q")
+            ("Exit", lambda _: self.controller.handle_close_window() if self.controller else None, "Ctrl+Q")
         ]
 
         self.left_widget_buttons: dict[str, QPushButton] = {} # Store buttons for later use
