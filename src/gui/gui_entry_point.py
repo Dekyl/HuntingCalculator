@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
-from PySide6.QtGui import QIcon, QGuiApplication, QShortcut
+from PySide6.QtGui import QIcon, QGuiApplication, QShortcut, QCloseEvent
 from PySide6.QtCore import QSize
 
 from gui.manage_widgets import ManagerWidgets
@@ -151,3 +151,11 @@ class GuiEntryPoint(QMainWindow):
         Close the main window and exit the application.
         """
         self.close()
+
+    def closeEvent(self, closeEvent: QCloseEvent):
+        """
+        Overrides the window close event (e.g., clicking the X button).
+        You can handle cleanup or confirmation here.
+        """
+        self.controller.on_exit_button_controller()
+        closeEvent.ignore()  # Ignore the close event to prevent the window from closing immediately as it is handled by the controller
