@@ -43,9 +43,9 @@ class ExchangeHidesElixirs(QWidget):
 
         exchange_elixirs_layout.addWidget(left_spacer)
         exchange_elixirs_layout.addWidget(exchange_hides_widget)
-        exchange_elixirs_layout.addSpacing(100)
+        exchange_elixirs_layout.addSpacing(150)
         exchange_elixirs_layout.addWidget(elixirs_cost_widget)
-        exchange_elixirs_layout.addSpacing(100)
+        exchange_elixirs_layout.addSpacing(150)
         exchange_elixirs_layout.addWidget(user_action_widget)
         exchange_elixirs_layout.addWidget(right_spacer)
 
