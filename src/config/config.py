@@ -98,7 +98,7 @@ max_attempts = 3 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout in seconds to establish a connection to the API
 timeout_fetch = 5 # Timeout in seconds to fetch data from the API
 backoff_time = 0.5 # Time in seconds to wait before retrying a request
-time_cached = 60 * 60  # Time in seconds for cache data (10 minutes)
+time_cached = 60 * 60 * 24  # Time in seconds for cache data (10 minutes)
 
 scroll_bar_style = f"""
     QScrollBar:vertical {{ /* Vertical background scroll bar */
