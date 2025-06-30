@@ -15,8 +15,7 @@ from config.config import (
     n_supreme_hide_scroll,
     value_pack_multiplier,
     extra_profit_multiplier,
-    FlatDictInt,
-    TupleProfits
+    FlatDictInt
 )
 
 def calculate_elixirs_cost_hour(elixirs: FlatDict) -> str:
@@ -182,8 +181,6 @@ class CalculateResultsSession:
             "BMB": (bmb_profit, res_of_interest_bmb)
         }
 
-        print(best_profits)
-
         max_key = max(best_profits, key=lambda k: best_profits[k][0]) # Get the key with the maximum profit
         max_result = best_profits[max_key][1]  # Get the result with the maximum profit
 
@@ -239,53 +236,10 @@ class CalculateResultsSession:
 
             total += amount * price
 
-        
-
-        profit, action_user_max_profit, profit_details_percent_labels = self.calculate_stones_best_profit(stones_best_profit)  # Calculate best profit from stones
-
+        calculate_max_profit = CalculateMaxProfit(self.black_stone_cost, self.concentrated_black_stone_cost)  # Create an instance of CalculateMaxProfit to calculate profits from stones
+    
+        profit, action_user_max_profit, profit_details_percent_labels = calculate_max_profit.calculate_stones_best_profit(stones_best_profit)  # Calculate best profit from stones
         return ((total + profit), action_user_max_profit, profit_details_percent_labels)
-
-    def calculate_stones_best_profit(self, stones_best_profit: FlatDictInt) -> tuple[int, str, Optional[dict[str, int]]]:
-        """
-        Calculate the best profit from stones based on the provided stone data.
-            :param stones_best_profit: A dictionary containing the stone data with their prices and amounts.
-            :return: The total best profit from the stones and action for the user to get that maximum profit.
-        """
-        if not stones_best_profit:
-            return (0, "", None)
-        
-        price_fragments, amount_fragments = stones_best_profit.get('Black Gem Frag.', (0, 0))  # Get the amount of Black Gem Fragments
-        price_black_gem, amount_black_gem = stones_best_profit.get('Black Gem', (0, 0))  # Get the amount of Black Gems
-        price_concentrated_gem, amount_concentrated_gem = stones_best_profit.get('Conc. Mag. Black Gem', (0, 0))  # Get the amount of Concentrated Magical Black Gems
-        price_sharps, amount_sharps = stones_best_profit.get('S. Black Crystal Shard', (0, 0))  # Get the amount of Special Black Crystal Shards
-
-        data_gems_stones = {
-            "price_fragments": price_fragments,
-            "amount_fragments": amount_fragments,
-            "price_black_gem": price_black_gem,
-            "amount_black_gem": amount_black_gem,
-            "price_concentrated_gem": price_concentrated_gem,
-            "amount_concentrated_gem": amount_concentrated_gem,
-            "price_sharps": price_sharps,
-            "amount_sharps": amount_sharps
-        }
-
-        results_profits: dict[str, TupleProfits] = {}
-
-        calculate_max_profit = CalculateMaxProfit(self.black_stone_cost, self.concentrated_black_stone_cost)  # Create an instance of CalculateMaxProfit to use its methods
-        
-        results_profits["Black Gem Fragments"] = (profit_fragments, _, _) = calculate_max_profit.calculate_profit_fragments(data_gems_stones.copy())  # Calculate profit for each stone separately
-        results_profits["Black Gem"] = (profit_black_gem, _, _) = calculate_max_profit.calc_profit_black_gem(data_gems_stones.copy())  # Calculate profit for black gems and concentrated black stones (if that is the max profit, otherwise sharps)
-        results_profits["Concentrated Black Gem"] = (profit_conc_black_gem, _, _) = calculate_max_profit.calc_profit_conc_black_gem(data_gems_stones) # Calculate profit for concentrated gems and concentrated black stones (if that is the max profit, otherwise sharps)
-
-        name_max_profit = max(results_profits, key=lambda k: results_profits[k][0])  # Get the key with the maximum profit
-        max_profit_action_user = f"{name_max_profit} + "
-        max_profit_action_user += "Concentrated" if results_profits[name_max_profit][1] else "Sharps"  # Add the action based on whether concentrated black stone profit is greater than sharps profit
-        profit_details_percent_labels = results_profits[name_max_profit][2]  # Get the profit details for the maximum profit
-
-        print(f"Results_profit: {results_profits}")
-        
-        return (max(profit_fragments, profit_black_gem, profit_conc_black_gem), max_profit_action_user, profit_details_percent_labels)  # Return the maximum profit from all calculations
 
     def results_h(self) -> int:
         """
@@ -326,13 +280,13 @@ class CalculateResultsSession:
             if name == 'Hours':
                 new_labels_input_text.append(name)
             else:
-                if name == "Black Gem Frag.":
+                if self.auto_calculate_best_profit and name == "Black Gem Frag.":
                     item_total = profit_details_percent_labels.get("Black Gem Fragments", 0) if profit_details_percent_labels else 0
-                elif name == "Black Gem":
+                elif self.auto_calculate_best_profit and name == "Black Gem":
                     item_total = profit_details_percent_labels.get("Black Gem", 0) if profit_details_percent_labels else 0
-                elif name == "Conc. Mag. Black Gem":
+                elif self.auto_calculate_best_profit and name == "Conc. Mag. Black Gem":
                     item_total = profit_details_percent_labels.get("Concentrated Black Gem", 0) if profit_details_percent_labels else 0
-                elif name == "S. Black Crystal Shard":
+                elif self.auto_calculate_best_profit and name == "S. Black Crystal Shard":
                     item_total = profit_details_percent_labels.get("Sharps", 0) if profit_details_percent_labels else 0
                 else:
                     price = price.replace(',', '').replace(' ', '') if price != '' else '0' # Remove commas and spaces for validation
