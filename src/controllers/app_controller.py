@@ -66,13 +66,13 @@ class AppController:
             This method is called when the clean sessions button is clicked.
         """
         self.session_controller.handle_delete_all_sessions()
-        
-    def exit_application_controller(self):
+
+    def handle_close_window(self):
         """
-        Perform the actions required to exit the application.
+        Handle the close window event.
+        This method is called when the user attempts to close the main window.
         """
-        add_log("Exiting application.", "info")
-        self.view.close_window()
+        self.view.trigger_close_event() # Trigger the close event in the view, which will call the on_exit_button_controller method
 
     def on_exit_button_controller(self):
         """
@@ -89,13 +89,11 @@ class AppController:
                 "error", 
                 "no_action"
             )
-            self.exit_application_controller()
-            return
+            return True
         
         if not show_confirm_exit:
             add_log("Exiting app without confirmation dialog.", "info")
-            self.exit_application_controller()
-            return
+            return True
 
         add_log("Showing confirmation dialog for exiting app.", "info")
         user_confirm_exit, remember_user_choice = show_dialog_confirmation(
@@ -106,8 +104,7 @@ class AppController:
         if user_confirm_exit:
             if remember_user_choice == show_confirm_exit:
                 add_log("Exiting without changing confirmation message.", "info")
-                self.exit_application_controller()
-                return
+                return True
             
             if not update_confirm_dialog(remember_user_choice, "exit"):
                 show_dialog_type(
@@ -116,10 +113,10 @@ class AppController:
                     "error",
                     "no_action"
                 )
-            self.exit_application_controller()
+            return True
         else:
             add_log("User cancelled exiting app", "info")
-            return
+            return False
 
     def get_spots_list_controller(self) -> list[str]:
         """
