@@ -48,6 +48,10 @@ class CalculateMaxProfit:
         self.elixirs_cost_h = elixirs_cost_h  # Elixir cost per hour for the session
 
     def calculate_max_profit(self) -> dict[str, Any]:
+        """
+        Calculate the maximum profit from items based on the provided input data.
+            :return: A dictionary containing the total profit, total profit per hour, taxed profit, taxed profit per hour, new labels for input text and elixir cost.
+        """
         result = 0
         gems: FlatDictInt = {}
         heads: FlatDictInt = {}
@@ -74,20 +78,23 @@ class CalculateMaxProfit:
             str(int(contribution_to_total["Conc. Mag. Black Stone"] / gems["Conc. Mag. Black Stone"][0])) if contribution_to_total["Conc. Mag. Black Stone"] else "0"
         )
 
-        result_heads = self.calculate_heads_best_profit(heads, contribution_to_total)  # Calculate the best profit from stones
+        result_heads, cost_scrolls = self.calculate_heads_best_profit(heads, contribution_to_total)  # Calculate the best profit from stones
         result += result_heads
 
         new_labels = self.update_labels(result, contribution_to_total)
 
-        total_no_elixirs = (result - black_stone_cost) if self.hours_digit > 0 else 0 # Subtract the cost of black stones used for the maximum profit
+        total_no_elixirs = result if self.hours_digit > 0 else 0 # Subtract the cost of black stones used for the maximum profit
         total_h = int(total_no_elixirs / self.hours_digit) if self.hours_digit > 0 else 0  # Calculate the total profit per hour
         total_taxed = self.results_taxed(total_no_elixirs) if self.hours_digit > 0 else 0  # Apply market tax to the total profit
         total_taxed_h = int(total_taxed / self.hours_digit) if self.hours_digit > 0 else 0  # Calculate the taxed profit per hour
+
+        black_stone_cost_h = int(black_stone_cost / self.hours_digit) if self.hours_digit > 0 else 0  # Calculate the black stone cost per hour
+        scrolls_cost_h = int(cost_scrolls / self.hours_digit) if self.hours_digit > 0 else 0  # Calculate the scrolls cost per hour
         
-        total = total_no_elixirs - self.elixir_cost_session  # Subtract the elixir cost from the total profit
-        total_taxed -= self.elixir_cost_session  # Subtract the elixir cost from the taxed profit
-        total_h -= self.elixirs_cost_h  # Subtract the elixir cost per hour from the total profit per hour
-        total_taxed_h -= self.elixirs_cost_h  # Subtract the elixir cost per hour from the taxed profit per hour
+        total = (total_no_elixirs - self.elixir_cost_session - black_stone_cost - cost_scrolls) if self.hours_digit > 0 else 0  # Subtract the elixir cost from the total profit after calculating profit taxed so it does not affect the taxed profit
+        total_taxed = (total_taxed - self.elixir_cost_session - black_stone_cost - cost_scrolls) if self.hours_digit > 0 else 0 # Subtract the elixir cost from the taxed profit
+        total_h = (total_h - self.elixirs_cost_h - black_stone_cost_h - scrolls_cost_h) if self.hours_digit > 0 else 0 # Subtract the elixir cost per hour from the total profit per hour
+        total_taxed_h = (total_taxed_h - self.elixirs_cost_h - black_stone_cost_h - scrolls_cost_h) if self.hours_digit > 0 else 0 # Subtract the elixir cost per hour from the taxed profit per hour
 
         return {
             'total': total,
@@ -216,6 +223,12 @@ class CalculateMaxProfit:
         return self.get_profit_sharps(data_gems_stones, black_stone_cost)  # Calculate profit from sharps and return the result adding it to current result
 
     def get_profit_sharps(self, gem_stones: FlatDictInt, black_stone_cost: int) -> TupleContributions:
+        """
+        Calculate the profit from Sharps and Concentrated Magical Black Stones based on the provided gem stones data.
+            :param gem_stones: A dictionary containing the gem stones data with their prices and amounts.
+            :param black_stone_cost: The cost of Black Stones used for the exchange.
+            :return: The total profit from Sharps and Concentrated Magical Black Stones, whether concentrated black stone profit is greater than sharps profit and specific amount of profits for each stone.
+        """
         gem_stones_concentrated = gem_stones.copy()  # Create a copy of the gem stones data for concentrated black stone calculations
 
         profit_fragments = gem_stones["Black Gem Frag."][0] * gem_stones["Black Gem Frag."][1]  # Calculate profit from Black Gem Fragments
@@ -307,7 +320,7 @@ class CalculateMaxProfit:
         taxed += taxed * self.value_pack_val  # Apply value pack multiplier
         return int(taxed)
     
-    def calculate_heads_best_profit(self, heads: FlatDictInt, contribution_to_total: dict[str, int]) -> int:
+    def calculate_heads_best_profit(self, heads: FlatDictInt, contribution_to_total: dict[str, int]) -> tuple[int, int]:
         """
         Calculate the best profit from heads based on the provided heads data.
             :param heads: A dictionary containing the heads data with their prices and amounts.
@@ -340,9 +353,10 @@ class CalculateMaxProfit:
 
         scrolls_copy = heads.copy()  # Create a copy of the heads data for scrolls calculations
         contribution_to_total_scrolls = contribution_to_total.copy()  # Create a copy of the contribution to total profit for scrolls
-        profit_scrolls = self.get_profit_scrolls(scrolls_copy, contribution_to_total_scrolls, name_green, name_yellow, name_special_yellow)  # Calculate the profit from scrolls
+        profit_scrolls, cost_scrolls = self.get_profit_scrolls(scrolls_copy, contribution_to_total_scrolls, name_green, name_yellow, name_special_yellow)  # Calculate the profit from scrolls
 
         max_profit = max(profit_green, profit_yellow, profit_special_yellow, profit_scrolls)  # Get the maximum profit from green, yellow and special yellow heads
+        cost = 0
 
         heads_result: FlatDictStr = {}
         if max_profit == profit_green:
@@ -355,11 +369,12 @@ class CalculateMaxProfit:
             heads_result = {name: (str(price), str(amount)) for name, (price, amount) in yellow_special_copy.items()}
             contribution_to_total.update(contribution_to_total_special_yellow)  # Update the contribution to total profit with special yellow heads contribution
         else:
+            cost = cost_scrolls
             heads_result = {name: (str(price), str(amount)) for name, (price, amount) in scrolls_copy.items()}
             contribution_to_total.update(contribution_to_total_scrolls)
 
         self.data_input.update(heads_result)  # Update the contribution to total profit with green heads contribution
-        return max_profit
+        return (max_profit, cost)
     
     def get_profit_greens(self, heads: FlatDictInt, name_green: str, contribution_to_total: dict[str, int]) -> int:
         """
@@ -380,6 +395,14 @@ class CalculateMaxProfit:
         return profit_green + profit_breath
     
     def get_profit_normal_yellow_head(self, heads: FlatDictInt, name_yellow: str, name_green: str, contribution_to_total: dict[str, int]) -> int:
+        """
+        Calculate the profit from normal yellow heads based on the provided heads data.
+            :param heads: A dictionary containing the heads data with their prices and amounts.
+            :param name_yellow: The name of the yellow head to calculate profit for.
+            :param name_green: The name of the green head to calculate profit for.
+            :param contribution_to_total: A dictionary containing the contribution of each item to the total profit
+            :return: The total profit from normal yellow heads.
+        """
         n_supreme = heads['Supreme Hide'][1] # Number of Supreme Hides that can be exchanged
         n_usable = heads['Usable Hide'][1] + int(n_supreme * n_supreme_exchange)  # Number of Usable Hides that can be exchanged
         n_damaged = heads['Damaged Hide'][1]  # Number of Damaged Hides that can be exchanged
@@ -400,6 +423,15 @@ class CalculateMaxProfit:
         return profit_greens + profit_yellow # Return the total profit from green and yellow heads combined
 
     def get_profit_special_yellow_head(self, heads: FlatDictInt, name_green: str, name_yellow: str, name_special_yellow: str, contribution_to_total: dict[str, int]) -> int:
+        """
+        Calculate the profit from special yellow heads based on the provided heads data.
+            :param heads: A dictionary containing the heads data with their prices and amounts.
+            :param name_green: The name of the green head to calculate profit for.
+            :param name_yellow: The name of the yellow head to calculate profit for.
+            :param name_special_yellow: The name of the special yellow head to calculate profit for
+            :param contribution_to_total: A dictionary containing the contribution of each item to the total profit
+            :return: The total profit from special yellow heads.
+        """
         n_breath = heads['Breath of Narcion'][1]  # Get the number of Breath of Narcion available for exchange
         n_special_yellow = min(heads[name_yellow][1], n_breath // n_breath_of_narcion_exchange)  # Number of Special Yellow Heads that can be exchanged from Breath of Narcion
 
@@ -416,9 +448,19 @@ class CalculateMaxProfit:
 
         return profit_yellow + profit_special_yellow + profit_greens # Return the total profit from yellow and special yellow heads combined
     
-    def get_profit_scrolls(self, heads: FlatDictInt, contribution_to_total: dict[str, int], name_green: str, name_yellow: str, name_special_yellow: str) -> int:
-        if heads["Breath of Narcion"][1] == 0:
-            return 0
+    def get_profit_scrolls(self, heads: FlatDictInt, contribution_to_total: dict[str, int], name_green: str, name_yellow: str, name_special_yellow: str) -> tuple[int, int]:
+        """
+        Calculate the profit from scrolls based on the provided heads data.
+            :param heads: A dictionary containing the heads data with their prices and amounts.
+            :param contribution_to_total: A dictionary containing the contribution of each item to the total profit.
+            :param name_green: The name of the green head to calculate profit for.
+            :param name_yellow: The name of the yellow head to calculate profit for.
+            :param name_special_yellow: The name of the special yellow head to calculate profit for
+            :return: The total profit from scrolls and the cost of scrolls crafted.
+        """
+        n_breath_of_narcion = heads["Breath of Narcion"][1]  # Number of Breath of Narcion available for exchange
+        if n_breath_of_narcion == 0:
+            return 0, 0
 
         most_profitable_scroll = self.get_most_profitable_scroll(heads)
         n_scrolls = heads['Supreme Hide'][1] // n_supreme_hide_scroll
@@ -431,16 +473,21 @@ class CalculateMaxProfit:
         cost_magical_lightstones_scroll = n_imperfect_lightstones_scroll * lowest_cost_imperfects  # Cost of magical lightstones per scroll
         cost_lightstone_scroll = most_profitable_scroll[1][1] // n_scrolls_lighstone # Cost of lightstone per scroll
         breath_of_narcion_cost = int(heads['Breath of Narcion'][0])  # Breath of Narcion cost
-        cost_remnants_scroll = math.ceil(breath_of_narcion_cost / n_remnants_of_mystic_beasts_exchange) # Cost of remnants of mystic beasts per scroll
 
-        # Profit per scroll
-        profit_scroll = max_profit_scroll - cost_lightstone_scroll - cost_magical_lightstones_scroll - cost_remnants_scroll
+        n_max_scrolls = n_breath_of_narcion * n_remnants_of_mystic_beasts_exchange
+        if n_max_scrolls < n_scrolls:
+            n_scrolls = n_max_scrolls
+
+        cost_remnants_scroll = math.ceil(breath_of_narcion_cost / n_remnants_of_mystic_beasts_exchange) # Cost of remnants of mystic beasts per scroll
+        cost_scrolls = (cost_lightstone_scroll + cost_magical_lightstones_scroll + cost_remnants_scroll) * n_scrolls  # Total cost of scrolls crafted
+
         # Total profit from scrolls crafted
-        profit_scrolls = profit_scroll * n_scrolls
+        profit_scrolls = max_profit_scroll * n_scrolls
 
         heads[most_profitable_scroll[0]] = (most_profitable_scroll[1][0], n_scrolls)  # Update the number of scrolls crafted
         heads['Supreme Hide'] = (heads['Supreme Hide'][0], heads['Supreme Hide'][1] - (n_scrolls * n_supreme_hide_scroll))  # Update the number of supreme hides left
-        n_breath_of_narcion_reduced = math.ceil((n_scrolls * cost_remnants_scroll) / heads["Breath of Narcion"][0]) if heads["Breath of Narcion"][0] else 0
+        n_breath_of_narcion_reduced = math.ceil(n_scrolls / n_remnants_of_mystic_beasts_exchange) if heads["Breath of Narcion"][0] else 0
+
         heads['Breath of Narcion'] = (heads['Breath of Narcion'][0], heads['Breath of Narcion'][1] - n_breath_of_narcion_reduced)
 
         # Use remnants of mystic beasts if available in heads
@@ -471,9 +518,14 @@ class CalculateMaxProfit:
         contribution_to_total[most_profitable_scroll[0]] = profit_scrolls  # Update the contribution to total profit with scrolls contribution
 
         heads.update(heads_result) # Update the heads with the results of the calculations
-        return max_profit + profit_scrolls  # Return the total profit from scrolls and heads combined
+        return ((max_profit + profit_scrolls), cost_scrolls)  # Return the total profit from scrolls and heads combined
     
     def get_most_profitable_scroll(self, heads: FlatDictInt):
+        """
+        Get the most profitable scroll based on the heads data.
+            :param heads: A dictionary containing the heads data with their prices and amounts.
+            :return: The most profitable scroll and its cost.
+        """
         scrolls = {
             'BMB: All AP': (heads['BMB: All AP'][0], self.lightstone_costs["758001"][1]), # Lighstone of fire: Rage
             'BMB: Accuracy': (heads['BMB: Accuracy'][0], self.lightstone_costs["758002"][1]), # Lighstone of earth: Marked
