@@ -145,6 +145,7 @@ n_black_gem_concentrate_gem_exchange = 5
 n_sharp_exchange_concentrate = 1
 n_sharp_exchange_concentrate_gem = 2
 n_fragment_exchange = 1
+n_scrolls_lighstone = 10 # Number of scrolls that can be crafted with 1 lightstone
 n_magical_lightstone_exchange = 6 # Number of Magical Lightstones obtained via exchange
 n_magical_lightstones_scroll = 35 # Number of Magical Lightstones needed to craft one scroll
 n_remnants_of_mystic_beasts_exchange = 70 # Remnants of Mystic Beasts obtained via exchange with "Breath of Narcion/Omua"

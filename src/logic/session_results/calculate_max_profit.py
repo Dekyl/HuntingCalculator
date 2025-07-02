@@ -15,6 +15,7 @@ from config.config import (
     n_magical_lightstone_exchange,
     n_magical_lightstones_scroll,
     n_remnants_of_mystic_beasts_exchange,
+    n_scrolls_lighstone,
     FlatDictInt,
     FlatDict,
     FlatDictStr,
@@ -421,19 +422,21 @@ class CalculateMaxProfit:
 
         most_profitable_scroll = self.get_most_profitable_scroll(heads)
         n_scrolls = heads['Supreme Hide'][1] // n_supreme_hide_scroll
-        max_profit_scroll = most_profitable_scroll[1][0] * n_scrolls  # Maximum profit from the most profitable scroll
+        max_profit_scroll = most_profitable_scroll[1][0] # Maximum profit from the most profitable scroll
 
         # Calculate how many scrolls can be crafted
         n_imperfect_lightstones_scroll = math.ceil(n_magical_lightstones_scroll / n_magical_lightstone_exchange)
         lowest_cost_imperfects = min(v[1] for v in self.imperfect_lightstone_costs.values())
+
         cost_magical_lightstones_scroll = n_imperfect_lightstones_scroll * lowest_cost_imperfects  # Cost of magical lightstones per scroll
-        
-        cost_lightstone_scroll = most_profitable_scroll[1][1] # Cost of lightstone per scroll
-        breath_of_narcion_cost = int(heads['Breath of Narcion'][0]) or 0  # Breath of Narcion cost
+        cost_lightstone_scroll = most_profitable_scroll[1][1] // n_scrolls_lighstone # Cost of lightstone per scroll
+        breath_of_narcion_cost = int(heads['Breath of Narcion'][0])  # Breath of Narcion cost
         cost_remnants_scroll = math.ceil(breath_of_narcion_cost / n_remnants_of_mystic_beasts_exchange) # Cost of remnants of mystic beasts per scroll
 
-        # Profit per scroll using supreme hides
-        profit_scrolls = max_profit_scroll - cost_lightstone_scroll - cost_magical_lightstones_scroll - cost_remnants_scroll
+        # Profit per scroll
+        profit_scroll = max_profit_scroll - cost_lightstone_scroll - cost_magical_lightstones_scroll - cost_remnants_scroll
+        # Total profit from scrolls crafted
+        profit_scrolls = profit_scroll * n_scrolls
 
         heads[most_profitable_scroll[0]] = (most_profitable_scroll[1][0], n_scrolls)  # Update the number of scrolls crafted
         heads['Supreme Hide'] = (heads['Supreme Hide'][0], heads['Supreme Hide'][1] - (n_scrolls * n_supreme_hide_scroll))  # Update the number of supreme hides left
