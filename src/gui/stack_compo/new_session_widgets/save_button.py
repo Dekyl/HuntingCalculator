@@ -96,7 +96,9 @@ class SaveSessionButton(QWidget):
             res_name.append(name)
             res_data.append(inp)
 
-        session_data = SaveSessionData(self.name_spot, res_name, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h)
+        user_action = self.callbacks.get_user_action()  # Get the user action string
+
+        session_data = SaveSessionData(self.name_spot, res_name, res_data, labels_res, total_res, total_res_h, taxed_res, taxed_res_h, user_action)
         if not self.controller.save_session_controller(session_data):
             show_dialog_type("Error saving data, invalid data.", "Error saving", "error", "no_action")
             return

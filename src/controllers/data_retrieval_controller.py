@@ -211,13 +211,15 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             # Merge the fetched data with cached data
             add_log("Merging fetched data with cached data...", "info")
             # Merges cached data into fetched data "data_fetched" variable
-            merge_results_data = MergeResultsData(data_fetched, 
-                                                  self.loot_items_cached, 
-                                                  self.elixirs_cached, 
-                                                  self.lightstones_cached, 
-                                                  self.imperfect_lightstones_cached, 
-                                                  self.black_stone_cost_cached,  
-                                                  self.loot_items)
+            merge_results_data = MergeResultsData(
+                data_fetched, 
+                self.loot_items_cached, 
+                self.elixirs_cached, 
+                self.lightstones_cached, 
+                self.imperfect_lightstones_cached, 
+                self.black_stone_cost_cached,  
+                self.loot_items
+            )
             merge_cached_fetched_data(merge_results_data)
 
         spot_id_icon = get_spot_id_icon(self.new_session.name_spot)

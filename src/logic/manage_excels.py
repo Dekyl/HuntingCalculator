@@ -80,6 +80,7 @@ class SaveSession:
         self.hours = self.res_data[-1]  # Last element in res_data is the number of hours in str
         self.label_hours = self.res_labels[-1] # Last label in res_name is "Hours"
         self.hours_digit = 0  # Initialize hours_digit to 0, will be set later
+        self.action_user = self.session_data.user_action  # User action string from the session data
 
     def save(self) -> bool:
         """
@@ -123,24 +124,28 @@ class SaveSession:
 
         worksheet.column_dimensions['A'].width = max_label_width + 2
 
-        dic_results = {
-            0: self.total_res,
-            1: self.total_res_h,
-            2: self.taxed_res,
-            3: self.taxed_res_h
-        }
-
         start_column = 3
         worksheet[f"{get_column_letter(start_column)}1"] = self.label_hours  # Last label is "Hours"
         worksheet[f"{get_column_letter(start_column)}2"] = self.hours  # Last data input is the number of hours
 
         start_column += 1
 
+        dic_results = [
+            self.total_res,
+            self.total_res_h,
+            self.taxed_res,
+            self.taxed_res_h
+        ]
+
         for i, label in enumerate(self.session_data.labels_res):
-            cell_val = worksheet[get_column_letter(start_column + i) + "2"]
-            worksheet[get_column_letter(start_column + i) + "1"] = label
+            cell_val = worksheet[get_column_letter(start_column) + "2"]
+            worksheet[get_column_letter(start_column) + "1"] = label
             cell_val.value = dic_results[i]
             cell_val.number_format = '#,##0' # Format as number with thousands separator
+            start_column += 1
+
+        worksheet[f"{get_column_letter(start_column)}1"] = "User action"  # Last label is "Hours"
+        worksheet[f"{get_column_letter(start_column)}2"] = self.action_user  # Last data input is the number of hours
 
         workbook.save(filename=path)
 
@@ -152,7 +157,8 @@ class SaveSession:
             f"\tTotal Results: {self.total_res:,}\n"
             f"\tResults per Hour: {self.total_res_h:,}\n"
             f"\tResults after Tax: {self.taxed_res:,}\n"
-            f"\tResults after Tax per Hour: {self.taxed_res_h:,}"
+            f"\tResults after Tax per Hour: {self.taxed_res_h:,}\n"
+            f"\tAction user: {self.action_user}"
         )
         add_log(log_message, "info")
 

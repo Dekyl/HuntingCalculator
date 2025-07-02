@@ -93,7 +93,8 @@ class NewSession(QWidget):
             get_inputs_result = self.get_input_results,
             get_labels_icons_input = self.get_labels_icons_input,
             get_line_edit_inputs = self.get_line_edit_inputs,
-            get_no_name_percent = self.get_no_name_percent
+            get_no_name_percent = self.get_no_name_percent,
+            get_user_action = self.get_user_action_str
         )
 
         # Create the widget that allows saving the results
@@ -165,3 +166,10 @@ class NewSession(QWidget):
             :return: The QLineEdit used to input the user action.
         """
         return self.exchange_hides_elixirs_widget.get_user_action_line_edit()
+    
+    def get_user_action_str(self) -> str:
+        """
+        Get the user action string from the exchange hides and elixirs widget.
+            :return: The user action as a string.
+        """
+        return self.get_user_action_line_edit().text() if self.get_user_action_line_edit() else ""

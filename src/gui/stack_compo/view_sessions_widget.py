@@ -156,12 +156,14 @@ class ViewSessionsWidget(QWidget):
             for cell in row:
                 if pd.isna(cell):
                     item = QStandardItem("") # No text if cell is NaN
-                elif isinstance(cell, (int, float)):
+                elif isinstance(cell, float) and cell.is_integer():
+                    item = QStandardItem(str(int(cell))) # Show as integer if no decimals
+                elif isinstance(cell, float):
                     item = QStandardItem(f"{cell:,.2f}") # Set number format with thousands separator
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 else:
                     item = QStandardItem(str(cell))
-
+                    
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 items.append(item)
             model.appendRow(items)
 

@@ -14,3 +14,4 @@ class SaveSessionData:
     total_res_h: int
     taxed_res: int
     taxed_res_h: int
+    user_action: str
