@@ -171,7 +171,7 @@ class ExchangeHidesElixirs(QWidget):
         self.user_action_line_edit.setFont(self.default_font)
         self.user_action_line_edit.setReadOnly(True)
         self.user_action_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.user_action_line_edit.setMinimumWidth(450)
+        self.user_action_line_edit.setMinimumWidth(550)
 
         user_action_layout.addWidget(user_action_label)
         user_action_layout.addWidget(self.user_action_line_edit)

@@ -1,6 +1,6 @@
 from typing import Callable, Optional, Any
 
-from logic.calculate_results_session import CalculateResultsSession
+from logic.session_results.calculate_results_session import CalculateResultsSession
 from logic.data_classes.save_session_data import SaveSessionData
 from logic.data_classes.session_results import SessionResultsData
 from logic.manage_excels import SaveSession, clean_sessions, delete_saved_session
@@ -210,7 +210,6 @@ class SessionController:
             :param session_results: An instance of SessionResultsData containing the results of the session.
             :return: A dictionary containing the results of the session or -1 if an error occurs.
         """
-        print(session_results)
         calculate_results = CalculateResultsSession(session_results)  # Create an instance of CalculateResultsSession with the session results
         return calculate_results.calculate_results_session()
     

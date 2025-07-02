@@ -136,8 +136,10 @@ scroll_bar_style = f"""
     }}
 """
 
+n_breath_of_narcion_exchange = 2 # Breath of narcion for yellow special head
 n_damaged_hide_exchange = 60
 n_usable_hide_exchange = 50
+n_supreme_exchange = 2
 n_black_stone_exchange = 2
 n_black_gem_concentrate_gem_exchange = 5
 n_sharp_exchange_concentrate = 1
@@ -154,7 +156,8 @@ market_tax = 0.35 # Market tax percentage for the results calculation
 NestedDict: TypeAlias = dict[str, dict[str, tuple[str, int]]]
 FlatDict: TypeAlias = dict[str, tuple[str, int]]
 FlatDictInt: TypeAlias = dict[str, tuple[int, int]]
-TupleProfits: TypeAlias = tuple[int, bool, dict[str, int]]
+FlatDictStr: TypeAlias = dict[str, tuple[str, str]]
+TupleContributions: TypeAlias = tuple[int, bool, int, dict[str, int]]  # (profit, is_concentrated_profit_greater, black_stone_cost, contribution_to_total)
 
 reduced_item_names = {
     "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",
