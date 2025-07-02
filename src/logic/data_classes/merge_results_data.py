@@ -9,6 +9,5 @@ class MergeResultsData:
     elixirs_cached: FlatDict
     lightstones_cached: FlatDict
     imperfect_lightstones_cached: FlatDict
-    black_stone_buy_cached: FlatDict
-    black_stone_sell_cached: FlatDict
+    black_stone_cost_cached: FlatDict
     loot_items_in_order: dict[str, str]

@@ -20,8 +20,7 @@ class NewSessionData:
     elixirs_cost: str = ""
     lightstone_costs: Optional[FlatDict] = None
     imperfect_lightstone_costs: Optional[FlatDict] = None
-    black_stone_buy: Optional[FlatDict] = None
-    black_stone_sell: Optional[FlatDict] = None
+    black_stone_cost: Optional[FlatDict] = None
 
     def set_extra_data(
         self, 
@@ -31,8 +30,7 @@ class NewSessionData:
         elixirs_cost: str, 
         lightstone_costs: FlatDict, 
         imperfect_lightstone_costs: FlatDict,
-        black_stone_buy: FlatDict,
-        black_stone_sell: FlatDict
+        black_stone_cost: FlatDict
     ):
         """
         Set additional data for the new session.
@@ -42,8 +40,7 @@ class NewSessionData:
             :param elixirs_cost: The cost of elixirs for the hunting spot.
             :param lightstone_costs: A dictionary containing the costs of lightstones for the hunting spot.
             :param imperfect_lightstone_costs: The costs of the imperfect lightstones for the hunting spot.
-            :param black_stone_buy: A dictionary containing the buy prices of black stones for the hunting spot.
-            :param black_stone_sell: A dictionary containing the sell prices of black stones for the
+            :param black_stone_cost: A dictionary containing the buy prices of black stones for the hunting spot.
         """
         self.spot_id_icon = spot_id_icon
         self.no_market_items = no_market_items
@@ -51,5 +48,4 @@ class NewSessionData:
         self.elixirs_cost = elixirs_cost
         self.lightstone_costs = lightstone_costs
         self.imperfect_lightstone_costs = imperfect_lightstone_costs
-        self.black_stone_buy = black_stone_buy
-        self.black_stone_sell = black_stone_sell
+        self.black_stone_cost = black_stone_cost

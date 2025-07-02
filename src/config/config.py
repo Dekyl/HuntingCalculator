@@ -77,7 +77,8 @@ res_list = {
     "4987": "res/icons/items/4987.png",
     "4998": "res/icons/items/4998.png",
     "721003": "res/icons/items/721003.png",
-    "766107": "res/icons/items/766107.png"
+    "766107": "res/icons/items/766107.png",
+    "16004": "res/icons/items/16004.png"
 }
 
 res_abs_paths: dict[str, str] = {}
@@ -98,7 +99,7 @@ max_attempts = 3 # Maximum number of attempts to fetch one data from the API
 timeout_connection = 1 # Timeout in seconds to establish a connection to the API
 timeout_fetch = 5 # Timeout in seconds to fetch data from the API
 backoff_time = 0.5 # Time in seconds to wait before retrying a request
-time_cached = 60 * 10  # Time in seconds for cache data (10 minutes)
+time_cached = 60 * 60 * 24  # Time in seconds for cache data (10 minutes)
 
 scroll_bar_style = f"""
     QScrollBar:vertical {{ /* Vertical background scroll bar */
@@ -135,8 +136,10 @@ scroll_bar_style = f"""
     }}
 """
 
+n_breath_of_narcion_exchange = 2 # Breath of narcion for yellow special head
 n_damaged_hide_exchange = 60
 n_usable_hide_exchange = 50
+n_supreme_exchange = 2
 n_black_stone_exchange = 2
 n_black_gem_concentrate_gem_exchange = 5
 n_sharp_exchange_concentrate = 1
@@ -153,9 +156,12 @@ market_tax = 0.35 # Market tax percentage for the results calculation
 NestedDict: TypeAlias = dict[str, dict[str, tuple[str, int]]]
 FlatDict: TypeAlias = dict[str, tuple[str, int]]
 FlatDictInt: TypeAlias = dict[str, tuple[int, int]]
+FlatDictStr: TypeAlias = dict[str, tuple[str, str]]
+TupleContributions: TypeAlias = tuple[int, bool, int, dict[str, int]]  # (profit, is_concentrated_profit_greater, black_stone_cost, contribution_to_total)
 
 reduced_item_names = {
     "Concentrated Magical Black Gem": "Conc. Mag. Black Gem",
+    "Concentrated Magical Black Stone": "Conc. Mag. Black Stone",
     "Blessing of Mystic Beasts - All AP": "BMB: All AP",
     "Blessing of Mystic Beasts - Accuracy": "BMB: Accuracy",
     "Blessing of Mystic Beasts - Damage Reduction": "BMB: Damage Reduction",

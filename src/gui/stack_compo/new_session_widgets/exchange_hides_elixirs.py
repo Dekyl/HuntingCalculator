@@ -43,9 +43,9 @@ class ExchangeHidesElixirs(QWidget):
 
         exchange_elixirs_layout.addWidget(left_spacer)
         exchange_elixirs_layout.addWidget(exchange_hides_widget)
-        exchange_elixirs_layout.addSpacing(100)
+        exchange_elixirs_layout.addSpacing(150)
         exchange_elixirs_layout.addWidget(elixirs_cost_widget)
-        exchange_elixirs_layout.addSpacing(100)
+        exchange_elixirs_layout.addSpacing(150)
         exchange_elixirs_layout.addWidget(user_action_widget)
         exchange_elixirs_layout.addWidget(right_spacer)
 
@@ -171,7 +171,7 @@ class ExchangeHidesElixirs(QWidget):
         self.user_action_line_edit.setFont(self.default_font)
         self.user_action_line_edit.setReadOnly(True)
         self.user_action_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.user_action_line_edit.setMinimumWidth(450)
+        self.user_action_line_edit.setMinimumWidth(550)
 
         user_action_layout.addWidget(user_action_label)
         user_action_layout.addWidget(self.user_action_line_edit)

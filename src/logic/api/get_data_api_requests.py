@@ -24,7 +24,7 @@ class ApiRequest:
         self.cancel_event = cancel_event
         self.region = region
         self.attempts = 0
-        self.sell_or_buy = "sellCount" if item_type in ["Items", "Black-Stone-Sell"] else "buyCount"
+        self.sell_or_buy = "sellCount" if item_type in "Items" else "buyCount"
         self.url = f"https://api.blackdesertmarket.com/item/{self.id_item}/0?region={self.region}"
 
     def get_price(self) -> str:

@@ -1,6 +1,6 @@
 from typing import Callable, Optional, Any
 
-from logic.calculate_results_session import CalculateResultsSession
+from logic.session_results.calculate_results_session import CalculateResultsSession
 from logic.data_classes.save_session_data import SaveSessionData
 from logic.data_classes.session_results import SessionResultsData
 from logic.manage_excels import SaveSession, clean_sessions, delete_saved_session

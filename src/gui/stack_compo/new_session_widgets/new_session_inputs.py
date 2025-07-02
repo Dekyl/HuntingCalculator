@@ -18,7 +18,11 @@ from config.config import res_abs_paths
 from logic.data_classes.new_session_data import NewSessionData
 from logic.data_classes.session_input_callbacks import SessionInputCallbacks
 from logic.data_classes.session_results import SessionResultsData
-from config.config import settings_json, breath_of_narcion_id
+from config.config import (
+    settings_json, 
+    breath_of_narcion_id, 
+    FlatDictStr
+)
 
 class SessionInputs(QWidget):
     def __init__(self, new_session: NewSessionData, default_font: QFont, qtooltip_style: str, default_style: str, session_input_callbacks: SessionInputCallbacks):
@@ -94,8 +98,6 @@ class SessionInputs(QWidget):
         # Column where to place next element
         col = 0
 
-        
-
         for i, (icon, label, price) in enumerate(self.labels_icons_input):
             new_data_input = QLineEdit()
             name_without_percent = self.session_input_callbacks.get_no_name_percent(label.text()) # Get the name without the percentage
@@ -103,7 +105,8 @@ class SessionInputs(QWidget):
             if (self.new_session.auto_calculate_best_profit and 
                 (name_without_percent.startswith("M. Sp.") or 
                     name_without_percent.startswith("M. St.") or 
-                    name_without_percent.startswith("BMB:"))):
+                    name_without_percent.startswith("BMB:") or 
+                    name_without_percent == "Conc. Mag. Black Stone")):
                 
                 new_data_input.setReadOnly(True)
                 new_data_input.setStyleSheet("""
@@ -154,7 +157,7 @@ class SessionInputs(QWidget):
         Update the results of the new session based on the input data.
         This method collects the input data, calculates the results, and updates the labels and input fields accordingly.
         """
-        data_input: dict[str, tuple[str, str]] = {}
+        data_input: FlatDictStr = {}
         # Calculate the results based on the input data
         all_inputs_filled: bool = True
         save_button = self.session_input_callbacks.get_save_button()
@@ -171,8 +174,7 @@ class SessionInputs(QWidget):
 
         assert self.new_session.lightstone_costs is not None, "Lightstone costs must be provided in the new session data."
         assert self.new_session.imperfect_lightstone_costs is not None, "Imperfect lightstone costs must be provided in the new session data."
-        assert self.new_session.black_stone_buy is not None, "Black stone costs must be provided in the new session data."
-        assert self.new_session.black_stone_sell is not None, "Black stone costs must be provided in the new session data."
+        assert self.new_session.black_stone_cost is not None, "Black stone costs must be provided in the new session data."
 
         session_results = SessionResultsData(
             self.new_session.name_spot,
@@ -184,8 +186,7 @@ class SessionInputs(QWidget):
             self.new_session.auto_calculate_best_profit,
             self.new_session.lightstone_costs,
             self.new_session.imperfect_lightstone_costs,
-            self.new_session.black_stone_buy,
-            self.new_session.black_stone_sell
+            self.new_session.black_stone_cost
         )
 
         res_data = self.controller.get_session_results_controller(session_results)
@@ -200,7 +201,7 @@ class SessionInputs(QWidget):
             show_dialog_type("Error calculating results, please ensure that all input data is valid.", "Calculate results", "error", "no_action")
             return
         
-        self.reupdate_item_amounts(res_data["new_data_input"])
+        self.reupdate_item_amounts(data_input) # Reupdate the item amounts in the input fields from modified data input
         
         results_tot = res_data["total"]
         results_tot_h = res_data["total_h"]

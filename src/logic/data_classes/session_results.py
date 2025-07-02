@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from config.config import FlatDict
+from config.config import FlatDict, FlatDictStr
 
 @dataclass
 class SessionResultsData:
@@ -11,10 +11,9 @@ class SessionResultsData:
     value_pack: bool
     market_tax: float
     extra_profit: bool
-    data_input: dict[str, tuple[str, str]]
+    data_input: FlatDictStr
     elixirs_cost: str
     auto_calculate_best_profit: bool
     lightstone_costs: FlatDict
     imperfect_lightstone_costs: FlatDict
-    black_stone_buy: FlatDict
-    black_stone_sell: FlatDict
+    black_stone_cost: FlatDict
