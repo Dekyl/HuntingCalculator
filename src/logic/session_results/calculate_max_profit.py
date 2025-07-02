@@ -357,8 +357,6 @@ class CalculateMaxProfit:
             heads_result = {name: (str(price), str(amount)) for name, (price, amount) in scrolls_copy.items()}
             contribution_to_total.update(contribution_to_total_scrolls)
 
-        print(contribution_to_total)
-
         self.data_input.update(heads_result)  # Update the contribution to total profit with green heads contribution
         return max_profit
     
