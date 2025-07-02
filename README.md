@@ -43,7 +43,7 @@ A tool to calculate and optimize your hunting activities. Simplify strategic dec
 
 - **Language**: Choose your preferred language. Available options: English.
 - **Region**: Select your region. Available options: EU, NA (modifiable via the settings section).
-- **Auto-Calculate**: Toggle auto-calculation of resources and earnings to maximize profits or manually input values based on your preference.
+- **Auto-Calculate**: Toggle auto-calculation of resources and earnings to maximize profits or manually input values based on your preference(NOTE: Manually input values will not take into account costs of items that reduce total profit e.g: items required to buy to craft scrolls or stones)
 - **Value-Pack**: Enable or disable value pack benefits to adjust calculations for increased earnings based on your current game status.
 - **Extra-Profit**: Activate or deactivate extra benefits from items like rings or old moon scrolls to gain an additional 5% profit when selling on the marketplace.
 
