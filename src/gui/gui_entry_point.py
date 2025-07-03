@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
-from PySide6.QtGui import QIcon, QGuiApplication, QShortcut, QCloseEvent
+from PySide6.QtGui import QIcon, QGuiApplication, QShortcut, QCloseEvent, QKeySequence
 from PySide6.QtCore import QSize
 
 from gui.manage_widgets import ManagerWidgets
@@ -63,29 +63,29 @@ class GuiEntryPoint(QMainWindow):
         Create keyboard shortcuts for various actions in the application.
         """
         # Home page shortcut
-        shortcut_home = QShortcut("Ctrl+H", self)
+        shortcut_home = QShortcut(QKeySequence("Ctrl+H"), self)
         shortcut_home.activated.connect(lambda: self.manager.set_page("home"))
 
         # New session shortcut
-        shortcut_new_session = QShortcut("Ctrl+N", self)
+        shortcut_new_session = QShortcut(QKeySequence("Ctrl+N"), self)
         new_session_button = self.side_bar_widget.get_left_widget_button("new_session")
-        shortcut_new_session.activated.connect(new_session_button.click if new_session_button else None)
+        shortcut_new_session.activated.connect(lambda: new_session_button.click() if new_session_button else None)
 
         # View sessions shortcut
-        shortcut_view_sessions = QShortcut("Ctrl+A", self)
+        shortcut_view_sessions = QShortcut(QKeySequence("Ctrl+A"), self)
         shortcut_view_sessions.activated.connect(lambda: self.controller.show_dialog_select_session_controller() if self.controller else None)
 
         # Clean sessions shortcut
-        shortcut_clean_sessions = QShortcut("Ctrl+L", self)
+        shortcut_clean_sessions = QShortcut(QKeySequence("Ctrl+L"), self)
         shortcut_clean_sessions.activated.connect(lambda: self.controller.clean_all_sessions_controller() if self.controller else None)
 
         # Settings shortcut
-        shortcut_settings = QShortcut("Ctrl+G", self)
-        shortcut_settings.activated.connect(lambda: self.create_settings_widget())
+        shortcut_settings = QShortcut(QKeySequence("Ctrl+G"), self)
+        shortcut_settings.activated.connect(self.create_settings_widget)
 
         # Exit application shortcut
-        shortcut_exit = QShortcut("Ctrl+Q", self)
-        shortcut_exit.activated.connect(self.controller.handle_close_window if self.controller else None)
+        shortcut_exit = QShortcut(QKeySequence("Ctrl+Q"), self)
+        shortcut_exit.activated.connect(lambda: self.controller.handle_close_window() if self.controller else None)
 
     def create_new_session_widget(self, new_session: NewSessionData):
         """

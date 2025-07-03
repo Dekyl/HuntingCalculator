@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtGui import QFont, QIcon, QShortcut, QKeySequence
 from PySide6.QtCore import Qt
 
 from logic.data_classes.new_session_data import NewSessionData
@@ -99,6 +99,11 @@ class NewSession(QWidget):
 
         # Create the widget that allows saving the results
         self.save_button_widget = SaveSessionButton(new_session.name_spot, default_font, qtooltip_style, save_session_callbacks)
+
+        # Save session shortcut
+        save_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
+        save_shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        save_shortcut.activated.connect(lambda: self.get_save_button().click())
 
         # Adds the previous widgets to the main layout
         new_session_layout.addWidget(title_widget)

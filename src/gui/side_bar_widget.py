@@ -2,7 +2,7 @@ import os
 from typing import Callable, Optional
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDialog, QMainWindow
-from PySide6.QtGui import QFont, QIcon, QShortcut
+from PySide6.QtGui import QFont, QIcon, QShortcut, QKeySequence
 from PySide6.QtCore import QSize, Qt
 
 from gui.manage_widgets import ManagerWidgets
@@ -185,8 +185,8 @@ class SideBarWidget(QWidget):
             button.clicked.connect(lambda _, s=spot: (self.controller.select_new_session_controller(s), spots_dialog.accept())) # type: ignore
 
             # Create a keyboard shortcut for each button spot
-            shortcut_view_sessions = QShortcut(f"Ctrl+{i+1}", spots_dialog)
-            shortcut_view_sessions.activated.connect(button.click)
+            shortcut_view_sessions = QShortcut(QKeySequence(f"Ctrl+{i+1}"), spots_dialog)
+            shortcut_view_sessions.activated.connect(lambda b=button: b.click() if b else None)
             
             spots_layout.addWidget(button)
 
