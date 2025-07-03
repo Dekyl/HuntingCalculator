@@ -156,6 +156,11 @@ class SettingsWidget(QWidget):
 
             else:
                 self.scroll_area_elixirs = QScrollArea()
+                up_arrow_url = res_abs_paths["up_arrow"].replace("\\", "/")
+                down_arrow_url = res_abs_paths["down_arrow"].replace("\\", "/")
+                left_arrow_url = res_abs_paths["left_arrow"].replace("\\", "/")
+                right_arrow_url = res_abs_paths["right_arrow"].replace("\\", "/")
+
                 self.scroll_area_elixirs.setStyleSheet(f"""
                     QScrollArea {{ 
                         background-color: rgb(30, 30, 30);
@@ -173,7 +178,7 @@ class SettingsWidget(QWidget):
                         subcontrol-position: top;
                         subcontrol-origin: margin;
                         border-radius: 5px;
-                        image: url("{res_abs_paths['up_arrow']}");
+                        image: url({up_arrow_url});
                     }}
 
                     QScrollBar::add-line:vertical {{ /* Down arrow */
@@ -183,7 +188,7 @@ class SettingsWidget(QWidget):
                         subcontrol-position: bottom;
                         subcontrol-origin: margin;
                         border-radius: 5px;
-                        image: url("{res_abs_paths['down_arrow']}");
+                        image: url("{down_arrow_url}");
                     }}
                     QScrollBar::sub-line:horizontal {{ /* Left arrow */
                         background: rgb(150, 150, 150);
@@ -192,7 +197,7 @@ class SettingsWidget(QWidget):
                         subcontrol-position: left;
                         subcontrol-origin: margin;
                         border-radius: 5px;
-                        image: url("{res_abs_paths['left_arrow']}");
+                        image: url("{left_arrow_url}");
                     }}
                     
                     QScrollBar::add-line:horizontal {{ /* Right arrow */
@@ -202,7 +207,7 @@ class SettingsWidget(QWidget):
                         subcontrol-position: right;
                         subcontrol-origin: margin;
                         border-radius: 5px;
-                        image: url("{res_abs_paths['right_arrow']}");
+                        image: url("{right_arrow_url}");
                     }}
                 """)
                 self.scroll_area_elixirs.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)

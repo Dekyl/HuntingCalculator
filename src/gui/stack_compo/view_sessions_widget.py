@@ -48,6 +48,12 @@ class ViewSessionsWidget(QWidget):
 
         table_view = QTableView()
         table_view.setFont(QFont("Arial", 12))
+        
+        up_arrow_url = res_abs_paths["up_arrow"].replace("\\", "/")
+        down_arrow_url = res_abs_paths["down_arrow"].replace("\\", "/")
+        left_arrow_url = res_abs_paths["left_arrow"].replace("\\", "/")
+        right_arrow_url = res_abs_paths["right_arrow"].replace("\\", "/")
+
         table_view.setStyleSheet(f"""
             QTableView {{
                 background-color: rgb(30, 30, 30);
@@ -64,7 +70,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: top;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_abs_paths['up_arrow']}");
+                image: url({up_arrow_url});
             }}
 
             QScrollBar::add-line:vertical {{ /* Down arrow */
@@ -74,7 +80,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: bottom;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_abs_paths['down_arrow']}");
+                image: url({down_arrow_url});
             }}
 
             QScrollBar::sub-line:horizontal {{ /* Left arrow */
@@ -84,7 +90,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: left;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_abs_paths['left_arrow']}");
+                image: url({left_arrow_url});
             }}
             
             QScrollBar::add-line:horizontal {{ /* Right arrow */
@@ -94,7 +100,7 @@ class ViewSessionsWidget(QWidget):
                 subcontrol-position: right;
                 subcontrol-origin: margin;
                 border-radius: 5px;
-                image: url("{res_abs_paths['right_arrow']}");
+                image: url({right_arrow_url});
             }}
         """)
         table_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
