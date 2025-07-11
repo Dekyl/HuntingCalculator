@@ -128,6 +128,10 @@ class CalculateMaxProfit:
         profit_conc_black_gem_cost_applied = profit_conc_black_gem - cost_black_stones_concentrated  # Add the profit from concentrated black gems to the total result and deduct the cost of black stones used for concentrated gems
 
         max_profit = max(profit_fragments_cost_applied, profit_black_gem_cost_applied, profit_conc_black_gem_cost_applied)  # Get the maximum profit from all calculations
+
+        if max_profit <= 0: # If no profit can be made, return 0 profit and empty action
+            return (0, "No Action", 0)
+
         if max_profit == profit_fragments_cost_applied:
             max_profit_action_user = "Black Gem Fragments + "
             max_profit_action_user += "Concentrated Black Stone" if action_fragments else "Sharps"  # Add the action based on whether concentrated black stone profit is greater than sharps profit
