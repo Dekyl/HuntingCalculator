@@ -23,8 +23,17 @@ pyinstaller --noconfirm --onefile --windowed ^
 "src\main.py"
 
 echo Cleaning temp files...
-del "Hunting Calculator.spec"
-rmdir /s /q build
+if exist "Hunting Calculator.spec" (
+    echo === Removing Hunting Calculator.spec ===
+    del "Hunting Calculator.spec"
+)
+
+if exist "build" (
+    echo === Removing build folder ===
+    rmdir /s /q build
+) else (
+    echo build folder not found, skipping delete.
+)
 
 echo.
 echo === Build ready! ===

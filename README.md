@@ -64,6 +64,9 @@ Clone repository:
 ```bash
 git clone https://github.com/Dekyl/HuntingCalculator.git
 cd HuntingCalculator
+python -m venv venv
+python.exe -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
 ---

@@ -75,9 +75,8 @@ class CalculateMaxProfit:
 
         self.data_input["Conc. Mag. Black Stone"] = ( # Update the input data with the maximum profit value for concentrated black stones
             str(gems["Conc. Mag. Black Stone"][0]), 
-            str(int(contribution_to_total["Conc. Mag. Black Stone"] / gems["Conc. Mag. Black Stone"][0])) if contribution_to_total["Conc. Mag. Black Stone"] else "0"
+            str(int(contribution_to_total["Conc. Mag. Black Stone"] / gems["Conc. Mag. Black Stone"][0])) if action_user != "No Action" and contribution_to_total["Conc. Mag. Black Stone"] else "0"
         )
-
         result_heads, cost_scrolls = self.calculate_heads_best_profit(heads, contribution_to_total)  # Calculate the best profit from stones
         result += result_heads
 
@@ -114,7 +113,7 @@ class CalculateMaxProfit:
             :return: The total best profit from the stones, action for the user to get that maximum profit and cost of black stones used for the maximum profit.
         """
         if not stones_best_profit:
-            return (0, "", 0)  # Return 0 profit and empty action if no stones are provided
+            return (0, "No Action", 0)  # Return 0 profit and empty action if no stones are provided
         
         self.exchange_wildsparks(stones_best_profit)  # Exchange wildsparks to black gem fragments if auto calculate best profit is enabled
         contribution_to_total['Wildspark'] = stones_best_profit['Wildspark'][0] * stones_best_profit['Wildspark'][1]  # Add the contribution of Wildsparks to the total profit
