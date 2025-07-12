@@ -185,7 +185,7 @@ class DataRetrievalController(QObject): # Inherits from QObject to use signals a
             update_cached_data(data_fetched, self.region) # Update cached data with the half fetched data so it does not start from scratch next time
             
             add_log(f"Error retrieving data for spot '{self.new_session.name_spot}'", "error")
-            self.set_session_button_enabled(False)
+            self.set_session_button_enabled(False) # Disable the session button to prevent further attempts
             show_dialog_type(
                 "Error fetching data from API, disabling button for 60s.",
                 "API timeout",
