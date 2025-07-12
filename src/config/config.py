@@ -100,6 +100,7 @@ timeout_connection = 1 # Timeout in seconds to establish a connection to the API
 timeout_fetch = 5 # Timeout in seconds to fetch data from the API
 backoff_time = 0.5 # Time in seconds to wait before retrying a request
 time_cached = 60 * 10  # Time in seconds for cache data (10 minutes)
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
 scroll_bar_style = f"""
     QScrollBar:vertical {{ /* Vertical background scroll bar */

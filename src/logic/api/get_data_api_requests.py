@@ -4,7 +4,13 @@ from threading import Event
 from typing import cast
 
 from logic.logs import add_log
-from config.config import timeout_connection, max_attempts, backoff_time, timeout_fetch
+from config.config import (
+    timeout_connection, 
+    max_attempts, 
+    backoff_time, 
+    timeout_fetch, 
+    user_agent
+)
 
 class ApiRequest:
     """
@@ -24,7 +30,7 @@ class ApiRequest:
         self.cancel_event = cancel_event
         self.region = region
         self.attempts = 0
-        self.sell_or_buy = "sellCount" if item_type in "Items" else "buyCount"
+        self.sell_or_buy = "sellCount" if item_type == "Items" else "buyCount"
         self.url = f"https://api.blackdesertmarket.com/item/{self.id_item}/0?region={self.region}"
 
     def get_price(self) -> str:
@@ -34,8 +40,11 @@ class ApiRequest:
         """
 
         item_data = self.get_item_data()
+        if self.cancel_event.is_set():
+            add_log(f"Cancellation event set while fetching {self.id_item}. Stopping further processing...", "warning")
+            return ""
         if not item_data:
-            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts + 1} attempts", "warning")
+            add_log(f"Failed to fetch data for item {self.id_item} after {self.attempts} attempts", "warning")
             return ""
         try:
             data = json.loads(item_data)
@@ -67,22 +76,19 @@ class ApiRequest:
         Connect to the Black Desert Market API to fetch item or elixir data.
             :return: The raw data string containing response information from API, or an empty string if the request fails.
         """
-        if self.cancel_event.is_set():
-            return ""
-        
-        buffer, response_code = self.perform_api_request()
+        while not self.cancel_event.is_set() and self.attempts < max_attempts:
+            buffer, response_code = self.perform_api_request()
 
-        if response_code == 200:
-            return buffer.getvalue().decode("utf-8")
-        elif response_code == 500:
-            add_log(f"Server returned 500 for item {self.id_item} data. ({self.attempts + 1}/{max_attempts})", "warning")
-        else:
-            add_log(f"Unexpected response code {response_code} for item {self.id_item} data", "warning")
+            if response_code == 200:
+                return buffer.getvalue().decode("utf-8")
+            elif response_code == 500:
+                add_log(f"Server returned 500 for item {self.id_item} data. ({self.attempts + 1}/{max_attempts})", "warning")
+            else:
+                add_log(f"Unexpected response code {response_code} for item {self.id_item} data", "warning")
 
-        if self.attempts < max_attempts - 1:
-            time.sleep(backoff_time)  # backoff before retrying
+            if self.attempts < max_attempts - 1:
+                time.sleep(backoff_time)  # backoff before retrying
             self.attempts += 1
-            return self.get_item_data()
 
         return ""
 
@@ -98,7 +104,10 @@ class ApiRequest:
         response_code: int = 0
 
         c = pycurl.Curl()
-        headers = ['accept: */*']
+        headers = [
+            'accept: */*',
+            f'User-Agent: {user_agent}'
+        ]
         c.setopt(c.HTTPHEADER, headers)                   # type: ignore
         c.setopt(c.CONNECTTIMEOUT, timeout_connection)    # type: ignore
         c.setopt(c.URL, self.url)                              # type: ignore
